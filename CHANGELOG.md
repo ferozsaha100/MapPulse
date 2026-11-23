@@ -2,6 +2,10 @@
 
 All notable changes to MapPulse are recorded here. Versions follow semantic versioning.
 
+## 0.0.4 (Phase 0 spike)
+
+- Label collision boxes use the measured width of the uppercase label type, so neighboring labels no longer touch.
+
 ## 0.0.3 (Phase 0 spike, second tuning pass)
 
 - Water shapes are merged before drawing, which removes the seam lines between adjacent bodies of water.

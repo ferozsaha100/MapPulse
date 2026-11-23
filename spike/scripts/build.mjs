@@ -166,8 +166,8 @@ for (const z of zones) {
 // Keep labels from sitting on top of each other; a label pushed clear of its anchor gets a leader line.
 const boxes = zones.filter((z) => z.label).map((z) => ({
   z, x: z.label.x, y: z.label.y,
-  w: Math.max(...z.lines.map((l) => l.length)) * z.fontSize * 0.72 + 4,
-  h: z.lines.length * z.fontSize * 1.18 + 2,
+  w: Math.max(...z.lines.map((l) => l.length)) * z.fontSize * 0.8 + 6, // uppercase, 600 weight, 1.1 px tracking
+  h: z.lines.length * z.fontSize * 1.18 + 3,
 }));
 P.separateLabels(boxes, { width: W, height: H });
 for (const b of boxes) {
