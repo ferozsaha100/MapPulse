@@ -68,28 +68,32 @@ class Test_Importer extends MapPulse_Test_Case {
 
 	public function test_import_request_without_the_capability_is_refused() {
 		$this->sign_in( 'editor' );
+		$before = $this->map_count();
 		$result = $this->run_import( wp_create_nonce( 'mappulse_import' ), array( 'mappulse_sample' => '1' ) );
 		$this->assertStringContainsString( 'not allowed', $result['died'] ?? '' );
-		$this->assertSame( 0, $this->map_count() );
+		$this->assertSame( $before, $this->map_count() );
 	}
 
 	public function test_import_request_with_a_bad_nonce_is_refused() {
 		$this->sign_in( 'administrator' );
+		$before = $this->map_count();
 		$result = $this->run_import( 'not-a-nonce', array( 'mappulse_sample' => '1' ) );
 		$this->assertArrayHasKey( 'died', $result );
 		$this->assertStringNotContainsString( 'not allowed', $result['died'] );
-		$this->assertSame( 0, $this->map_count() );
+		$this->assertSame( $before, $this->map_count() );
 	}
 
 	public function test_import_request_from_a_manager_imports_and_redirects() {
 		$this->sign_in( 'administrator' );
+		$before = $this->map_count();
 		$result = $this->run_import( wp_create_nonce( 'mappulse_import' ), array( 'mappulse_sample' => '1' ) );
 		$this->assertStringContainsString( 'mappulse_imported=', $result['redirect'] ?? '' );
-		$this->assertSame( 1, $this->map_count() );
+		$this->assertSame( $before + 1, $this->map_count() );
 	}
 
 	public function test_a_file_path_that_is_not_a_real_upload_is_refused() {
 		$this->sign_in( 'administrator' );
+		$before = $this->map_count();
 		$files  = array(
 			'mappulse_file' => array(
 				'name'     => 'sample.map.json',
@@ -100,6 +104,6 @@ class Test_Importer extends MapPulse_Test_Case {
 		);
 		$result = $this->run_import( wp_create_nonce( 'mappulse_import' ), array(), $files );
 		$this->assertStringContainsString( 'mappulse_error=mappulse_file', $result['redirect'] ?? '' );
-		$this->assertSame( 0, $this->map_count() );
+		$this->assertSame( $before, $this->map_count() );
 	}
 }

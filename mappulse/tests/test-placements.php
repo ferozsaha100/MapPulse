@@ -72,7 +72,8 @@ class Test_Placements extends MapPulse_Test_Case {
 
 	public function test_choices_list_published_maps_only() {
 		$draft = Map_Post_Type::save( $this->fixture(), 0, 'draft' );
-		$this->assertSame( array( $this->map_id => 'Test Market' ), Map_Post_Type::choices() );
-		$this->assertArrayNotHasKey( $draft, Map_Post_Type::choices() );
+		$choices = Map_Post_Type::choices();
+		$this->assertSame( 'Test Market', $choices[ $this->map_id ] ?? null );
+		$this->assertArrayNotHasKey( $draft, $choices );
 	}
 }
