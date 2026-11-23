@@ -33,6 +33,7 @@ jobs:
           cache: npm
           cache-dependency-path: spike/package-lock.json
       - run: npm ci
+      - run: npm test
       - run: npm run sample
       - run: npm run build
 
@@ -70,7 +71,7 @@ jobs:
         if: always()
         run: |
           mkdir -p results/st-petersburg
-          cp -f out/st-petersburg.svg out/preview.html out/report.json results/st-petersburg/ 2>/dev/null || true
+          cp -f out/st-petersburg.svg out/st-petersburg.map.json out/preview.html out/report.json results/st-petersburg/ 2>/dev/null || true
           cp -f data/raw/_meta.json results/st-petersburg/sources.json 2>/dev/null || true
           ls -la results/st-petersburg || true
           ls -la data/raw || true

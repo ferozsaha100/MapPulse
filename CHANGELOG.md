@@ -2,6 +2,12 @@
 
 All notable changes to MapPulse are recorded here. Versions follow semantic versioning.
 
+## Spike 0.0.5
+
+- The spike writes a map document (`<slug>.map.json`, schema 1): zones, style and the projected drawing paths.
+  The plugin imports this file until the builder exists.
+- Added unit tests for the export (`npm test`).
+
 ## 0.0.4 (Phase 0 spike)
 
 - Label collision boxes use the measured width of the uppercase label type, so neighboring labels no longer touch.

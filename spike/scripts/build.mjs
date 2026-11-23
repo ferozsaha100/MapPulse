@@ -5,6 +5,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import * as P from '../src/pipeline.mjs';
 import { renderSvg, renderPreview } from '../src/svg.mjs';
+import { toMapDocument } from '../src/export.mjs';
 
 const cfgPath = process.argv[2] || 'config/st-petersburg.json';
 const cfg = JSON.parse(await readFile(cfgPath, 'utf8'));
@@ -199,7 +200,10 @@ const waterLabels = [...byName.values()];
 // 10. Write the outputs
 const title = `${cfg.name}: service areas`;
 const waterDrawn = P.mergeForDrawing(water.map((w) => w.mp));
-const svg = renderSvg({ title, frame: { width: W, height: H }, land, context, contextBase, zones, water, waterDrawn, roadsPrimary, roadsSecondary, waterLabels, style: cfg.style, synthetic: !!meta.synthetic });
+const model = { title, frame: { width: W, height: H }, land, context, contextBase, zones, water, waterDrawn, roadsPrimary, roadsSecondary, waterLabels, style: cfg.style, synthetic: !!meta.synthetic };
+const svg = renderSvg(model);
+const pkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+const mapDocument = toMapDocument({ ...model, title: cfg.name, generator: `mappulse-spike/${pkg.version}` });
 const report = {
   market: cfg.name,
   synthetic: !!meta.synthetic,
@@ -221,6 +225,7 @@ const report = {
 await writeFile(path.join(outDir, `${cfg.slug}.svg`), svg);
 await writeFile(path.join(outDir, 'preview.html'), renderPreview({ svg, title, zones, report, synthetic: !!meta.synthetic }));
 await writeFile(path.join(outDir, 'report.json'), JSON.stringify(report, null, 2));
+await writeFile(path.join(outDir, `${cfg.slug}.map.json`), JSON.stringify(mapDocument));
 
 console.log(`\n${cfg.name}${meta.synthetic ? '  [SAMPLE DATA]' : ''}`);
 console.log(`Frame ${W} x ${H} px. ${zones.length}/${cfg.zones.length} zones, ${context.length} surrounding areas, ${water.length} water shapes.`);
