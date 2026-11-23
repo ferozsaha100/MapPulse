@@ -188,6 +188,8 @@ Details, usage limits and attribution rules are in [`docs/data-sources.md`](docs
 - PHP 8.1 or later
 - Elementor is optional: the block and the shortcode work without it
 
+Version 0.1.0 was tested on WordPress 6.8 and 7.1 and with Elementor 4.4, with atomic elements off and on.
+
 ## License
 
 The plugin header declares GPL-2.0-or-later, the license WordPress itself uses. A `LICENSE` file will be
