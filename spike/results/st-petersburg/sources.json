@@ -1,12 +1,12 @@
 {
   "synthetic": false,
-  "fetchedAt": "2026-11-23T20:04:35.440Z",
+  "fetchedAt": "2026-11-23T20:10:20.459Z",
   "config": "config/st-petersburg.json",
   "layers": {
     "neighborhoods": {
       "layerId": 22,
       "layerName": "Neighborhood Associations",
-      "features": 89,
+      "features": 88,
       "fields": [
         "OBJECTID",
         "NANAME",

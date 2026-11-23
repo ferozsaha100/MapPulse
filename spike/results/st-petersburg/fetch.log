@@ -1,11 +1,11 @@
 
-> mappulse-spike@0.0.1 fetch
+> mappulse-spike@0.0.2 fetch
 > node scripts/fetch.mjs config/st-petersburg.json
 
 
 [neighborhoods] https://egis.stpete.org/arcgis/rest/services/ServicesDOTS/NeighborhoodRelations/MapServer
     using layer 22: Neighborhood Associations
-    89 features (total 89)
+    88 features (total 88)
 
 [places] https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer
     using layer 28: Incorporated Places
@@ -33,7 +33,7 @@
     115 features (total 115)
 
 Summary
-  neighborhoods    89 features  (layer 22: Neighborhood Associations)
+  neighborhoods    88 features  (layer 22: Neighborhood Associations)
   places           20 features  (layer 28: Incorporated Places)
   zcta             39 features  (layer 2: 2020 Census ZIP Code Tabulation Areas)
   counties         3 features  (layer 82: Counties)

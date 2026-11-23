@@ -1,17 +1,18 @@
 {
   "market": "St. Petersburg, FL",
   "synthetic": false,
-  "fetchedAt": "2026-11-23T20:04:35.440Z",
+  "fetchedAt": "2026-11-23T20:10:20.459Z",
   "frame": {
     "width": 1000,
     "height": 966
   },
   "zonesConfigured": 17,
   "zonesMatched": 16,
-  "contextAreas": 70,
-  "waterShapes": 370,
-  "arcs": 1287,
-  "svgBytes": 151206,
+  "contextAreas": 69,
+  "contextCities": 7,
+  "waterShapes": 144,
+  "arcs": 1569,
+  "svgBytes": 151711,
   "nameFields": {
     "neighborhoods": "NANAME",
     "places": "BASENAME",
@@ -84,7 +85,6 @@
       "NORTH KENWOOD NBRHD ASSN",
       "NORTHEAST PARK NBRHD ASSN",
       "NORTHEAST TERRACES NBRHD ASSN",
-      "NORTHWEST NBRHD ASSN",
       "OLD PASADENA NBRHD ASSN",
       "OLD SOUTHEAST NBRHD ASSN",
       "PALMETTO PARK NBRHD ASSN",
@@ -184,7 +184,8 @@
       "type": "neighborhood",
       "layer": "neighborhoods",
       "sourceName": "SHORE ACRES CIVIC ASSN",
-      "score": 80
+      "score": 105,
+      "alternatives": []
     },
     {
       "zone": "Snell Isle",
@@ -192,7 +193,8 @@
       "type": "neighborhood",
       "layer": "neighborhoods",
       "sourceName": "SNELL ISLE PROPERTY OWNERS ASSN",
-      "score": 75
+      "score": 105,
+      "alternatives": []
     },
     {
       "zone": "Coffee Pot",
@@ -203,8 +205,14 @@
       "found": true,
       "type": "neighborhood",
       "layer": "neighborhoods",
-      "sourceName": "ALLENDALE OAKS NBRHD ASSN",
-      "score": 68
+      "sourceName": "ALLENDALE NEIGHBORHOOD ASSN",
+      "score": 93,
+      "alternatives": [
+        {
+          "name": "ALLENDALE OAKS NBRHD ASSN",
+          "score": 73
+        }
+      ]
     },
     {
       "zone": "Crescent Heights",
@@ -212,7 +220,8 @@
       "type": "neighborhood",
       "layer": "neighborhoods",
       "sourceName": "CRESCENT HEIGHTS NBRHD ASSN",
-      "score": 80
+      "score": 105,
+      "alternatives": []
     },
     {
       "zone": "Euclid-St Pauls",
@@ -220,15 +229,31 @@
       "type": "neighborhood",
       "layer": "neighborhoods",
       "sourceName": "EUCLID-ST PAUL NBRHD ASSN",
-      "score": 80
+      "score": 105,
+      "alternatives": [
+        {
+          "name": "LAKE EUCLID NBRHD ASSN",
+          "score": 73
+        },
+        {
+          "name": "EUCLID HEIGHTS NBRHD ASSN",
+          "score": 72
+        }
+      ]
     },
     {
       "zone": "Woodlawn",
       "found": true,
       "type": "neighborhood",
       "layer": "neighborhoods",
-      "sourceName": "WOODLAWN OAKS NBRHD ASSN",
-      "score": 77
+      "sourceName": "GREATER WOODLAWN NBRHD ASSN",
+      "score": 97,
+      "alternatives": [
+        {
+          "name": "WOODLAWN OAKS NBRHD ASSN",
+          "score": 83
+        }
+      ]
     },
     {
       "zone": "Old Northeast",
@@ -236,7 +261,8 @@
       "type": "neighborhood",
       "layer": "neighborhoods",
       "sourceName": "HISTORIC OLD NORTHEAST NBRHD ASSN",
-      "score": 75
+      "score": 97,
+      "alternatives": []
     },
     {
       "zone": "Historic Kenwood",
@@ -244,7 +270,13 @@
       "type": "neighborhood",
       "layer": "neighborhoods",
       "sourceName": "HISTORIC KENWOOD NBRHD ASSN",
-      "score": 80
+      "score": 105,
+      "alternatives": [
+        {
+          "name": "NORTH KENWOOD NBRHD ASSN",
+          "score": 73
+        }
+      ]
     },
     {
       "zone": "Downtown",
@@ -252,7 +284,8 @@
       "type": "neighborhood",
       "layer": "neighborhoods",
       "sourceName": "DOWNTOWN NBRHD ASSN",
-      "score": 80
+      "score": 105,
+      "alternatives": []
     },
     {
       "zone": "Old Southeast",
@@ -260,7 +293,8 @@
       "type": "neighborhood",
       "layer": "neighborhoods",
       "sourceName": "OLD SOUTHEAST NBRHD ASSN",
-      "score": 80
+      "score": 105,
+      "alternatives": []
     },
     {
       "zone": "Tropical Shores",
@@ -268,7 +302,8 @@
       "type": "neighborhood",
       "layer": "neighborhoods",
       "sourceName": "TROPICAL SHORES NBRHD ASSN",
-      "score": 80
+      "score": 105,
+      "alternatives": []
     },
     {
       "zone": "Driftwood",
@@ -276,7 +311,8 @@
       "type": "neighborhood",
       "layer": "neighborhoods",
       "sourceName": "DRIFTWOOD PROPERTY OWNERS ASSN",
-      "score": 75
+      "score": 105,
+      "alternatives": []
     },
     {
       "zone": "Pinellas Point",
@@ -284,7 +320,8 @@
       "type": "neighborhood",
       "layer": "neighborhoods",
       "sourceName": "GREATER PINELLAS POINT CIVIC ASSN",
-      "score": 76
+      "score": 97,
+      "alternatives": []
     },
     {
       "zone": "Jungle Prada",
@@ -292,7 +329,8 @@
       "type": "neighborhood",
       "layer": "neighborhoods",
       "sourceName": "JUNGLE PRADA NBRHD ASSN",
-      "score": 80
+      "score": 105,
+      "alternatives": []
     },
     {
       "zone": "Pasadena",
@@ -300,7 +338,17 @@
       "type": "neighborhood",
       "layer": "neighborhoods",
       "sourceName": "OLD PASADENA NBRHD ASSN",
-      "score": 78
+      "score": 83,
+      "alternatives": [
+        {
+          "name": "LAKE PASADENA ESTATES NBRHD ASSN",
+          "score": 79
+        },
+        {
+          "name": "PASADENA BEAR CREEK ESTATES NBRHD ASSN",
+          "score": 76
+        }
+      ]
     },
     {
       "zone": "Gulfport",
@@ -308,7 +356,8 @@
       "type": "city",
       "layer": "places",
       "sourceName": "Gulfport",
-      "score": 105
+      "score": 105,
+      "alternatives": []
     }
   ],
   "notes": [
@@ -324,13 +373,20 @@
     "\"Allendale Terrace\": the label is wider than the zone (72 px vs 45 px).",
     "\"Crescent Heights\": the label is wider than the zone (64 px vs 45 px).",
     "\"Euclid-St Pauls\": the label is wider than the zone (72 px vs 45 px).",
-    "\"Woodlawn\": the label is wider than the zone (64 px vs 38 px).",
+    "\"Woodlawn\": the label is wider than the zone (64 px vs 45 px).",
     "\"Old Southeast\": the label is wider than the zone (72 px vs 52 px).",
     "\"Tropical Shores\": the label is wider than the zone (64 px vs 40 px).",
     "\"Driftwood\": the label is wider than the zone (72 px vs 30 px).",
-    "\"Pasadena\": the label is wider than the zone (64 px vs 51 px)."
+    "\"Pasadena\": the label is wider than the zone (64 px vs 51 px).",
+    "\"Crescent Heights\": label moved 13 px to avoid a neighbor and drawn with a leader line.",
+    "\"Woodlawn\": label moved 13 px to avoid a neighbor and drawn with a leader line.",
+    "\"Old Southeast\": label moved 11 px to avoid a neighbor and drawn with a leader line.",
+    "\"Driftwood\": label moved 10 px to avoid a neighbor and drawn with a leader line."
   ],
   "warnings": [
-    "Zone \"Coffee Pot\" was not found in any source."
+    "Zone \"Coffee Pot\" was not found in any source.",
+    "Zone \"Allendale Terrace\" uses \"ALLENDALE NEIGHBORHOOD ASSN\", but \"ALLENDALE OAKS NBRHD ASSN\" could also be meant. Confirm which record is right.",
+    "Zone \"Woodlawn\" uses \"GREATER WOODLAWN NBRHD ASSN\", but \"WOODLAWN OAKS NBRHD ASSN\" could also be meant. Confirm which record is right.",
+    "Zone \"Pasadena\" uses \"OLD PASADENA NBRHD ASSN\", but \"LAKE PASADENA ESTATES NBRHD ASSN\", \"PASADENA BEAR CREEK ESTATES NBRHD ASSN\" could also be meant. Confirm which record is right."
   ]
 }
