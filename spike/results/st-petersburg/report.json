@@ -1,7 +1,7 @@
 {
   "market": "St. Petersburg, FL",
   "synthetic": false,
-  "fetchedAt": "2026-11-23T20:10:20.459Z",
+  "fetchedAt": "2026-11-23T20:12:33.239Z",
   "frame": {
     "width": 1000,
     "height": 966
@@ -12,7 +12,7 @@
   "contextCities": 7,
   "waterShapes": 144,
   "arcs": 1569,
-  "svgBytes": 151711,
+  "svgBytes": 146704,
   "nameFields": {
     "neighborhoods": "NANAME",
     "places": "BASENAME",
@@ -370,18 +370,18 @@
     "\"Pinellas Point\": 8% of the source shape was over water and was clipped.",
     "\"Jungle Prada\": 6% of the source shape was over water and was clipped.",
     "\"Gulfport\": 28% of the source shape was over water and was clipped.",
-    "\"Allendale Terrace\": the label is wider than the zone (72 px vs 45 px).",
-    "\"Crescent Heights\": the label is wider than the zone (64 px vs 45 px).",
-    "\"Euclid-St Pauls\": the label is wider than the zone (72 px vs 45 px).",
-    "\"Woodlawn\": the label is wider than the zone (64 px vs 45 px).",
-    "\"Old Southeast\": the label is wider than the zone (72 px vs 52 px).",
-    "\"Tropical Shores\": the label is wider than the zone (64 px vs 40 px).",
-    "\"Driftwood\": the label is wider than the zone (72 px vs 30 px).",
-    "\"Pasadena\": the label is wider than the zone (64 px vs 51 px).",
-    "\"Crescent Heights\": label moved 13 px to avoid a neighbor and drawn with a leader line.",
-    "\"Woodlawn\": label moved 13 px to avoid a neighbor and drawn with a leader line.",
-    "\"Old Southeast\": label moved 11 px to avoid a neighbor and drawn with a leader line.",
-    "\"Driftwood\": label moved 10 px to avoid a neighbor and drawn with a leader line."
+    "\"Allendale Terrace\": the label is wider than the zone even at 9.5 px (62 px vs 45 px).",
+    "\"Crescent Heights\": the label is wider than the zone even at 9.5 px (55 px vs 45 px).",
+    "\"Euclid-St Pauls\": the label is wider than the zone even at 9.5 px (62 px vs 45 px).",
+    "\"Woodlawn\": the label is wider than the zone even at 9.5 px (55 px vs 45 px).",
+    "\"Old Southeast\": the label is wider than the zone even at 9.6 px (62 px vs 52 px).",
+    "\"Tropical Shores\": the label is wider than the zone even at 9.5 px (55 px vs 40 px).",
+    "\"Driftwood\": the label is wider than the zone even at 9.5 px (62 px vs 30 px).",
+    "\"Pasadena\": the label is wider than the zone even at 10.5 px (60 px vs 51 px).",
+    "\"Crescent Heights\": label moved 8 px to clear a neighbor.",
+    "\"Woodlawn\": label moved 8 px to clear a neighbor.",
+    "\"Old Southeast\": label moved 7 px to clear a neighbor.",
+    "\"Driftwood\": label moved 7 px to clear a neighbor."
   ],
   "warnings": [
     "Zone \"Coffee Pot\" was not found in any source.",
