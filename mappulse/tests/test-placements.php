@@ -45,6 +45,31 @@ class Test_Placements extends MapPulse_Test_Case {
 		$this->assertSame( '', trim( do_blocks( '<!-- wp:agentview/mappulse /-->' ) ) );
 	}
 
+	public function test_block_prints_its_html_anchor_once() {
+		$block = do_blocks( '<!-- wp:agentview/mappulse {"mapId":' . $this->map_id . ',"anchor":"areas"} /-->' );
+		$this->assertSame( 1, substr_count( $block, 'id="areas"' ) );
+	}
+
+	public function test_block_preview_request_accepts_an_anchor() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/block-renderer/agentview/mappulse' );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param(
+			'attributes',
+			array(
+				'mapId'  => $this->map_id,
+				'anchor' => 'areas',
+			)
+		);
+		$this->assertSame( 200, rest_get_server()->dispatch( $request )->get_status() );
+	}
+
+	public function test_choices_do_not_load_map_documents_into_memory() {
+		clean_post_cache( $this->map_id );
+		Map_Post_Type::choices();
+		$this->assertFalse( wp_cache_get( $this->map_id, 'post_meta' ) );
+	}
+
 	public function test_choices_list_published_maps_only() {
 		$draft = Map_Post_Type::save( $this->fixture(), 0, 'draft' );
 		$this->assertSame( array( $this->map_id => 'Test Market' ), Map_Post_Type::choices() );

@@ -11,7 +11,7 @@ Clickable, branded market maps for real estate websites, drawn from real boundar
 
 == Description ==
 
-MapPulse shows the areas an agent or brokerage serves as one clickable map. Each neighborhood, city or ZIP area is a real link to its area page or property search, and the map sits on a full base of land, coastline, water and major roads instead of floating shapes.
+MapPulse shows the areas an agent or brokerage serves as one clickable map. Each neighborhood, city or ZIP area can link to its area page or property search, and the map sits on a full base of land, coastline, water and major roads instead of floating shapes.
 
 The map is inline SVG. It needs no map library and no API key, and it makes no third-party request on the front end.
 
@@ -23,7 +23,7 @@ Place a map with any of these:
 
 All three show the same server-rendered output.
 
-Version 0.1.0 is an early release. Maps are added from a MapPulse map file; the visual map builder comes in a later version. A real sample map of St. Petersburg, Florida is included.
+Version 0.1.0 is an early release for testing. Maps are added from a MapPulse map file; the visual map builder comes in a later version. A real sample map of St. Petersburg, Florida is included. Its areas have no links yet: links are set in the map file's `link` fields.
 
 == Installation ==
 
@@ -58,3 +58,4 @@ They are kept in the database.
 * Four layouts: list on the left, list on the right, list below, map only.
 * Hover and keyboard focus are synced between the map and the area list.
 * Map file import, a WP-CLI import command and a bundled sample map.
+* The cached SVG is signed with the site's salts and stored documents are cleaned again when read.

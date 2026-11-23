@@ -13,7 +13,36 @@ class Test_Map_Store extends MapPulse_Test_Case {
 		$id = Map_Post_Type::save( $this->fixture() );
 		$this->assertSame( 'mappulse_map', get_post_type( $id ) );
 		$this->assertStringStartsWith( '<svg', get_post_meta( $id, '_mappulse_svg', true ) );
-		$this->assertSame( Map_Document::hash( Map_Post_Type::get( $id ) ), get_post_meta( $id, '_mappulse_hash', true ) );
+		$this->assertNotSame( '', get_post_meta( $id, '_mappulse_hash', true ) );
+	}
+
+	public function test_forged_cache_is_not_trusted() {
+		$id  = Map_Post_Type::save( $this->fixture() );
+		$doc = json_decode( get_post_meta( $id, '_mappulse_map', true ), true );
+		update_post_meta( $id, '_mappulse_svg', '<svg><script>alert(1)</script></svg>' );
+		update_post_meta( $id, '_mappulse_hash', md5( wp_json_encode( $doc ) . MAPPULSE_VERSION ) );
+		$html = mappulse_render_map( $id );
+		$this->assertStringNotContainsString( '<script', $html );
+		$this->assertStringContainsString( 'mappulse__zone', $html );
+	}
+
+	public function test_tampered_stored_document_is_cleaned_before_drawing() {
+		$id                   = Map_Post_Type::save( $this->fixture() );
+		$doc                  = json_decode( get_post_meta( $id, '_mappulse_map', true ), true );
+		$doc['style']['zone'] = 'red;background:url(x)';
+		$doc['topology']['zones']['downtown']['label']['lines'] = 'DOWNTOWN';
+		update_post_meta( $id, '_mappulse_map', wp_slash( wp_json_encode( $doc ) ) );
+		$html = mappulse_render_map( $id );
+		$this->assertStringNotContainsString( 'background:url', $html );
+		$this->assertStringContainsString( 'data-mappulse', $html );
+	}
+
+	public function test_stored_document_with_bad_shape_data_renders_nothing() {
+		$id  = Map_Post_Type::save( $this->fixture() );
+		$doc = json_decode( get_post_meta( $id, '_mappulse_map', true ), true );
+		$doc['topology']['zones']['downtown']['d'] = 'M0 0"/><script>alert(1)</script>';
+		update_post_meta( $id, '_mappulse_map', wp_slash( wp_json_encode( $doc ) ) );
+		$this->assertSame( '', mappulse_render_map( $id ) );
 	}
 
 	public function test_invalid_document_creates_no_post() {

@@ -60,6 +60,17 @@ grep -q 'mappulse--list-right' "$TMP/page-$BLOCK_PAGE.html" || fail "4 block pag
 if [ "${ELEMENTOR_PAGE:-0}" != "0" ]; then
 	check_page "$ELEMENTOR_PAGE" "5 Elementor page"
 	grep -q 'mappulse--list-below' "$TMP/page-$ELEMENTOR_PAGE.html" || fail "5 Elementor page: layout setting was not applied"
+
+	# The widget's hover color control must reach the page as a CSS variable, inline or in Elementor's CSS file.
+	CSS_OK=0
+	grep -qi -- '--mappulse-zone-hover: *#7A1F1F' "$TMP/page-$ELEMENTOR_PAGE.html" && CSS_OK=1
+	if [ "$CSS_OK" = "0" ]; then
+		for href in $(grep -Eo "https?://[^\"' ]*elementor/css/post-$ELEMENTOR_PAGE\.css[^\"' ]*" "$TMP/page-$ELEMENTOR_PAGE.html" | sed 's/&#038;/\&/g; s/&amp;/\&/g' | sort -u); do
+			curl -sL "$href" | grep -qi -- '--mappulse-zone-hover: *#7A1F1F' && CSS_OK=1
+		done
+	fi
+	[ "$CSS_OK" = "1" ] || fail "5 Elementor page: the hover color control did not produce --mappulse-zone-hover"
+	pass "5 Elementor color control reaches the page as --mappulse-zone-hover"
 	ATOMIC=$(wp eval-file "$SETUP" atomic | field atomic)
 	if [ -n "$ATOMIC" ] && [ "$ATOMIC" != "none" ]; then
 		check_page "$ELEMENTOR_PAGE" "6 Elementor page with atomic experiments on ($ATOMIC)"

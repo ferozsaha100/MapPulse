@@ -14,7 +14,8 @@
 		"layout": { "type": "string", "default": "list-left" },
 		"heading": { "type": "string", "default": "" },
 		"intro": { "type": "string", "default": "" },
-		"showList": { "type": "boolean", "default": true }
+		"showList": { "type": "boolean", "default": true },
+		"anchor": { "type": "string" }
 	},
 	"supports": {
 		"align": [ "wide", "full" ],

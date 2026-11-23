@@ -23,5 +23,12 @@ if ( '' === $mappulse_html ) {
 	return;
 }
 
+// WordPress versions that handle the HTML anchor of a dynamic block add the id themselves. Older ones do not.
+$mappulse_wrapper = get_block_wrapper_attributes();
+$mappulse_anchor  = isset( $attributes['anchor'] ) ? sanitize_title( (string) $attributes['anchor'] ) : '';
+if ( '' !== $mappulse_anchor && ! preg_match( '/(^|\s)id="/', $mappulse_wrapper ) ) {
+	$mappulse_wrapper = get_block_wrapper_attributes( array( 'id' => $mappulse_anchor ) );
+}
+
 // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Both parts are escaped where they are built.
-printf( '<div %s>%s</div>', get_block_wrapper_attributes(), $mappulse_html );
+printf( '<div %s>%s</div>', $mappulse_wrapper, $mappulse_html );

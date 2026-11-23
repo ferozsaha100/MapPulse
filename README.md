@@ -46,6 +46,26 @@ Available: `--mappulse-zone`, `--mappulse-zone-stroke`, `--mappulse-zone-hover`,
 `--mappulse-context`, `--mappulse-context-stroke`, `--mappulse-road`, `--mappulse-road-casing`,
 `--mappulse-water-label`, `--mappulse-font` and `--mappulse-max-height`.
 
+### Linking areas
+
+Each zone in a map file has a `link` field. The sample map ships with empty links, so its areas
+highlight but do not go anywhere. To link an area, set its link in the `.map.json` file and import the
+file again:
+
+```json
+{ "id": "downtown", "name": "Downtown", "link": "/neighborhoods/downtown/" }
+```
+
+The map builder will replace this step.
+
+### Known limits in 0.1.0
+
+- There is no map builder yet. Maps come from a map file made by the script in `spike/`.
+- On a phone the map scales down with the screen, so the labels of a detailed map are too small to read.
+  The area list stays readable and usable. Pan and zoom are planned for the Polish phase.
+- Hover cards, decoration, a compass and a legend are not built yet.
+- This version is for testing. It is not meant for a live client site yet.
+
 ### From the command line
 
 ```

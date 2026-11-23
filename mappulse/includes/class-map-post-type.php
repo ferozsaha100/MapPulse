@@ -21,6 +21,13 @@ class Map_Post_Type {
 	const META_HASH  = '_mappulse_hash';
 
 	/**
+	 * Documents already read and cleaned in this request, keyed by post ID and content hash.
+	 *
+	 * @var array
+	 */
+	private static $documents = array();
+
+	/**
 	 * Registers the post type. Maps are created by import (and later the builder), never by "Add New".
 	 */
 	public static function register(): void {
@@ -120,8 +127,20 @@ class Map_Post_Type {
 		if ( $post_id <= 0 || self::POST_TYPE !== get_post_type( $post_id ) ) {
 			return null;
 		}
-		$doc = json_decode( (string) get_post_meta( $post_id, self::META_DOC, true ), true );
-		return is_array( $doc ) && isset( $doc['topology'], $doc['zones'], $doc['frame'], $doc['style'] ) ? $doc : null;
+		$json = (string) get_post_meta( $post_id, self::META_DOC, true );
+		$key  = $post_id . ':' . md5( $json );
+
+		if ( ! array_key_exists( $key, self::$documents ) ) {
+			// Stored data is cleaned again on the way out: post meta can be written by imports and other code.
+			$raw = json_decode( $json, true );
+			$doc = is_array( $raw ) ? Map_Document::sanitize( $raw ) : null;
+			if ( count( self::$documents ) >= 20 ) {
+				self::$documents = array();
+			}
+			self::$documents[ $key ] = is_array( $doc ) ? $doc : null;
+		}
+
+		return self::$documents[ $key ];
 	}
 
 	/**
@@ -130,12 +149,15 @@ class Map_Post_Type {
 	public static function choices(): array {
 		$posts = get_posts(
 			array(
-				'post_type'      => self::POST_TYPE,
-				'post_status'    => 'publish',
-				'posts_per_page' => 100,
-				'orderby'        => 'title',
-				'order'          => 'ASC',
-				'no_found_rows'  => true,
+				'post_type'              => self::POST_TYPE,
+				'post_status'            => 'publish',
+				'posts_per_page'         => 100,
+				'orderby'                => 'title',
+				'order'                  => 'ASC',
+				'no_found_rows'          => true,
+				// Titles only: without these, every map's document and SVG would be loaded into memory.
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
 			)
 		);
 
@@ -157,7 +179,7 @@ class Map_Post_Type {
 			return '';
 		}
 		$svg = (string) get_post_meta( $post_id, self::META_SVG, true );
-		if ( '' !== $svg && Map_Document::hash( $doc ) === get_post_meta( $post_id, self::META_HASH, true ) ) {
+		if ( '' !== $svg && hash_equals( self::signature( $doc, $svg ), (string) get_post_meta( $post_id, self::META_HASH, true ) ) ) {
 			return $svg;
 		}
 		return self::rebuild( $post_id );
@@ -175,7 +197,20 @@ class Map_Post_Type {
 		}
 		$svg = Renderer::svg( $doc );
 		update_post_meta( $post_id, self::META_SVG, wp_slash( $svg ) );
-		update_post_meta( $post_id, self::META_HASH, Map_Document::hash( $doc ) );
+		update_post_meta( $post_id, self::META_HASH, self::signature( $doc, $svg ) );
 		return $svg;
+	}
+
+	/**
+	 * Signs a cached SVG together with the document it was drawn from.
+	 *
+	 * Keyed with this site's salts, so a cache written by anything but this plugin on this site
+	 * (an import file, a copied database) does not match and is rebuilt instead of printed.
+	 *
+	 * @param array  $doc A sanitized document.
+	 * @param string $svg The SVG rendered from it.
+	 */
+	private static function signature( array $doc, string $svg ): string {
+		return wp_hash( Map_Document::hash( $doc ) . '|' . md5( $svg ), 'nonce' );
 	}
 }
