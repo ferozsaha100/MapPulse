@@ -2,13 +2,56 @@
 
 Clickable, branded market maps for real estate websites, generated from real boundary data.
 
-MapPulse is a WordPress plugin in development. It builds an interactive map of the areas an agent or
-brokerage serves, where every neighborhood, city or ZIP area links to its area page or property search.
+MapPulse is a WordPress plugin in development. It shows the areas an agent or brokerage serves as one
+interactive map, where every neighborhood, city or ZIP area links to its area page or property search.
 The map is placed with an Elementor widget, a Gutenberg block or a shortcode.
 
-> **Status: Phase 0 (spike).** The WordPress plugin is not in this repository yet, and nothing here
-> can be installed in WordPress. The repository currently holds the spike that proves the map output
-> on real data, plus the development plan.
+> **Status: version 0.1.0, early release.** The plugin installs and renders maps through all three
+> placements. Maps are added from a map file for now: the visual map builder is not built yet. A real
+> sample map of St. Petersburg, Florida is included for testing.
+
+## Install and try it
+
+1. Download `mappulse.zip` from the [Releases](https://github.com/ferozsaha100/MapPulse/releases) page.
+   Before the first release, take it from the `mappulse-plugin` artifact of the latest
+   [Plugin workflow run](https://github.com/ferozsaha100/MapPulse/actions/workflows/plugin.yml).
+2. In WordPress go to Plugins, Add New, Upload Plugin. Upload the zip and activate MapPulse.
+3. Go to MapPulse, Import, and choose **Import the sample map**.
+4. Place the map on a page, in any of three ways:
+
+| Placement | How |
+| --- | --- |
+| Elementor | Drag the **MapPulse Map** widget onto the page and pick the map. Colors and maximum height are on the Style tab. |
+| Block editor | Insert the **MapPulse Map** block and pick the map. Layout, heading and intro are in the block sidebar. |
+| Shortcode | `[mappulse id="12" layout="list-left" heading="Explore the area"]` |
+
+Layouts are `list-left`, `list-right`, `list-below` and `map-only`. The shortcode also takes
+`intro="..."` and `list="no"`.
+
+### Styling
+
+Every color is a CSS custom property. Each map carries its own defaults, and any of them can be
+overridden on the map or on a parent element:
+
+```css
+.mappulse {
+	--mappulse-zone: #e6dccb;
+	--mappulse-zone-hover: #7a1f1f;
+	--mappulse-label: #2b2f36;
+}
+```
+
+Available: `--mappulse-zone`, `--mappulse-zone-stroke`, `--mappulse-zone-hover`, `--mappulse-label`,
+`--mappulse-label-hover`, `--mappulse-water`, `--mappulse-coast`, `--mappulse-land`,
+`--mappulse-context`, `--mappulse-context-stroke`, `--mappulse-road`, `--mappulse-road-casing`,
+`--mappulse-water-label`, `--mappulse-font` and `--mappulse-max-height`.
+
+### From the command line
+
+```
+wp mappulse import --sample
+wp mappulse import ./my-market.map.json --title="My market"
+```
 
 ## Why
 
@@ -59,13 +102,34 @@ flowchart TD
 
 | Path | Holds |
 | --- | --- |
-| `spike/` | Phase 0 spike: Node scripts that download real boundary layers and render one full-context SVG |
+| `mappulse/` | The WordPress plugin: map storage, renderer, Elementor widget, Gutenberg block, shortcode, import |
+| `mappulse/tests/` | PHPUnit tests and the end-to-end smoke script |
+| `bin/build-zip.sh` | Builds the installable `mappulse.zip` |
+| `spike/` | Node scripts that download real boundary layers, render one full-context SVG and export the map file the plugin imports |
 | `spike/results/` | Output of the latest spike run on GitHub Actions: the SVG, a preview page, reports and logs |
 | `docs/development-plan.md` | Scope, architecture, data model, integrations, phases and testing |
 | `docs/data-sources.md` | Boundary sources, how exact each one is, usage limits and attribution |
+| `docs/superpowers/plans/` | Task-level implementation plans, one per stage |
+| `.github/workflows/plugin.yml` | Syntax check, coding standards, PHPUnit in WordPress, end-to-end smoke test, zip build |
+| `.github/workflows/release.yml` | Publishes a release with the zip when a `v*` tag is pushed |
 | `.github/workflows/spike.yml` | Runs the spike on every push that touches it |
 
-The plugin source will be added in Phase 1.
+## Development
+
+The plugin is tested inside a real WordPress with [`@wordpress/env`](https://www.npmjs.com/package/@wordpress/env)
+(needs Docker), with Elementor installed alongside it.
+
+```
+npm install
+cd mappulse && composer install && cd ..
+npx wp-env start
+npm run test:php                 # PHPUnit inside WordPress
+bash mappulse/tests/smoke.sh     # end-to-end: import, three placements, Elementor on and off, uninstall
+cd mappulse && composer lint     # WordPress coding standards
+bash bin/build-zip.sh            # builds mappulse.zip
+```
+
+The smoke script ends by uninstalling the plugin from the test site, so run it last.
 
 ## Phase 0 spike
 
@@ -102,7 +166,7 @@ See [`spike/README.md`](spike/README.md) for the configuration file and what the
 | Phase | Delivers | Exit check |
 | --- | --- | --- |
 | 0 Spike | One real market rebuilt by script as a full-context SVG | No gaps, no overlaps, look approved |
-| 1 Core build | Plugin skeleton, map storage, renderer, shortcode, Elementor widget, Gutenberg block, builder steps for areas, base map, style, zones and links | A map made in the builder is live through all three placements |
+| 1 Core build | Plugin skeleton, map storage, renderer, shortcode, Elementor widget, Gutenberg block (done in 0.1.0). Then the boundary service (0.2.0) and the builder steps for areas, base map, style, zones and links (0.3.0) | A map made in the builder is live through all three placements |
 | 2 Decorate | Icon library, labels, compass, legend, clickable landmarks, SVG import | A decorated generated map and an imported hand-drawn map both render correctly |
 | 3 Polish | Phone pan and zoom, bottom sheet, keyboard access, crawlable list, performance budgets, compatibility matrix | Budgets met and the matrix passes |
 | 4 Release | Migration of existing maps, user guide, packaging, version 1.0.0 | 1.0 running on production sites |
@@ -118,9 +182,7 @@ See [`spike/README.md`](spike/README.md) for the configuration file and what the
 
 Details, usage limits and attribution rules are in [`docs/data-sources.md`](docs/data-sources.md).
 
-## Planned requirements
-
-These are proposals until Phase 1 fixes them.
+## Requirements
 
 - WordPress 6.8 or later
 - PHP 8.1 or later
@@ -128,7 +190,8 @@ These are proposals until Phase 1 fixes them.
 
 ## License
 
-No license has been chosen yet. Until a license file is added, all rights are reserved.
+The plugin header declares GPL-2.0-or-later, the license WordPress itself uses. A `LICENSE` file will be
+added once the owner confirms that choice.
 
 ## Credits
 

@@ -1,0 +1,33 @@
+name: Release
+
+# Pushing a tag such as v0.1.0 builds the plugin zip and publishes it as a GitHub release.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the tag against the plugin version
+        run: |
+          version=$(grep -E '^ \* Version:' mappulse/mappulse.php | awk '{print $3}')
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match plugin version $version"
+            exit 1
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+      - name: Build the plugin zip
+        run: bash bin/build-zip.sh "$PWD/mappulse.zip"
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: mappulse.zip
+          name: MapPulse ${{ env.VERSION }}
+          prerelease: ${{ startsWith(env.VERSION, '0.') }}
+          generate_release_notes: true

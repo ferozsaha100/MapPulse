@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<phpunit bootstrap="tests/bootstrap.php" backupGlobals="false" colors="true" convertErrorsToExceptions="true" convertNoticesToExceptions="true" convertWarningsToExceptions="true" convertDeprecationsToExceptions="true">
+<phpunit bootstrap="tests/bootstrap.php" backupGlobals="false" cacheResult="false" colors="true" convertErrorsToExceptions="true" convertNoticesToExceptions="true" convertWarningsToExceptions="true" convertDeprecationsToExceptions="true">
 	<testsuites>
 		<testsuite name="mappulse">
 			<directory prefix="test-" suffix=".php">./tests/</directory>

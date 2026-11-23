@@ -7,3 +7,5 @@ spike/out/
 mappulse/vendor/
 mappulse/composer.lock
 .superpowers/
+.phpunit.result.cache
+mappulse.zip

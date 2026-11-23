@@ -2,6 +2,19 @@
 
 All notable changes to MapPulse are recorded here. Versions follow semantic versioning.
 
+## 0.1.0 (first installable plugin version)
+
+- Added the `mappulse/` plugin: the `mappulse_map` map store, with each map's SVG cached and rebuilt when
+  the map or the plugin version changes.
+- Added one renderer, `mappulse_render_map()`, behind three placements: an Elementor widget, the
+  `agentview/mappulse` Gutenberg block and the `[mappulse]` shortcode.
+- Added four layouts (list left, list right, list below, map only), with hover and keyboard focus synced
+  between the map and the area list.
+- Added map file import (admin screen and `wp mappulse import`) and a bundled St. Petersburg sample map.
+- Colors are CSS custom properties: each map sets `--mappulse-doc-*` defaults, and `--mappulse-*` overrides them.
+- Added the test setup: PHPUnit inside WordPress with Elementor, an end-to-end smoke script, coding
+  standards, and workflows that build and release `mappulse.zip`.
+
 ## Spike 0.0.5
 
 - The spike writes a map document (`<slug>.map.json`, schema 1): zones, style and the projected drawing paths.
