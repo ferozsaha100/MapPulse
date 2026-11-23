@@ -1,6 +1,6 @@
 {
   "name": "mappulse-spike",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "description": "MapPulse Phase 0 spike: rebuild one client map from real boundary data as a full-context SVG.",
   "type": "module",

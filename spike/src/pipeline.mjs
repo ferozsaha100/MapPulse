@@ -90,16 +90,27 @@ export function nameKey(features) {
   return best;
 }
 
+const GENERIC = new Set(['nbrhd', 'neighborhood', 'neighbourhood', 'assn', 'assoc', 'association', 'civic', 'property', 'owners', 'homeowners',
+  'home', 'community', 'residents', 'inc', 'condo', 'city', 'town', 'village', 'cdp', 'zcta5']);
+/** A name with the generic organisation words removed: "ALLENDALE NEIGHBORHOOD ASSN" -> "allendale". */
+export const coreName = (s) => norm(s).split(' ').filter((w) => !GENERIC.has(w)).join(' ');
+
+// Words that qualify a name without naming a different place: "Greater Woodlawn" is Woodlawn, "Woodlawn Oaks" is not.
+const QUALIFIER = new Set(['greater', 'historic', 'the']);
+
 function scoreValue(value, patterns) {
-  const nv = norm(value);
+  const nv = coreName(value);
   if (!nv) return 0;
   let best = 0;
   patterns.forEach((pattern, i) => {
-    const p = norm(pattern);
+    const p = coreName(pattern) || norm(pattern);
     let s = 0;
     if (nv === p) s = 100;
-    else if (` ${nv} `.includes(` ${p} `)) s = 80 - Math.min(20, (nv.length - p.length) * 0.5);
-    else if (nv.includes(p)) s = 55;
+    else if (` ${nv} `.includes(` ${p} `)) {
+      const pw = new Set(p.split(' '));
+      const extra = nv.split(' ').filter((w) => !pw.has(w));
+      s = extra.every((w) => QUALIFIER.has(w)) ? 94 - 2 * extra.length : 80 - Math.min(20, (nv.length - p.length) * 0.5);
+    } else if (nv.includes(p)) s = 55;
     s *= 1 - 0.12 * i;
     if (s > best) best = s;
   });
@@ -110,16 +121,23 @@ function scoreValue(value, patterns) {
 export function matchZone(zone, layers, keys) {
   for (const entry of zone.find) {
     const feats = layers[entry.layer] || [];
-    let best = null;
+    const hits = [];
     for (const f of feats) {
+      let top = null;
       for (const [k, v] of Object.entries(f.properties || {})) {
         if (typeof v !== 'string') continue;
         let s = scoreValue(v, entry.match);
         if (s && k === keys[entry.layer]) s += 5;
-        if (s >= 50 && (!best || s > best.score)) best = { feature: f, score: Math.round(s), value: v, key: k };
+        if (s >= 50 && (!top || s > top.score)) top = { feature: f, score: Math.round(s), value: v, key: k };
       }
+      if (top) hits.push(top);
     }
-    if (best) return { ...best, layer: entry.layer, type: entry.type || zone.type };
+    if (!hits.length) continue;
+    hits.sort((a, b) => b.score - a.score);
+    const [best, ...rest] = hits;
+    // Other records that could also be meant. The builder shows these so a person confirms the right one.
+    const alternatives = rest.filter((h) => h.value !== best.value).slice(0, 4).map((h) => ({ name: h.value, score: h.score }));
+    return { ...best, alternatives, layer: entry.layer, type: entry.type || zone.type };
   }
   return null;
 }
@@ -192,3 +210,31 @@ export function labelLines(name) {
   return lines;
 }
 export const slug = (s) => norm(s).replace(/ /g, '-');
+
+/**
+ * Push overlapping label boxes apart. Each item: { x, y, w, h } with x, y at the box centre.
+ * Items are moved in place and kept inside the frame.
+ */
+export function separateLabels(items, { width, height, pad = 3, iterations = 120 } = {}) {
+  const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+  for (let n = 0; n < iterations; n++) {
+    let moved = false;
+    for (let i = 0; i < items.length; i++) {
+      for (let j = i + 1; j < items.length; j++) {
+        const a = items[i], b = items[j];
+        const ox = (a.w + b.w) / 2 + pad - Math.abs(a.x - b.x);
+        const oy = (a.h + b.h) / 2 + pad - Math.abs(a.y - b.y);
+        if (ox <= 0 || oy <= 0) continue;
+        moved = true;
+        if (oy <= ox) { const d = (oy / 2) * (a.y <= b.y ? -1 : 1); a.y += d; b.y -= d; }
+        else { const d = (ox / 2) * (a.x <= b.x ? -1 : 1); a.x += d; b.x -= d; }
+      }
+    }
+    for (const a of items) {
+      a.x = clamp(a.x, a.w / 2 + 4, width - a.w / 2 - 4);
+      a.y = clamp(a.y, a.h / 2 + 4, height - a.h / 2 - 4);
+    }
+    if (!moved) break;
+  }
+  return items;
+}

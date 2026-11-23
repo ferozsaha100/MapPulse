@@ -5,7 +5,7 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 
-const UA = 'MapPulse-spike/0.0.1 (Agent View Digital; boundary fetch)';
+const UA = 'MapPulse-spike/0.0.2 (Agent View Digital; boundary fetch)';
 const cfgPath = process.argv[2] || 'config/st-petersburg.json';
 const cfg = JSON.parse(await readFile(cfgPath, 'utf8'));
 const outDir = path.join('data', 'raw');

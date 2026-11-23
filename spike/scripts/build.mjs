@@ -37,7 +37,9 @@ for (const zone of cfg.zones) {
     continue;
   }
   matched.push({ name: zone.name, slug: P.slug(zone.name), type: hit.type, layer: hit.layer, sourceName: hit.value, feature: hit.feature });
-  matchReport.push({ zone: zone.name, found: true, type: hit.type, layer: hit.layer, sourceName: hit.value, score: hit.score });
+  matchReport.push({ zone: zone.name, found: true, type: hit.type, layer: hit.layer, sourceName: hit.value, score: hit.score, alternatives: hit.alternatives });
+  const close = hit.alternatives.filter((a) => hit.score - a.score <= 25);
+  if (close.length) warnings.push(`Zone "${zone.name}" uses "${hit.value}", but ${close.map((a) => `"${a.name}"`).join(', ')} could also be meant. Confirm which record is right.`);
 }
 if (!matched.length) {
   console.error('No zones matched. Run "npm run fetch" first, then check data/raw/_meta.json.');
@@ -68,14 +70,15 @@ for (const z of zones) {
 }
 
 // 4. Water, clipped to the frame; larger bodies also trim the zones (coastline clip)
+const waterCfg = { minAreaPx: 30, clipMinAreaPx: 60, ...(cfg.water || {}) };
 const water = [];
 for (const f of layers.water) {
   const mp = pxGeom(f.geometry);
   const area = P.mpArea(mp);
-  if (area < 4) continue;
+  if (area < waterCfg.minAreaPx) continue;
   water.push({ mp, area, name: keys.water ? f.properties[keys.water] || '' : '' });
 }
-const bigWater = water.filter((w) => w.area >= 60).map((w) => ({ mp: w.mp, box: P.mpBbox(w.mp) }));
+const bigWater = water.filter((w) => w.area >= waterCfg.clipMinAreaPx).map((w) => ({ mp: w.mp, box: P.mpBbox(w.mp) }));
 for (const z of zones) {
   const b = P.mpBbox(z.mp);
   const before = P.mpArea(z.mp);
@@ -92,6 +95,15 @@ for (const f of layers.neighborhoods) {
   const mp = pxGeom(f.geometry);
   if (P.mpArea(mp) < 6) continue;
   context.push({ mp, name: keys.neighborhoods ? f.properties[keys.neighborhoods] || '' : '' });
+}
+
+// 5b. City limits as a base tone under the neighborhoods, so the whole built-up area reads as one surface
+const contextBase = [];
+for (const f of layers.places) {
+  if (used.has(f)) continue;
+  const mp = pxGeom(f.geometry);
+  if (P.mpArea(mp) < 20) continue;
+  contextBase.push({ mp, name: keys.places ? f.properties[keys.places] || '' : '' });
 }
 
 // 6. Land outline
@@ -122,6 +134,7 @@ function roadLines(feats) {
 const simple = P.simplifyTogether({
   zones: zones.map((z, i) => P.polyFeature(z.mp, { i })),
   context: context.map((c, i) => P.polyFeature(c.mp, { i })),
+  contextBase: contextBase.map((c, i) => P.polyFeature(c.mp, { i })),
   land: land.map((l, i) => P.polyFeature(l.mp, { i })),
   water: water.map((w, i) => P.polyFeature(w.mp, { i })),
   roadsP: [P.lineFeature(roadLines(layers['roads-primary']), {})],
@@ -130,6 +143,7 @@ const simple = P.simplifyTogether({
 const clean = (geom) => P.toMP(geom).map((poly) => poly.filter((ring) => ring.length >= 4 && Math.abs(P.ringArea(ring)) > 0.5)).filter((poly) => poly.length);
 simple.zones.forEach((f) => { zones[f.properties.i].mp = clean(f.geometry); });
 simple.context.forEach((f) => { context[f.properties.i].mp = clean(f.geometry); });
+simple.contextBase.forEach((f) => { contextBase[f.properties.i].mp = clean(f.geometry); });
 simple.land.forEach((f) => { land[f.properties.i].mp = clean(f.geometry); });
 simple.water.forEach((f) => { water[f.properties.i].mp = clean(f.geometry); });
 const roadsPrimary = P.toLines(simple.roadsP[0] && simple.roadsP[0].geometry);
@@ -144,6 +158,22 @@ for (const z of zones) {
   const b = P.mpBbox(z.mp);
   if (textW > (b[2] - b[0]) * 1.1) notes.push(`"${z.name}": the label is wider than the zone (${Math.round(textW)} px vs ${Math.round(b[2] - b[0])} px).`);
 }
+// Keep labels from sitting on top of each other; a label moved off its zone gets a leader line.
+const lh = cfg.style.labelSize * 1.18;
+const boxes = zones.filter((z) => z.label).map((z) => ({
+  z, x: z.label.x, y: z.label.y,
+  w: Math.max(...z.lines.map((l) => l.length)) * cfg.style.labelSize * 0.72 + 4,
+  h: z.lines.length * lh + 2,
+}));
+P.separateLabels(boxes, { width: W, height: H });
+for (const b of boxes) {
+  const moved = Math.hypot(b.x - b.z.label.x, b.y - b.z.label.y);
+  b.z.anchor = { x: b.z.label.x, y: b.z.label.y };
+  b.z.label = { ...b.z.label, x: b.x, y: b.y, w: b.w, h: b.h };
+  b.z.leader = moved > 9;
+  if (b.z.leader) notes.push(`"${b.z.name}": label moved ${Math.round(moved)} px to avoid a neighbor and drawn with a leader line.`);
+}
+
 const byName = new Map();
 for (const w of water) {
   if (!w.name || w.area < W * H * 0.012) continue;
@@ -164,7 +194,7 @@ const waterLabels = [...byName.values()];
 
 // 10. Write the outputs
 const title = `${cfg.name}: service areas`;
-const svg = renderSvg({ title, frame: { width: W, height: H }, land, context, zones, water, roadsPrimary, roadsSecondary, waterLabels, style: cfg.style, synthetic: !!meta.synthetic });
+const svg = renderSvg({ title, frame: { width: W, height: H }, land, context, contextBase, zones, water, roadsPrimary, roadsSecondary, waterLabels, style: cfg.style, synthetic: !!meta.synthetic });
 const report = {
   market: cfg.name,
   synthetic: !!meta.synthetic,
@@ -173,6 +203,7 @@ const report = {
   zonesConfigured: cfg.zones.length,
   zonesMatched: zones.length,
   contextAreas: context.length,
+  contextCities: contextBase.length,
   waterShapes: water.length,
   arcs: simple.arcCount,
   svgBytes: Buffer.byteLength(svg),

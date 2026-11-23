@@ -38,6 +38,7 @@ export function renderSvg(m) {
   o.push(`<style>${css}</style>`);
   o.push(`<rect width="${W}" height="${H}" fill="${s.water}"/>`);
   o.push(`<g class="mp-land"><path d="${m.land.map((f) => pathOfMP(f.mp)).join('')}" fill="${s.land}" fill-rule="evenodd"/></g>`);
+  o.push('<g class="mp-context-base">' + (m.contextBase || []).map((c) => `<path class="mp-ctx" d="${pathOfMP(c.mp)}" fill-rule="evenodd"><title>${esc(c.name || '')}</title></path>`).join('') + '</g>');
   o.push('<g class="mp-context">' + m.context.map((c) => `<path class="mp-ctx" d="${pathOfMP(c.mp)}" fill-rule="evenodd"><title>${esc(c.name || '')}</title></path>`).join('') + '</g>');
   o.push('<g class="mp-zones">' + m.zones.map((z) =>
     `<a class="mp-zone-link" id="z-${z.slug}" href="#${z.slug}" aria-label="${esc(z.name)}"><path class="mp-zone" d="${pathOfMP(z.mp)}" fill-rule="evenodd"/></a>`).join('') + '</g>');
@@ -52,6 +53,13 @@ export function renderSvg(m) {
   for (const wl of m.waterLabels) {
     const place = wl.vertical ? `transform="translate(${fmt(wl.x)} ${fmt(wl.y)}) rotate(90)"` : `x="${fmt(wl.x)}" y="${fmt(wl.y)}"`;
     o.push(`<text class="mp-wlabel" ${place} text-anchor="middle">${esc(wl.name.toUpperCase())}</text>`);
+  }
+  for (const z of m.zones) {
+    if (!z.label || !z.leader) continue;
+    const ex = Math.min(Math.max(z.anchor.x, z.label.x - z.label.w / 2), z.label.x + z.label.w / 2);
+    const ey = Math.min(Math.max(z.anchor.y, z.label.y - z.label.h / 2), z.label.y + z.label.h / 2);
+    o.push(`<line x1="${fmt(z.anchor.x)}" y1="${fmt(z.anchor.y)}" x2="${fmt(ex)}" y2="${fmt(ey)}" stroke="${s.label}" stroke-width=".8" stroke-opacity=".75"/>` +
+      `<circle cx="${fmt(z.anchor.x)}" cy="${fmt(z.anchor.y)}" r="1.8" fill="${s.label}"/>`);
   }
   for (const z of m.zones) {
     if (!z.label) continue;
