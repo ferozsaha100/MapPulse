@@ -37,6 +37,15 @@ class Plugin {
 	private function __construct() {
 		add_action( 'init', array( $this, 'register_assets' ), 5 );
 		add_action( 'init', array( Map_Post_Type::class, 'register' ) );
+
+		if ( is_admin() ) {
+			( new Importer() )->register();
+		}
+
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			require_once MAPPULSE_DIR . 'includes/class-cli.php';
+			\WP_CLI::add_command( 'mappulse', CLI::class );
+		}
 	}
 
 	/**

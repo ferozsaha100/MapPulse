@@ -27,6 +27,7 @@ define( 'MAPPULSE_MAX_ZONES', 200 );
 require_once MAPPULSE_DIR . 'includes/class-map-document.php';
 require_once MAPPULSE_DIR . 'includes/class-renderer.php';
 require_once MAPPULSE_DIR . 'includes/class-map-post-type.php';
+require_once MAPPULSE_DIR . 'includes/class-importer.php';
 require_once MAPPULSE_DIR . 'includes/class-plugin.php';
 require_once MAPPULSE_DIR . 'includes/functions.php';
 
