@@ -43,7 +43,7 @@ export function renderSvg(m) {
   o.push('<g class="mp-zones">' + m.zones.map((z) =>
     `<a class="mp-zone-link" id="z-${z.slug}" href="#${z.slug}" aria-label="${esc(z.name)}"><path class="mp-zone" d="${pathOfMP(z.mp)}" fill-rule="evenodd"/></a>`).join('') + '</g>');
   o.push('<g class="mp-layer-top">');
-  o.push(`<path class="mp-water" d="${m.water.map((f) => pathOfMP(f.mp)).join('')}" fill-rule="evenodd"/>`);
+  o.push(`<path class="mp-water" d="${m.waterDrawn ? pathOfMP(m.waterDrawn) : m.water.map((f) => pathOfMP(f.mp)).join('')}" fill-rule="evenodd"/>`);
   for (const [lines, casing, inner] of [[m.roadsSecondary, 3.2, 1.6], [m.roadsPrimary, 5.4, 3]]) {
     const d = pathOfLines(lines);
     if (!d) continue;
@@ -63,9 +63,10 @@ export function renderSvg(m) {
   }
   for (const z of m.zones) {
     if (!z.label) continue;
-    const lh = s.labelSize * 1.18;
-    const y0 = z.label.y - ((z.lines.length - 1) * lh) / 2 + s.labelSize * 0.36;
-    o.push(`<text class="mp-label" id="l-${z.slug}" text-anchor="middle">` +
+    const fs = z.fontSize || s.labelSize;
+    const lh = fs * 1.18;
+    const y0 = z.label.y - ((z.lines.length - 1) * lh) / 2 + fs * 0.36;
+    o.push(`<text class="mp-label" id="l-${z.slug}" text-anchor="middle"${fs !== s.labelSize ? ` style="font-size:${fs}px"` : ''}>` +
       z.lines.map((line, i) => `<tspan x="${fmt(z.label.x)}" y="${fmt(y0 + i * lh)}">${esc(line)}</tspan>`).join('') + '</text>');
   }
   o.push(compass(W - 46, 52, s.label));

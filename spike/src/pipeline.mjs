@@ -166,6 +166,12 @@ export function resolveOverlaps(zones, priority) {
 export const clipToFrame = (mp, w, h) => safe('intersection', [], mp, [frameRing(w, h)]);
 export const subtract = (mp, clips) => (clips.length ? safe('difference', mp, mp, ...clips) : mp);
 export const unionAll = (mps) => (mps.length ? safe('union', mps[0], ...mps) : []);
+/** Merge shapes for drawing, so neighbors share no visible seam. Falls back to the unmerged shapes. */
+export function mergeForDrawing(mps) {
+  const all = mps.filter((mp) => mp && mp.length);
+  if (!all.length) return [];
+  try { return pc.union(all[0], ...all.slice(1)); } catch (err) { return all.flat(); }
+}
 
 // ---------------------------------------------------------------- shared-edge simplification
 const fc = (items) => ({

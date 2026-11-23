@@ -2,6 +2,12 @@
 
 All notable changes to MapPulse are recorded here. Versions follow semantic versioning.
 
+## 0.0.3 (Phase 0 spike, second tuning pass)
+
+- Water shapes are merged before drawing, which removes the seam lines between adjacent bodies of water.
+- A zone narrower than its name gets smaller type, down to `style.labelSizeMin` (default 9.5 px).
+- Leader lines are drawn only when a label has been pushed clear of its anchor point.
+
 ## 0.0.2 (Phase 0 spike, first tuning pass on real data)
 
 - Zone matching ignores generic organisation words ("Neighborhood", "Assn", "Civic") and treats

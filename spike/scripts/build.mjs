@@ -149,29 +149,33 @@ simple.water.forEach((f) => { water[f.properties.i].mp = clean(f.geometry); });
 const roadsPrimary = P.toLines(simple.roadsP[0] && simple.roadsP[0].geometry);
 const roadsSecondary = P.toLines(simple.roadsS[0] && simple.roadsS[0].geometry);
 
-// 9. Labels
+// 9. Labels. A zone narrower than its name gets smaller type, down to a floor that still reads.
+const minLabelSize = cfg.style.labelSizeMin || 9.5;
 for (const z of zones) {
   z.lines = P.labelLines(z.name);
   z.label = P.labelPoint(z.mp);
   if (!z.label) { warnings.push(`"${z.name}" has no drawable area left.`); continue; }
-  const textW = Math.max(...z.lines.map((l) => l.length)) * cfg.style.labelSize * 0.7;
+  const chars = Math.max(...z.lines.map((l) => l.length));
+  const textW = chars * cfg.style.labelSize * 0.72;
   const b = P.mpBbox(z.mp);
-  if (textW > (b[2] - b[0]) * 1.1) notes.push(`"${z.name}": the label is wider than the zone (${Math.round(textW)} px vs ${Math.round(b[2] - b[0])} px).`);
+  const zoneW = b[2] - b[0];
+  z.fontSize = Math.round(Math.min(cfg.style.labelSize, Math.max(minLabelSize, (cfg.style.labelSize * zoneW * 1.2) / textW)) * 10) / 10;
+  const fitW = chars * z.fontSize * 0.72;
+  if (fitW > zoneW * 1.1) notes.push(`"${z.name}": the label is wider than the zone even at ${z.fontSize} px (${Math.round(fitW)} px vs ${Math.round(zoneW)} px).`);
 }
-// Keep labels from sitting on top of each other; a label moved off its zone gets a leader line.
-const lh = cfg.style.labelSize * 1.18;
+// Keep labels from sitting on top of each other; a label pushed clear of its anchor gets a leader line.
 const boxes = zones.filter((z) => z.label).map((z) => ({
   z, x: z.label.x, y: z.label.y,
-  w: Math.max(...z.lines.map((l) => l.length)) * cfg.style.labelSize * 0.72 + 4,
-  h: z.lines.length * lh + 2,
+  w: Math.max(...z.lines.map((l) => l.length)) * z.fontSize * 0.72 + 4,
+  h: z.lines.length * z.fontSize * 1.18 + 2,
 }));
 P.separateLabels(boxes, { width: W, height: H });
 for (const b of boxes) {
   const moved = Math.hypot(b.x - b.z.label.x, b.y - b.z.label.y);
   b.z.anchor = { x: b.z.label.x, y: b.z.label.y };
   b.z.label = { ...b.z.label, x: b.x, y: b.y, w: b.w, h: b.h };
-  b.z.leader = moved > 9;
-  if (b.z.leader) notes.push(`"${b.z.name}": label moved ${Math.round(moved)} px to avoid a neighbor and drawn with a leader line.`);
+  b.z.leader = Math.abs(b.z.anchor.x - b.x) > b.w / 2 + 3 || Math.abs(b.z.anchor.y - b.y) > b.h / 2 + 3;
+  if (moved > 4) notes.push(`"${b.z.name}": label moved ${Math.round(moved)} px to clear a neighbor${b.z.leader ? ' and drawn with a leader line' : ''}.`);
 }
 
 const byName = new Map();
@@ -194,7 +198,8 @@ const waterLabels = [...byName.values()];
 
 // 10. Write the outputs
 const title = `${cfg.name}: service areas`;
-const svg = renderSvg({ title, frame: { width: W, height: H }, land, context, contextBase, zones, water, roadsPrimary, roadsSecondary, waterLabels, style: cfg.style, synthetic: !!meta.synthetic });
+const waterDrawn = P.mergeForDrawing(water.map((w) => w.mp));
+const svg = renderSvg({ title, frame: { width: W, height: H }, land, context, contextBase, zones, water, waterDrawn, roadsPrimary, roadsSecondary, waterLabels, style: cfg.style, synthetic: !!meta.synthetic });
 const report = {
   market: cfg.name,
   synthetic: !!meta.synthetic,
