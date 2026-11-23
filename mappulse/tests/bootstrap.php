@@ -21,9 +21,10 @@ tests_add_filter(
 		require dirname( __DIR__ ) . '/mappulse.php';
 
 		// Elementor is loaded when the environment has it (wp-env does), so the widget can be tested for real.
-		$elementor = WP_PLUGIN_DIR . '/elementor/elementor.php';
-		if ( file_exists( $elementor ) ) {
-			require $elementor;
+		// wp-env names a plugin folder after its zip file, so the folder is not always "elementor".
+		$elementor = glob( WP_PLUGIN_DIR . '/elementor*/elementor.php' );
+		if ( $elementor ) {
+			require $elementor[0];
 		}
 	}
 );

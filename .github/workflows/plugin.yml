@@ -77,8 +77,8 @@ jobs:
       - name: PHPUnit
         run: |
           set -o pipefail
-          npx wp-env run tests-cli --env-cwd=wp-content/plugins/mappulse vendor/bin/phpunit 2>&1 | tee phpunit.log || {
-            msg=$(tail -n 60 phpunit.log | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+          npx wp-env run tests-cli --env-cwd=wp-content/plugins/mappulse env MAPPULSE_REQUIRE_ELEMENTOR=1 vendor/bin/phpunit 2>&1 | tee phpunit.log || {
+            msg=$(grep -vE '^\s*$' phpunit.log | tail -n 45 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
             echo "::error title=PHPUnit::$msg"
             exit 1
           }

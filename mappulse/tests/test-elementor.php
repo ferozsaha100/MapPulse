@@ -6,6 +6,9 @@ class Test_Elementor extends MapPulse_Test_Case {
 	public function set_up() {
 		parent::set_up();
 		if ( ! class_exists( '\Elementor\Plugin' ) ) {
+			if ( getenv( 'MAPPULSE_REQUIRE_ELEMENTOR' ) ) {
+				$this->fail( 'Elementor must be loaded in this environment, and it is not.' );
+			}
 			$this->markTestSkipped( 'Elementor is not installed in this environment.' );
 		}
 	}
