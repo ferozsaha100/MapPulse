@@ -1,0 +1,48 @@
+
+> mappulse-spike@0.0.1 build
+> node scripts/build.mjs config/st-petersburg.json
+
+
+St. Petersburg, FL
+Frame 1000 x 966 px. 16/17 zones, 70 surrounding areas, 370 water shapes.
+SVG 148 KB -> out/st-petersburg.svg, out/preview.html, out/report.json
+
+  ok  Shore Acres          neighborhoods: "SHORE ACRES CIVIC ASSN" (score 80)
+  ok  Snell Isle           neighborhoods: "SNELL ISLE PROPERTY OWNERS ASSN" (score 75)
+  MISSING Coffee Pot           
+  ok  Allendale Terrace    neighborhoods: "ALLENDALE OAKS NBRHD ASSN" (score 68)
+  ok  Crescent Heights     neighborhoods: "CRESCENT HEIGHTS NBRHD ASSN" (score 80)
+  ok  Euclid-St Pauls      neighborhoods: "EUCLID-ST PAUL NBRHD ASSN" (score 80)
+  ok  Woodlawn             neighborhoods: "WOODLAWN OAKS NBRHD ASSN" (score 77)
+  ok  Old Northeast        neighborhoods: "HISTORIC OLD NORTHEAST NBRHD ASSN" (score 75)
+  ok  Historic Kenwood     neighborhoods: "HISTORIC KENWOOD NBRHD ASSN" (score 80)
+  ok  Downtown             neighborhoods: "DOWNTOWN NBRHD ASSN" (score 80)
+  ok  Old Southeast        neighborhoods: "OLD SOUTHEAST NBRHD ASSN" (score 80)
+  ok  Tropical Shores      neighborhoods: "TROPICAL SHORES NBRHD ASSN" (score 80)
+  ok  Driftwood            neighborhoods: "DRIFTWOOD PROPERTY OWNERS ASSN" (score 75)
+  ok  Pinellas Point       neighborhoods: "GREATER PINELLAS POINT CIVIC ASSN" (score 76)
+  ok  Jungle Prada         neighborhoods: "JUNGLE PRADA NBRHD ASSN" (score 80)
+  ok  Pasadena             neighborhoods: "OLD PASADENA NBRHD ASSN" (score 78)
+  ok  Gulfport             places: "Gulfport" (score 105)
+
+Notes
+  - "Shore Acres": 10% of the source shape was over water and was clipped.
+  - "Snell Isle": 12% of the source shape was over water and was clipped.
+  - "Old Northeast": 2% of the source shape was over water and was clipped.
+  - "Downtown": 3% of the source shape was over water and was clipped.
+  - "Tropical Shores": 6% of the source shape was over water and was clipped.
+  - "Driftwood": 3% of the source shape was over water and was clipped.
+  - "Pinellas Point": 8% of the source shape was over water and was clipped.
+  - "Jungle Prada": 6% of the source shape was over water and was clipped.
+  - "Gulfport": 28% of the source shape was over water and was clipped.
+  - "Allendale Terrace": the label is wider than the zone (72 px vs 45 px).
+  - "Crescent Heights": the label is wider than the zone (64 px vs 45 px).
+  - "Euclid-St Pauls": the label is wider than the zone (72 px vs 45 px).
+  - "Woodlawn": the label is wider than the zone (64 px vs 38 px).
+  - "Old Southeast": the label is wider than the zone (72 px vs 52 px).
+  - "Tropical Shores": the label is wider than the zone (64 px vs 40 px).
+  - "Driftwood": the label is wider than the zone (72 px vs 30 px).
+  - "Pasadena": the label is wider than the zone (64 px vs 51 px).
+
+Warnings
+  ! Zone "Coffee Pot" was not found in any source.

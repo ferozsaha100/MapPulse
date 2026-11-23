@@ -1,0 +1,784 @@
+{
+  "synthetic": false,
+  "fetchedAt": "2026-11-23T20:04:35.440Z",
+  "config": "config/st-petersburg.json",
+  "layers": {
+    "neighborhoods": {
+      "layerId": 22,
+      "layerName": "Neighborhood Associations",
+      "features": 89,
+      "fields": [
+        "OBJECTID",
+        "NANAME",
+        "WEBSITE",
+        "CONTACTNAME",
+        "CONTACTPHONE",
+        "CONTACTEMAIL",
+        "FACEBOOKPAGE",
+        "MEETINGINFO",
+        "NBRHDSPECIALIST",
+        "NBRHDSPECIALISTPHONE",
+        "NBRHDSPECIALISTEMAIL",
+        "STATUS"
+      ],
+      "license": "City of St. Petersburg GIS"
+    },
+    "places": {
+      "layerId": 28,
+      "layerName": "Incorporated Places",
+      "features": 20,
+      "fields": [
+        "MTFCC",
+        "OID",
+        "GEOID",
+        "STATE",
+        "PLACE",
+        "BASENAME",
+        "NAME",
+        "LSADC",
+        "FUNCSTAT",
+        "PLACECC",
+        "AREALAND",
+        "AREAWATER",
+        "CBSAPCI",
+        "NECTAPCI",
+        "CENTLAT",
+        "CENTLON",
+        "INTPTLAT",
+        "INTPTLON",
+        "PLACENS",
+        "OBJECTID",
+        "DISP_CLR"
+      ],
+      "license": "US Census Bureau, public domain"
+    },
+    "zcta": {
+      "layerId": 2,
+      "layerName": "2020 Census ZIP Code Tabulation Areas",
+      "features": 39,
+      "fields": [
+        "OID",
+        "ZCTA5",
+        "GEOID",
+        "BASENAME",
+        "LSADC",
+        "NAME",
+        "MTFCC",
+        "ZCTA5CC",
+        "FUNCSTAT",
+        "AREALAND",
+        "AREAWATER",
+        "CENTLAT",
+        "CENTLON",
+        "INTPTLAT",
+        "INTPTLON",
+        "OBJECTID"
+      ],
+      "license": "US Census Bureau, public domain"
+    },
+    "counties": {
+      "layerId": 82,
+      "layerName": "Counties",
+      "features": 3,
+      "fields": [
+        "MTFCC",
+        "OID",
+        "GEOID",
+        "STATE",
+        "COUNTY",
+        "COUNTYNS",
+        "BASENAME",
+        "NAME",
+        "LSADC",
+        "FUNCSTAT",
+        "COUNTYCC",
+        "AREALAND",
+        "AREAWATER",
+        "OBJECTID",
+        "CENTLAT",
+        "CENTLON",
+        "INTPTLAT",
+        "INTPTLON"
+      ],
+      "license": "US Census Bureau, public domain"
+    },
+    "water": {
+      "layerId": 1,
+      "layerName": "Areal Hydrography",
+      "features": 1683,
+      "fields": [
+        "AREALAND",
+        "AREAWATER",
+        "BASENAME",
+        "CENTLAT",
+        "CENTLON",
+        "FUNCSTAT",
+        "INTPTLAT",
+        "INTPTLON",
+        "LNDMRKNS",
+        "LSADC",
+        "MTFCC",
+        "NAME",
+        "OBJECTID",
+        "OID",
+        "PRETYP",
+        "PRETYPEABRV",
+        "SUFTYP",
+        "SUFTYPEABRV"
+      ],
+      "license": "US Census Bureau, public domain"
+    },
+    "roads-primary": {
+      "layerId": 2,
+      "layerName": "Primary Roads",
+      "features": 43,
+      "fields": [
+        "BASENAME",
+        "MTFCC",
+        "NAME",
+        "OBJECTID",
+        "OID",
+        "PREDIR",
+        "PREDIRABRV",
+        "PREQUAL",
+        "PREQUALABRV",
+        "PRETYP",
+        "PRETYPEABRV",
+        "RTTYP",
+        "SUFDIR",
+        "SUFDIRABRV",
+        "SUFQUAL",
+        "SUFQUALABRV",
+        "SUFTYP",
+        "SUFTYPEABRV"
+      ],
+      "license": "US Census Bureau, public domain"
+    },
+    "roads-secondary": {
+      "layerId": 6,
+      "layerName": "Secondary Roads 72_1k scale",
+      "features": 115,
+      "fields": [
+        "BASENAME",
+        "MTFCC",
+        "NAME",
+        "OBJECTID",
+        "OID",
+        "PREDIR",
+        "PREDIRABRV",
+        "PREQUAL",
+        "PREQUALABRV",
+        "PRETYP",
+        "PRETYPEABRV",
+        "RTTYP",
+        "SUFDIR",
+        "SUFDIRABRV",
+        "SUFQUAL",
+        "SUFQUALABRV",
+        "SUFTYP",
+        "SUFTYPEABRV"
+      ],
+      "license": "US Census Bureau, public domain"
+    }
+  },
+  "services": {
+    "https://egis.stpete.org/arcgis/rest/services/ServicesDOTS/NeighborhoodRelations/MapServer": [
+      {
+        "id": 0,
+        "name": "Public Access",
+        "group": true
+      },
+      {
+        "id": 1,
+        "name": "City Facility",
+        "group": false
+      },
+      {
+        "id": 2,
+        "name": "Cultural Facility",
+        "group": false
+      },
+      {
+        "id": 3,
+        "name": "Community Center",
+        "group": false
+      },
+      {
+        "id": 4,
+        "name": "Golf Course",
+        "group": false
+      },
+      {
+        "id": 5,
+        "name": "Library",
+        "group": false
+      },
+      {
+        "id": 6,
+        "name": "Schools",
+        "group": true
+      },
+      {
+        "id": 7,
+        "name": "Public",
+        "group": false
+      },
+      {
+        "id": 8,
+        "name": "Private",
+        "group": false
+      },
+      {
+        "id": 9,
+        "name": "South St Pete CRA",
+        "group": false
+      },
+      {
+        "id": 10,
+        "name": "Codes Cases",
+        "group": false
+      },
+      {
+        "id": 11,
+        "name": "Parcel Info",
+        "group": true
+      },
+      {
+        "id": 12,
+        "name": "Address",
+        "group": false
+      },
+      {
+        "id": 13,
+        "name": "Assessed Value",
+        "group": false
+      },
+      {
+        "id": 14,
+        "name": "Church/Church Property",
+        "group": false
+      },
+      {
+        "id": 15,
+        "name": "City Owned Property",
+        "group": false
+      },
+      {
+        "id": 16,
+        "name": "Homestead Exemption",
+        "group": false
+      },
+      {
+        "id": 17,
+        "name": "Taxable Value",
+        "group": false
+      },
+      {
+        "id": 18,
+        "name": "Parks",
+        "group": false
+      },
+      {
+        "id": 19,
+        "name": "Existing Land Use",
+        "group": false
+      },
+      {
+        "id": 20,
+        "name": "Business Associations",
+        "group": false
+      },
+      {
+        "id": 21,
+        "name": "Condo Associations",
+        "group": false
+      },
+      {
+        "id": 22,
+        "name": "Neighborhood Associations",
+        "group": false
+      },
+      {
+        "id": 23,
+        "name": "City Council Districts",
+        "group": false
+      },
+      {
+        "id": 24,
+        "name": "Community Liaison Zones",
+        "group": false
+      }
+    ],
+    "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer": [
+      {
+        "id": 0,
+        "name": "2020 Census Public Use Microdata Areas",
+        "group": false
+      },
+      {
+        "id": 1,
+        "name": "2020 Census Public Use Microdata Areas Labels",
+        "group": false
+      },
+      {
+        "id": 2,
+        "name": "2020 Census ZIP Code Tabulation Areas",
+        "group": false
+      },
+      {
+        "id": 3,
+        "name": "2020 Census ZIP Code Tabulation Areas Labels",
+        "group": false
+      },
+      {
+        "id": 4,
+        "name": "Tribal Census Tracts",
+        "group": false
+      },
+      {
+        "id": 5,
+        "name": "Tribal Census Tracts Labels",
+        "group": false
+      },
+      {
+        "id": 6,
+        "name": "Tribal Block Groups",
+        "group": false
+      },
+      {
+        "id": 7,
+        "name": "Tribal Block Groups Labels",
+        "group": false
+      },
+      {
+        "id": 8,
+        "name": "Census Tracts",
+        "group": false
+      },
+      {
+        "id": 9,
+        "name": "Census Tracts Labels",
+        "group": false
+      },
+      {
+        "id": 10,
+        "name": "Census Block Groups",
+        "group": false
+      },
+      {
+        "id": 11,
+        "name": "Census Block Groups Labels",
+        "group": false
+      },
+      {
+        "id": 12,
+        "name": "2020 Census Blocks",
+        "group": false
+      },
+      {
+        "id": 13,
+        "name": "2020 Census Blocks Labels",
+        "group": false
+      },
+      {
+        "id": 14,
+        "name": "Unified School Districts",
+        "group": false
+      },
+      {
+        "id": 15,
+        "name": "Unified School Districts Labels",
+        "group": false
+      },
+      {
+        "id": 16,
+        "name": "Secondary School Districts",
+        "group": false
+      },
+      {
+        "id": 17,
+        "name": "Secondary School Districts Labels",
+        "group": false
+      },
+      {
+        "id": 18,
+        "name": "Elementary School Districts",
+        "group": false
+      },
+      {
+        "id": 19,
+        "name": "Elementary School Districts Labels",
+        "group": false
+      },
+      {
+        "id": 84,
+        "name": "School District Administrative Areas",
+        "group": false
+      },
+      {
+        "id": 85,
+        "name": "School District Administrative Areas Labels",
+        "group": false
+      },
+      {
+        "id": 20,
+        "name": "Estates",
+        "group": false
+      },
+      {
+        "id": 21,
+        "name": "Estates Labels",
+        "group": false
+      },
+      {
+        "id": 22,
+        "name": "County Subdivisions",
+        "group": false
+      },
+      {
+        "id": 23,
+        "name": "County Subdivisions Labels",
+        "group": false
+      },
+      {
+        "id": 24,
+        "name": "Subbarrios",
+        "group": false
+      },
+      {
+        "id": 25,
+        "name": "Subbarrios Labels",
+        "group": false
+      },
+      {
+        "id": 26,
+        "name": "Consolidated Cities",
+        "group": false
+      },
+      {
+        "id": 27,
+        "name": "Consolidated Cities Labels",
+        "group": false
+      },
+      {
+        "id": 28,
+        "name": "Incorporated Places",
+        "group": false
+      },
+      {
+        "id": 29,
+        "name": "Incorporated Places Labels",
+        "group": false
+      },
+      {
+        "id": 30,
+        "name": "Census Designated Places",
+        "group": false
+      },
+      {
+        "id": 31,
+        "name": "Census Designated Places Labels",
+        "group": false
+      },
+      {
+        "id": 32,
+        "name": "Alaska Native Regional Corporations",
+        "group": false
+      },
+      {
+        "id": 33,
+        "name": "Alaska Native Regional Corporations Labels",
+        "group": false
+      },
+      {
+        "id": 34,
+        "name": "Tribal Subdivisions",
+        "group": false
+      },
+      {
+        "id": 35,
+        "name": "Tribal Subdivisions Labels",
+        "group": false
+      },
+      {
+        "id": 36,
+        "name": "Federal American Indian Reservations",
+        "group": false
+      },
+      {
+        "id": 37,
+        "name": "Federal American Indian Reservations Labels",
+        "group": false
+      },
+      {
+        "id": 38,
+        "name": "Off-Reservation Trust Lands",
+        "group": false
+      },
+      {
+        "id": 39,
+        "name": "Off-Reservation Trust Lands Labels",
+        "group": false
+      },
+      {
+        "id": 40,
+        "name": "State American Indian Reservations",
+        "group": false
+      },
+      {
+        "id": 41,
+        "name": "State American Indian Reservations Labels",
+        "group": false
+      },
+      {
+        "id": 42,
+        "name": "Hawaiian Home Lands",
+        "group": false
+      },
+      {
+        "id": 43,
+        "name": "Hawaiian Home Lands Labels",
+        "group": false
+      },
+      {
+        "id": 44,
+        "name": "Alaska Native Village Statistical Areas",
+        "group": false
+      },
+      {
+        "id": 45,
+        "name": "Alaska Native Village Statistical Areas Labels",
+        "group": false
+      },
+      {
+        "id": 46,
+        "name": "Oklahoma Tribal Statistical Areas",
+        "group": false
+      },
+      {
+        "id": 47,
+        "name": "Oklahoma Tribal Statistical Areas Labels",
+        "group": false
+      },
+      {
+        "id": 48,
+        "name": "State Designated Tribal Statistical Areas",
+        "group": false
+      },
+      {
+        "id": 49,
+        "name": "State Designated Tribal Statistical Areas Labels",
+        "group": false
+      },
+      {
+        "id": 50,
+        "name": "Tribal Designated Statistical Areas",
+        "group": false
+      },
+      {
+        "id": 51,
+        "name": "Tribal Designated Statistical Areas Labels",
+        "group": false
+      },
+      {
+        "id": 52,
+        "name": "American Indian Joint-Use Areas",
+        "group": false
+      },
+      {
+        "id": 53,
+        "name": "American Indian Joint-Use Areas Labels",
+        "group": false
+      },
+      {
+        "id": 54,
+        "name": "120th Congressional Districts",
+        "group": false
+      },
+      {
+        "id": 55,
+        "name": "120th Congressional Districts Labels",
+        "group": false
+      },
+      {
+        "id": 56,
+        "name": "2026 State Legislative Districts - Upper",
+        "group": false
+      },
+      {
+        "id": 57,
+        "name": "2026 State Legislative Districts - Upper Labels",
+        "group": false
+      },
+      {
+        "id": 58,
+        "name": "2026 State Legislative Districts - Lower",
+        "group": false
+      },
+      {
+        "id": 59,
+        "name": "2026 State Legislative Districts - Lower Labels",
+        "group": false
+      },
+      {
+        "id": 60,
+        "name": "Census Divisions",
+        "group": false
+      },
+      {
+        "id": 61,
+        "name": "Census Divisions Labels",
+        "group": false
+      },
+      {
+        "id": 62,
+        "name": "Census Regions",
+        "group": false
+      },
+      {
+        "id": 63,
+        "name": "Census Regions Labels",
+        "group": false
+      },
+      {
+        "id": 80,
+        "name": "States",
+        "group": false
+      },
+      {
+        "id": 81,
+        "name": "States Labels",
+        "group": false
+      },
+      {
+        "id": 82,
+        "name": "Counties",
+        "group": false
+      },
+      {
+        "id": 83,
+        "name": "Counties Labels",
+        "group": false
+      },
+      {
+        "id": 88,
+        "name": "Urban Areas",
+        "group": false
+      },
+      {
+        "id": 87,
+        "name": "Urban Areas Labels",
+        "group": false
+      },
+      {
+        "id": 97,
+        "name": "Combined Statistical Areas",
+        "group": false
+      },
+      {
+        "id": 96,
+        "name": "Combined Statistical Areas Labels",
+        "group": false
+      },
+      {
+        "id": 95,
+        "name": "Metropolitan Divisions",
+        "group": false
+      },
+      {
+        "id": 94,
+        "name": "Metropolitan Divisions Labels",
+        "group": false
+      },
+      {
+        "id": 93,
+        "name": "Metropolitan Statistical Areas",
+        "group": false
+      },
+      {
+        "id": 92,
+        "name": "Metropolitan Statistical Areas Labels",
+        "group": false
+      },
+      {
+        "id": 91,
+        "name": "Micropolitan Statistical Areas",
+        "group": false
+      },
+      {
+        "id": 90,
+        "name": "Micropolitan Statistical Areas Labels",
+        "group": false
+      }
+    ],
+    "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Hydro/MapServer": [
+      {
+        "id": 0,
+        "name": "Linear Hydrography",
+        "group": false
+      },
+      {
+        "id": 1,
+        "name": "Areal Hydrography",
+        "group": false
+      },
+      {
+        "id": 2,
+        "name": "Glaciers",
+        "group": false
+      }
+    ],
+    "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer": [
+      {
+        "id": 0,
+        "name": "Primary Roads Interstates 5M scale",
+        "group": false
+      },
+      {
+        "id": 1,
+        "name": "Primary Roads 2_1M scale",
+        "group": false
+      },
+      {
+        "id": 2,
+        "name": "Primary Roads",
+        "group": false
+      },
+      {
+        "id": 3,
+        "name": "Secondary Roads Interstates and US Highways",
+        "group": false
+      },
+      {
+        "id": 4,
+        "name": "Secondary Roads 578k scale",
+        "group": false
+      },
+      {
+        "id": 5,
+        "name": "Secondary Roads 289_144k scale",
+        "group": false
+      },
+      {
+        "id": 6,
+        "name": "Secondary Roads 72_1k scale",
+        "group": false
+      },
+      {
+        "id": 7,
+        "name": "Local Roads 72k scale",
+        "group": false
+      },
+      {
+        "id": 8,
+        "name": "Local Roads",
+        "group": false
+      },
+      {
+        "id": 9,
+        "name": "Railroads",
+        "group": false
+      }
+    ]
+  }
+}

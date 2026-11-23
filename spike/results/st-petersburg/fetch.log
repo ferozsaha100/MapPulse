@@ -1,0 +1,45 @@
+
+> mappulse-spike@0.0.1 fetch
+> node scripts/fetch.mjs config/st-petersburg.json
+
+
+[neighborhoods] https://egis.stpete.org/arcgis/rest/services/ServicesDOTS/NeighborhoodRelations/MapServer
+    using layer 22: Neighborhood Associations
+    89 features (total 89)
+
+[places] https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer
+    using layer 28: Incorporated Places
+    20 features (total 20)
+
+[zcta] https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer
+    using layer 2: 2020 Census ZIP Code Tabulation Areas
+    39 features (total 39)
+
+[counties] https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer
+    using layer 82: Counties
+    3 features (total 3)
+
+[water] https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Hydro/MapServer
+    using layer 1: Areal Hydrography
+    1000 features (total 1000)
+    683 features (total 1683)
+
+[roads-primary] https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer
+    using layer 2: Primary Roads
+    43 features (total 43)
+
+[roads-secondary] https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer
+    using layer 6: Secondary Roads 72_1k scale
+    115 features (total 115)
+
+Summary
+  neighborhoods    89 features  (layer 22: Neighborhood Associations)
+  places           20 features  (layer 28: Incorporated Places)
+  zcta             39 features  (layer 2: 2020 Census ZIP Code Tabulation Areas)
+  counties         3 features  (layer 82: Counties)
+  water            1683 features  (layer 1: Areal Hydrography)
+  roads-primary    43 features  (layer 2: Primary Roads)
+  roads-secondary  115 features  (layer 6: Secondary Roads 72_1k scale)
+
+Saved to data/raw. All layers downloaded.
+Next: npm run build
