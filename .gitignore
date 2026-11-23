@@ -4,3 +4,6 @@ spike/out/
 .DS_Store
 *.log
 !spike/results/**/*.log
+mappulse/vendor/
+mappulse/composer.lock
+.superpowers/
