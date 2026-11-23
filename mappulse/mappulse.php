@@ -25,6 +25,7 @@ define( 'MAPPULSE_MAX_IMPORT_BYTES', 2 * 1024 * 1024 );
 define( 'MAPPULSE_MAX_ZONES', 200 );
 
 require_once MAPPULSE_DIR . 'includes/class-map-document.php';
+require_once MAPPULSE_DIR . 'includes/class-renderer.php';
 require_once MAPPULSE_DIR . 'includes/class-plugin.php';
 
 add_action( 'plugins_loaded', array( 'MapPulse\Plugin', 'instance' ) );
