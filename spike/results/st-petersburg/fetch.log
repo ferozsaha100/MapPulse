@@ -1,5 +1,5 @@
 
-> mappulse-spike@0.0.3 fetch
+> mappulse-spike@0.0.4 fetch
 > node scripts/fetch.mjs config/st-petersburg.json
 
 

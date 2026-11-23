@@ -1,5 +1,5 @@
 
-> mappulse-spike@0.0.3 build
+> mappulse-spike@0.0.4 build
 > node scripts/build.mjs config/st-petersburg.json
 
 
@@ -43,10 +43,10 @@ Notes
   - "Tropical Shores": the label is wider than the zone even at 9.5 px (55 px vs 40 px).
   - "Driftwood": the label is wider than the zone even at 9.5 px (62 px vs 30 px).
   - "Pasadena": the label is wider than the zone even at 10.5 px (60 px vs 51 px).
-  - "Crescent Heights": label moved 8 px to clear a neighbor.
-  - "Woodlawn": label moved 8 px to clear a neighbor.
-  - "Old Southeast": label moved 7 px to clear a neighbor.
-  - "Driftwood": label moved 7 px to clear a neighbor.
+  - "Crescent Heights": label moved 11 px to clear a neighbor.
+  - "Woodlawn": label moved 11 px to clear a neighbor and drawn with a leader line.
+  - "Old Southeast": label moved 8 px to clear a neighbor.
+  - "Driftwood": label moved 8 px to clear a neighbor.
 
 Warnings
   ! Zone "Coffee Pot" was not found in any source.
