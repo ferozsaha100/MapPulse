@@ -37,6 +37,9 @@ class Plugin {
 	private function __construct() {
 		add_action( 'init', array( $this, 'register_assets' ), 5 );
 		add_action( 'init', array( Map_Post_Type::class, 'register' ) );
+		add_action( 'init', array( Shortcode::class, 'register' ) );
+		add_action( 'init', array( $this, 'register_block' ) );
+		add_action( 'enqueue_block_editor_assets', array( $this, 'block_editor_data' ) );
 
 		if ( is_admin() ) {
 			( new Importer() )->register();
@@ -56,6 +59,31 @@ class Plugin {
 		if ( $role ) {
 			$role->add_cap( Map_Post_Type::CAPABILITY );
 		}
+	}
+
+	/**
+	 * Registers the Gutenberg block from its block.json.
+	 */
+	public function register_block(): void {
+		register_block_type( MAPPULSE_DIR . 'blocks/mappulse' );
+	}
+
+	/**
+	 * Hands the block editor the list of maps for its picker.
+	 */
+	public function block_editor_data(): void {
+		$maps = array();
+		foreach ( Map_Post_Type::choices() as $id => $title ) {
+			$maps[] = array(
+				'id'    => $id,
+				'title' => $title,
+			);
+		}
+		wp_add_inline_script(
+			'agentview-mappulse-editor-script',
+			'window.mappulseBlock = ' . wp_json_encode( array( 'maps' => $maps ) ) . ';',
+			'before'
+		);
 	}
 
 	/**

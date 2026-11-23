@@ -125,6 +125,28 @@ class Map_Post_Type {
 	}
 
 	/**
+	 * Published maps as ID => name, for the pickers in the block and the Elementor widget.
+	 */
+	public static function choices(): array {
+		$posts = get_posts(
+			array(
+				'post_type'      => self::POST_TYPE,
+				'post_status'    => 'publish',
+				'posts_per_page' => 100,
+				'orderby'        => 'title',
+				'order'          => 'ASC',
+				'no_found_rows'  => true,
+			)
+		);
+
+		$choices = array();
+		foreach ( $posts as $post ) {
+			$choices[ $post->ID ] = '' !== $post->post_title ? $post->post_title : sprintf( '#%d', $post->ID );
+		}
+		return $choices;
+	}
+
+	/**
 	 * Returns a map's SVG from the cache, rebuilding it when the document or the plugin version changed.
 	 *
 	 * @param int $post_id Map post ID.
