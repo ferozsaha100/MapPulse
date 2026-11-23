@@ -20,23 +20,26 @@ class Renderer {
 	const LAYOUTS = array( 'list-left', 'list-right', 'list-below', 'map-only' );
 
 	/**
-	 * Style keys that become CSS custom properties on the section, with their variable names.
+	 * Style keys and the custom properties that carry them on the section.
+	 *
+	 * These are the document's defaults. The stylesheet reads var(--mappulse-zone, var(--mappulse-doc-zone)),
+	 * so a placement or a theme overrides a value by setting the public name (--mappulse-zone) anywhere above.
 	 */
 	const VARIABLES = array(
-		'water'         => '--mappulse-water',
-		'coast'         => '--mappulse-coast',
-		'land'          => '--mappulse-land',
-		'context'       => '--mappulse-context',
-		'contextStroke' => '--mappulse-context-stroke',
-		'zone'          => '--mappulse-zone',
-		'zoneStroke'    => '--mappulse-zone-stroke',
-		'zoneHover'     => '--mappulse-zone-hover',
-		'label'         => '--mappulse-label',
-		'labelHover'    => '--mappulse-label-hover',
-		'waterLabel'    => '--mappulse-water-label',
-		'road'          => '--mappulse-road',
-		'roadCasing'    => '--mappulse-road-casing',
-		'labelFont'     => '--mappulse-font',
+		'water'         => '--mappulse-doc-water',
+		'coast'         => '--mappulse-doc-coast',
+		'land'          => '--mappulse-doc-land',
+		'context'       => '--mappulse-doc-context',
+		'contextStroke' => '--mappulse-doc-context-stroke',
+		'zone'          => '--mappulse-doc-zone',
+		'zoneStroke'    => '--mappulse-doc-zone-stroke',
+		'zoneHover'     => '--mappulse-doc-zone-hover',
+		'label'         => '--mappulse-doc-label',
+		'labelHover'    => '--mappulse-doc-label-hover',
+		'waterLabel'    => '--mappulse-doc-water-label',
+		'road'          => '--mappulse-doc-road',
+		'roadCasing'    => '--mappulse-doc-road-casing',
+		'labelFont'     => '--mappulse-doc-font',
 	);
 
 	/**

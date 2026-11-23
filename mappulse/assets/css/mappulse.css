@@ -1,4 +1,8 @@
-/* MapPulse front end. Every color comes from a --mappulse-* custom property set on the section. */
+/*
+ * MapPulse front end.
+ * Each map sets its own defaults as --mappulse-doc-* on the section. To override one, set the public
+ * name on the section or any ancestor, for example: .my-page .mappulse { --mappulse-zone-hover: #7a1f1f; }
+ */
 .mappulse {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);
@@ -53,8 +57,8 @@
 .mappulse__list a:hover,
 .mappulse__list a:focus-visible,
 .mappulse__list .is-active {
-	background-color: var(--mappulse-zone-hover);
-	color: var(--mappulse-label-hover);
+	background-color: var(--mappulse-zone-hover, var(--mappulse-doc-zone-hover));
+	color: var(--mappulse-label-hover, var(--mappulse-doc-label-hover));
 }
 
 @media (min-width: 782px) {
@@ -79,17 +83,17 @@
 
 /* Map layers, in draw order. */
 .mappulse__sea {
-	fill: var(--mappulse-water);
+	fill: var(--mappulse-water, var(--mappulse-doc-water));
 }
 
 .mappulse__land path {
-	fill: var(--mappulse-land);
+	fill: var(--mappulse-land, var(--mappulse-doc-land));
 }
 
 .mappulse__cities path,
 .mappulse__areas path {
-	fill: var(--mappulse-context);
-	stroke: var(--mappulse-context-stroke);
+	fill: var(--mappulse-context, var(--mappulse-doc-context));
+	stroke: var(--mappulse-context-stroke, var(--mappulse-doc-context-stroke));
 	stroke-width: 1;
 	stroke-linejoin: round;
 }
@@ -104,8 +108,8 @@
 }
 
 .mappulse__zone path {
-	fill: var(--mappulse-zone);
-	stroke: var(--mappulse-zone-stroke);
+	fill: var(--mappulse-zone, var(--mappulse-doc-zone));
+	stroke: var(--mappulse-zone-stroke, var(--mappulse-doc-zone-stroke));
 	stroke-width: 1.6;
 	stroke-linejoin: round;
 	transition: fill 0.18s ease;
@@ -114,11 +118,11 @@
 .mappulse__zone:hover path,
 .mappulse__zone:focus-visible path,
 .mappulse__zone.is-active path {
-	fill: var(--mappulse-zone-hover);
+	fill: var(--mappulse-zone-hover, var(--mappulse-doc-zone-hover));
 }
 
 .mappulse__zone:focus-visible path {
-	stroke: var(--mappulse-label);
+	stroke: var(--mappulse-label, var(--mappulse-doc-label));
 	stroke-width: 2.4;
 }
 
@@ -131,8 +135,8 @@
 }
 
 .mappulse__water path {
-	fill: var(--mappulse-water);
-	stroke: var(--mappulse-coast);
+	fill: var(--mappulse-water, var(--mappulse-doc-water));
+	stroke: var(--mappulse-coast, var(--mappulse-doc-coast));
 	stroke-width: 0.8;
 	stroke-linejoin: round;
 }
@@ -145,11 +149,11 @@
 }
 
 .mappulse__road-casing {
-	stroke: var(--mappulse-road-casing);
+	stroke: var(--mappulse-road-casing, var(--mappulse-doc-road-casing));
 }
 
 .mappulse__road {
-	stroke: var(--mappulse-road);
+	stroke: var(--mappulse-road, var(--mappulse-doc-road));
 }
 
 .mappulse__road-casing--minor {
@@ -169,20 +173,20 @@
 }
 
 .mappulse__leaders line {
-	stroke: var(--mappulse-label);
+	stroke: var(--mappulse-label, var(--mappulse-doc-label));
 	stroke-width: 0.8;
 	stroke-opacity: 0.75;
 }
 
 .mappulse__leaders circle {
-	fill: var(--mappulse-label);
+	fill: var(--mappulse-label, var(--mappulse-doc-label));
 }
 
 .mappulse__label {
-	font-family: var(--mappulse-font);
+	font-family: var(--mappulse-font, var(--mappulse-doc-font));
 	font-weight: 600;
 	letter-spacing: 1.1px;
-	fill: var(--mappulse-label);
+	fill: var(--mappulse-label, var(--mappulse-doc-label));
 	stroke: var(--mappulse-label-halo, #fff);
 	stroke-opacity: 0.72;
 	stroke-width: 2.6px;
@@ -192,17 +196,17 @@
 }
 
 .mappulse__label.is-active {
-	fill: var(--mappulse-label-hover);
-	stroke: var(--mappulse-zone-hover);
+	fill: var(--mappulse-label-hover, var(--mappulse-doc-label-hover));
+	stroke: var(--mappulse-zone-hover, var(--mappulse-doc-zone-hover));
 	stroke-opacity: 1;
 }
 
 .mappulse__water-label {
-	font-family: var(--mappulse-font);
+	font-family: var(--mappulse-font, var(--mappulse-doc-font));
 	font-size: 12px;
 	font-style: italic;
 	letter-spacing: 3px;
-	fill: var(--mappulse-water-label);
+	fill: var(--mappulse-water-label, var(--mappulse-doc-water-label));
 }
 
 .mappulse-notice {

@@ -33,7 +33,16 @@ class Test_Renderer extends MapPulse_Test_Case {
 	public function test_layout_and_style_variables_are_on_the_section() {
 		$html = Renderer::section( $this->doc(), Renderer::svg( $this->doc() ), array( 'layout' => 'list-right' ) );
 		$this->assertStringContainsString( 'class="mappulse mappulse--list-right"', $html );
-		$this->assertStringContainsString( '--mappulse-zone-hover:#1F3A5F', $html );
+		$this->assertStringContainsString( '--mappulse-doc-zone-hover:#1F3A5F', $html );
+	}
+
+	public function test_section_sets_only_document_defaults_so_placements_can_override() {
+		$html = Renderer::section( $this->doc(), Renderer::svg( $this->doc() ), array() );
+		$this->assertDoesNotMatchRegularExpression( '/--mappulse-(?!doc-)[a-z-]+:/', $html );
+		$css = file_get_contents( MAPPULSE_DIR . 'assets/css/mappulse.css' );
+		foreach ( array( 'water', 'land', 'zone', 'zone-hover', 'label', 'label-hover', 'font' ) as $name ) {
+			$this->assertStringContainsString( 'var(--mappulse-' . $name . ', var(--mappulse-doc-' . $name . '))', $css );
+		}
 	}
 
 	public function test_unknown_layout_falls_back_and_map_only_hides_the_list() {
