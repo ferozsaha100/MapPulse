@@ -25,7 +25,8 @@ field() { grep -Eo "$1=[^ ]+" | tail -n 1 | cut -d= -f2; }
 # Fetches a page and checks it holds one map section with at least 16 zones.
 check_page() {
 	local id=$1 label=$2 file="$TMP/page-$1.html" code zones
-	code=$(curl -s -o "$file" -w '%{http_code}' "$BASE/?page_id=$id")
+	# -L: a site with pretty permalinks redirects ?page_id=N to the page's own URL.
+	code=$(curl -sL -o "$file" -w '%{http_code}' "$BASE/?page_id=$id")
 	zones=$(grep -Eo 'class="mappulse__zone[ "]' "$file" | wc -l | tr -d ' ')
 	[ "$code" = "200" ] || fail "$label: HTTP $code"
 	grep -q 'data-mappulse' "$file" || fail "$label: no map section in the page"
