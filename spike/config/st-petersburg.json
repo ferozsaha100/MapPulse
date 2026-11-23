@@ -1,0 +1,110 @@
+{
+  "name": "St. Petersburg, FL",
+  "slug": "st-petersburg",
+  "fetchBbox": [-82.86, 27.62, -82.5, 27.93],
+  "frame": { "width": 1000, "padding": 0.07, "minAspect": 1.0, "maxAspect": 1.6 },
+  "simplify": { "quantization": 100000, "minAreaPx": 0.9 },
+  "priority": ["neighborhood", "city", "zip", "county"],
+  "water": { "minAreaPx": 30, "clipMinAreaPx": 60 },
+  "sources": [
+    {
+      "id": "neighborhoods",
+      "service": "https://egis.stpete.org/arcgis/rest/services/ServicesDOTS/NeighborhoodRelations/MapServer",
+      "layerName": "^neighborhood associations$",
+      "layerId": 22,
+      "useBbox": false,
+      "license": "City of St. Petersburg GIS"
+    },
+    {
+      "id": "places",
+      "service": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer",
+      "layerName": "^incorporated places$",
+      "layerId": 28,
+      "useBbox": true,
+      "license": "US Census Bureau, public domain"
+    },
+    {
+      "id": "zcta",
+      "service": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer",
+      "layerName": "zip code tabulation areas$",
+      "layerId": 2,
+      "useBbox": true,
+      "license": "US Census Bureau, public domain"
+    },
+    {
+      "id": "counties",
+      "service": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer",
+      "layerName": "^counties$",
+      "layerId": null,
+      "useBbox": true,
+      "license": "US Census Bureau, public domain"
+    },
+    {
+      "id": "water",
+      "service": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Hydro/MapServer",
+      "layerName": "^areal hydrography$",
+      "layerId": 1,
+      "useBbox": true,
+      "maxAllowableOffset": 0.00004,
+      "license": "US Census Bureau, public domain"
+    },
+    {
+      "id": "roads-primary",
+      "service": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer",
+      "layerName": "^primary roads$",
+      "layerId": 2,
+      "useBbox": true,
+      "license": "US Census Bureau, public domain"
+    },
+    {
+      "id": "roads-secondary",
+      "service": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer",
+      "layerName": "^secondary roads",
+      "layerId": 6,
+      "useBbox": true,
+      "license": "US Census Bureau, public domain"
+    }
+  ],
+  "zones": [
+    { "name": "Shore Acres", "type": "neighborhood", "find": [{ "layer": "neighborhoods", "match": ["shore acres"] }] },
+    { "name": "Snell Isle", "type": "neighborhood", "find": [{ "layer": "neighborhoods", "match": ["snell isle"] }] },
+    { "name": "Coffee Pot", "type": "neighborhood", "find": [{ "layer": "neighborhoods", "match": ["coffee pot"] }] },
+    { "name": "Allendale Terrace", "type": "neighborhood", "find": [{ "layer": "neighborhoods", "match": ["allendale terrace", "allendale"] }] },
+    { "name": "Crescent Heights", "type": "neighborhood", "find": [{ "layer": "neighborhoods", "match": ["crescent heights"] }] },
+    { "name": "Euclid-St Pauls", "type": "neighborhood", "find": [{ "layer": "neighborhoods", "match": ["euclid st paul", "euclid"] }] },
+    { "name": "Woodlawn", "type": "neighborhood", "find": [{ "layer": "neighborhoods", "match": ["woodlawn"] }] },
+    { "name": "Old Northeast", "type": "neighborhood", "find": [{ "layer": "neighborhoods", "match": ["old northeast"] }] },
+    { "name": "Historic Kenwood", "type": "neighborhood", "find": [{ "layer": "neighborhoods", "match": ["historic kenwood", "kenwood"] }] },
+    { "name": "Downtown", "type": "neighborhood", "find": [{ "layer": "neighborhoods", "match": ["downtown"] }] },
+    { "name": "Old Southeast", "type": "neighborhood", "find": [{ "layer": "neighborhoods", "match": ["old southeast"] }] },
+    { "name": "Tropical Shores", "type": "neighborhood", "find": [{ "layer": "neighborhoods", "match": ["tropical shores"] }] },
+    { "name": "Driftwood", "type": "neighborhood", "find": [{ "layer": "neighborhoods", "match": ["driftwood"] }] },
+    { "name": "Pinellas Point", "type": "neighborhood", "find": [{ "layer": "neighborhoods", "match": ["pinellas point"] }] },
+    { "name": "Jungle Prada", "type": "neighborhood", "find": [{ "layer": "neighborhoods", "match": ["jungle prada"] }] },
+    {
+      "name": "Pasadena",
+      "type": "neighborhood",
+      "find": [
+        { "layer": "neighborhoods", "match": ["pasadena"] },
+        { "layer": "places", "match": ["south pasadena"], "type": "city" }
+      ]
+    },
+    { "name": "Gulfport", "type": "city", "find": [{ "layer": "places", "match": ["gulfport"] }] }
+  ],
+  "style": {
+    "water": "#DCE8EA",
+    "coast": "#B4C9CF",
+    "land": "#F6F1E6",
+    "context": "#EEE7D8",
+    "contextStroke": "#FFFFFF",
+    "zone": "#DCCFB6",
+    "zoneStroke": "#FFFFFF",
+    "zoneHover": "#1F3A5F",
+    "label": "#2B2F36",
+    "waterLabel": "#3F6470",
+    "roadCasing": "#BDB198",
+    "road": "#FFFFFF",
+    "labelFont": "Inter, Helvetica, Arial, sans-serif",
+    "labelSize": 11.5
+  }
+}

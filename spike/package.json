@@ -1,0 +1,21 @@
+{
+  "name": "mappulse-spike",
+  "version": "0.0.4",
+  "private": true,
+  "description": "MapPulse Phase 0 spike: rebuild one client map from real boundary data as a full-context SVG.",
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "fetch": "node scripts/fetch.mjs config/st-petersburg.json",
+    "build": "node scripts/build.mjs config/st-petersburg.json",
+    "sample": "node scripts/make-sample-data.mjs config/st-petersburg.json",
+    "all": "npm run fetch && npm run build"
+  },
+  "dependencies": {
+    "polygon-clipping": "^0.15.7",
+    "polylabel": "^1.1.0",
+    "topojson-client": "^3.1.0",
+    "topojson-server": "^3.0.1",
+    "topojson-simplify": "^3.0.3"
+  }
+}
