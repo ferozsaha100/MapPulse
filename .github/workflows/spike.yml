@@ -1,0 +1,101 @@
+name: Spike
+
+# Runs the Phase 0 spike: first on stand-in data, then on the real boundary sources.
+# The rendered map and its reports are committed to spike/results/ on the same branch.
+
+on:
+  push:
+    paths:
+      - 'spike/**'
+      - '!spike/results/**'
+      - '.github/workflows/spike.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: spike-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dry-run:
+    name: Pipeline dry run (stand-in data)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: spike
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: spike/package-lock.json
+      - run: npm ci
+      - run: npm run sample
+      - run: npm run build
+
+  real-data:
+    name: St. Petersburg from real sources
+    needs: dry-run
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: spike
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: spike/package-lock.json
+      - run: npm ci
+
+      - name: Download boundary layers
+        id: fetch
+        run: |
+          mkdir -p results/st-petersburg
+          set -o pipefail
+          npm run fetch 2>&1 | tee results/st-petersburg/fetch.log
+
+      - name: Build the map
+        if: always()
+        run: |
+          mkdir -p results/st-petersburg
+          set -o pipefail
+          npm run build 2>&1 | tee results/st-petersburg/build.log
+
+      - name: Collect results
+        if: always()
+        run: |
+          mkdir -p results/st-petersburg
+          cp -f out/st-petersburg.svg out/preview.html out/report.json results/st-petersburg/ 2>/dev/null || true
+          cp -f data/raw/_meta.json results/st-petersburg/sources.json 2>/dev/null || true
+          ls -la results/st-petersburg || true
+          ls -la data/raw || true
+
+      - name: Upload raw data and output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mappulse-spike-st-petersburg
+          path: |
+            spike/out
+            spike/data/raw
+            spike/results
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Commit results to this branch
+        if: always()
+        continue-on-error: true
+        env:
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f results/st-petersburg
+          if git diff --cached --quiet; then echo "No result changes"; exit 0; fi
+          git commit -m "Spike results for St. Petersburg [skip ci]"
+          git push origin "HEAD:${BRANCH}"
