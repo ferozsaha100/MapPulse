@@ -95,6 +95,42 @@ class Service {
 	}
 
 	/**
+	 * Counts what a shape holds: rings, points and its bounding box.
+	 *
+	 * @param array $feature A GeoJSON Feature with a Polygon or MultiPolygon geometry.
+	 * @return array rings, points, bbox (west, south, east, north; null when the shape is empty).
+	 */
+	public static function describe( array $feature ): array {
+		$type     = $feature['geometry']['type'] ?? '';
+		$coords   = $feature['geometry']['coordinates'] ?? array();
+		$polygons = 'Polygon' === $type ? array( $coords ) : ( 'MultiPolygon' === $type ? $coords : array() );
+		$rings    = 0;
+		$points   = 0;
+		$box      = null;
+
+		foreach ( $polygons as $polygon ) {
+			foreach ( is_array( $polygon ) ? $polygon : array() as $ring ) {
+				++$rings;
+				foreach ( is_array( $ring ) ? $ring : array() as $point ) {
+					if ( ! isset( $point[0], $point[1] ) || ! is_numeric( $point[0] ) || ! is_numeric( $point[1] ) ) {
+						continue;
+					}
+					++$points;
+					$x   = (float) $point[0];
+					$y   = (float) $point[1];
+					$box = null === $box ? array( $x, $y, $x, $y ) : array( min( $box[0], $x ), min( $box[1], $y ), max( $box[2], $x ), max( $box[3], $y ) );
+				}
+			}
+		}
+
+		return array(
+			'rings'  => $rings,
+			'points' => $points,
+			'bbox'   => $box,
+		);
+	}
+
+	/**
 	 * Reads "west,south,east,north" into four numbers.
 	 *
 	 * @param string $text Bounding box text.
