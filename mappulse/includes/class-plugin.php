@@ -47,6 +47,7 @@ class Plugin {
 
 		if ( is_admin() ) {
 			( new Importer() )->register();
+			( new Sources_Screen() )->register();
 		}
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
