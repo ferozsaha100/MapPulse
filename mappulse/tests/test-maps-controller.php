@@ -142,4 +142,53 @@ class Test_Maps_Controller extends MapPulse_Test_Case {
 		$this->assertSame( 3, $list[0]['zones'] );
 		$this->assertArrayNotHasKey( 'document', $list[0] );
 	}
+
+	public function test_source_boundaries_are_stored_apart_from_the_document_the_site_draws_from() {
+		$this->sign_in( 'administrator' );
+		$id = $this->create()['id'];
+
+		// What a page view reads holds no boundary coordinates.
+		$stored = (string) get_post_meta( $id, Map_Post_Type::META_DOC, true );
+		$this->assertStringNotContainsString( 'coordinates', $stored );
+		$this->assertLessThan( 12000, strlen( $stored ) );
+		$drawn = Map_Post_Type::get( $id );
+		$this->assertArrayNotHasKey( 'geometry', $drawn['zones'][0] );
+		$this->assertTrue( $drawn['zones'][0]['built'] );
+		$this->assertSame( 3, substr_count( Map_Post_Type::svg( $id ), 'class="mappulse__zone ' ) );
+
+		// The builder still gets them back.
+		$this->assertStringContainsString( 'coordinates', (string) get_post_meta( $id, Map_Post_Type::META_SOURCES, true ) );
+		$full = Map_Post_Type::get_full( $id );
+		$this->assertSame( $this->built()['zones'][0]['geometry']['coordinates'][0][0], $full['zones'][0]['geometry']['coordinates'][0][0] );
+	}
+
+	public function test_backdrop_clean_and_hidden_survive_saving_and_reopening() {
+		$this->sign_in( 'administrator' );
+		$doc                         = $this->built();
+		$doc['zones'][0]['backdrop'] = true;
+		$doc['zones'][2]['clean']    = true;
+		$doc['zones'][1]['hidden']   = true;
+		unset( $doc['topology']['zones']['marina'] );
+		$doc['priority'] = array( 'county', 'zip', 'city', 'neighborhood' );
+
+		$id   = $this->call( 'POST', '/maps', array( 'document' => $doc ) )->get_data()['id'];
+		$read = $this->call( 'GET', '/maps/' . $id )->get_data()['document'];
+
+		$this->assertTrue( $read['zones'][0]['backdrop'] );
+		$this->assertTrue( $read['zones'][2]['clean'] );
+		$this->assertTrue( $read['zones'][1]['hidden'] );
+		$this->assertSame( 'MultiPolygon', $read['zones'][1]['geometry']['type'] );
+		$this->assertSame( array( 'county', 'zip', 'city', 'neighborhood' ), $read['priority'] );
+		// The hidden zone is stored, and the front end draws the other two.
+		$this->assertSame( 2, substr_count( Map_Post_Type::svg( $id ), 'class="mappulse__zone ' ) );
+		$this->assertStringNotContainsString( 'Marina District', mappulse_render_map( $id ) );
+	}
+
+	public function test_replacing_a_builder_map_with_an_imported_document_drops_its_stored_boundaries() {
+		$this->sign_in( 'administrator' );
+		$id = $this->create()['id'];
+		Map_Post_Type::save( $this->doc(), $id );
+		$this->assertSame( '', (string) get_post_meta( $id, Map_Post_Type::META_SOURCES, true ) );
+		$this->assertArrayNotHasKey( 'geometry', Map_Post_Type::get_full( $id )['zones'][0] );
+	}
 }

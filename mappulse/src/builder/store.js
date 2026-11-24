@@ -2,7 +2,7 @@
  * Builder state. A plain reducer with no WordPress or browser dependency, so it is tested in Node.
  */
 import { toMP } from '../geometry/shapes';
-import { needsCleaning } from '../geometry/clean';
+import { cleanAdvice, needsCleaning } from '../geometry/clean';
 import { slug } from '../geometry/labels';
 import { DEFAULT_PRIORITY } from '../geometry/overlaps';
 
@@ -32,7 +32,7 @@ export const initialState = ( settings = {} ) => ( {
  * @return A zone without an id; ADD_ZONE gives it one.
  */
 export function zoneFromResult( result, feature ) {
-	const needsClean = needsCleaning( toMP( feature && feature.geometry ) );
+	const advice = cleanAdvice( toMP( feature && feature.geometry ) );
 	return {
 		name: result.name,
 		type: result.type,
@@ -45,8 +45,8 @@ export function zoneFromResult( result, feature ) {
 			geometry: feature.geometry,
 		},
 		backdrop: false,
-		clean: needsClean,
-		needsClean,
+		clean: advice.recommended,
+		needsClean: advice.available,
 	};
 }
 
@@ -62,6 +62,8 @@ export function zonesFromDocument( doc ) {
 		source: ( z.source && z.source.layer ) || '',
 		record: ( z.source && z.source.record ) || '',
 		parent: '',
+		link: z.link || '',
+		text: z.text || '',
 		feature: { type: 'Feature', properties: {}, geometry: z.geometry },
 		backdrop: !! z.backdrop,
 		clean: !! z.clean,
@@ -72,6 +74,27 @@ export function zonesFromDocument( doc ) {
 // The document to save: the last one built, under the current title.
 export const toDocument = ( state ) =>
 	state.doc ? { ...state.doc, title: state.title } : null;
+
+/**
+ * What the save buttons may do.
+ *
+ * @param state   Builder state.
+ * @param preview The rebuilder's view: busy, and current (the document matches the area list).
+ * @return canSave, showDraft and primary ('publish' or 'update').
+ */
+export function saveActions( state, preview ) {
+	const published = !! state.mapId && state.status === 'publish';
+	// An imported map has no areas to rebuild; it can still be renamed.
+	const drawn =
+		state.legacy ||
+		( state.zones.length > 0 && preview.current && ! preview.busy );
+	return {
+		canSave: !! state.doc && ! state.saving && drawn,
+		// Saving a published map as a draft would take it off every page it is placed on.
+		showDraft: ! published,
+		primary: published ? 'update' : 'publish',
+	};
+}
 
 function uniqueId( name, zones ) {
 	const base = slug( name ) || 'area';

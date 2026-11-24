@@ -45,7 +45,7 @@ In Elementor, use the widget's Style tab. Anywhere else, set the CSS custom prop
 
 = Where do the boundaries come from? =
 
-Cities, ZIP areas and counties come from the US Census Bureau (TIGERweb). ZIP areas are Census ZIP Code Tabulation Areas, which follow USPS ZIP codes closely but not exactly. Neighborhoods come from ArcGIS map layers that cities publish; you register a layer's address under MapPulse, Sources. Your site contacts only the Census server and the layers you register, and only from the admin.
+Cities, ZIP areas and counties come from the US Census Bureau (TIGERweb). ZIP areas are Census ZIP Code Tabulation Areas, which follow USPS ZIP codes closely but not exactly. Neighborhoods come from ArcGIS map layers that cities publish; you register a layer's address under MapPulse, Sources. Your site's server contacts only the Census server and the layers you register, and only from the admin. In the map builder, your own browser also loads street-map tiles from OpenStreetMap so you can check a boundary against real streets; visitors' browsers never do.
 
 = Who can manage maps? =
 

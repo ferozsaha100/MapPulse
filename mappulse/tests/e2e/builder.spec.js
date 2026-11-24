@@ -139,6 +139,13 @@ test( 'a map is built, published, shown on a page and reopened', async ( {
 	await expect( page.locator( '.mappulse-builder__status' ) ).toHaveText(
 		'Published'
 	);
+	// A published map offers no "Save draft": that would take it off the site.
+	await expect(
+		page.getByRole( 'button', { name: 'Save draft' } )
+	).toHaveCount( 0 );
+	await expect(
+		page.getByRole( 'button', { name: 'Update', exact: true } )
+	).toBeVisible();
 	const mapId = Number( new URL( page.url() ).searchParams.get( 'map' ) );
 	expect( mapId ).toBeGreaterThan( 0 );
 	await expect(

@@ -25,6 +25,8 @@ class Test_Builder_Screen extends MapPulse_Test_Case {
 		rmdir( $this->build );
 		wp_dequeue_script( 'mappulse-builder' );
 		wp_deregister_script( 'mappulse-builder' );
+		wp_dequeue_style( 'mappulse-builder' );
+		wp_deregister_style( 'mappulse-builder' );
 		$_GET = array();
 		set_current_screen( 'front' );
 		parent::tear_down();
@@ -56,7 +58,7 @@ class Test_Builder_Screen extends MapPulse_Test_Case {
 			$this->sign_in( $role );
 			( new Builder_Screen() )->add_menu();
 			$pages = wp_list_pluck( $submenu[ 'edit.php?post_type=' . Map_Post_Type::POST_TYPE ] ?? array(), 2 );
-			$this->assertSame( $expected, in_array( Builder_Screen::PAGE, $pages, true ) && current_user_can( Map_Post_Type::CAPABILITY ), $role );
+			$this->assertSame( $expected, in_array( Builder_Screen::PAGE, $pages, true ), $role );
 		}
 	}
 
@@ -113,12 +115,29 @@ class Test_Builder_Screen extends MapPulse_Test_Case {
 		$this->assertStringContainsString( esc_url( Builder_Screen::url() ), ob_get_clean() );
 	}
 
-	public function test_nothing_loads_on_the_front_end() {
-		// The enqueue hook is admin-only. Called for a front-end request, it must still load nothing.
+	public function test_an_editor_cannot_open_the_page() {
+		$this->sign_in( 'editor' );
+		$this->expectException( WPDieException::class );
+		( new Builder_Screen() )->render_page();
+	}
+
+	public function test_a_page_with_a_map_loads_no_builder_files() {
+		$id = Map_Post_Type::save( $this->doc() );
 		$this->go_to( home_url( '/' ) );
-		( new Builder_Screen() )->enqueue( '' );
-		$this->assertFalse( has_action( 'wp_enqueue_scripts', array( Builder_Screen::class, 'enqueue' ) ) );
+		$html = do_shortcode( '[mappulse id="' . $id . '"]' );
+		$this->assertStringContainsString( 'data-mappulse', $html );
+
 		$this->assertFalse( wp_script_is( 'mappulse-builder', 'enqueued' ) );
-		$this->assertFalse( wp_script_is( 'mappulse-builder', 'registered' ) );
+		$this->assertFalse( wp_style_is( 'mappulse-builder', 'enqueued' ) );
+		$this->assertTrue( wp_style_is( 'mappulse', 'enqueued' ) );
+		// The builder's loader is tied to the admin's own hook and to nothing a visitor triggers.
+		global $wp_filter;
+		foreach ( array( 'wp_enqueue_scripts', 'wp_head', 'wp_footer', 'init' ) as $hook ) {
+			foreach ( $wp_filter[ $hook ]->callbacks ?? array() as $callbacks ) {
+				foreach ( $callbacks as $callback ) {
+					$this->assertFalse( is_array( $callback['function'] ) && $callback['function'][0] instanceof Builder_Screen, $hook );
+				}
+			}
+		}
 	}
 }

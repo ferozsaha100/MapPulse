@@ -52,6 +52,31 @@ export const needsCleaning = ( mp ) =>
 	mp.length > 1 || mp.some( ( poly ) => poly.length > 1 );
 
 /**
+ * Whether to offer clean outline for a shape, and whether to switch it on without being asked.
+ * It is recommended only where it clearly helps: a place drawn as many pieces that join into one,
+ * or pieces that join with little change. A city with an enclave is offered it, switched off,
+ * because cleaning would swallow the enclave.
+ *
+ * @param mp A multipolygon in degrees.
+ * @return available and recommended.
+ */
+export function cleanAdvice( mp ) {
+	if ( ! needsCleaning( mp ) ) {
+		return { available: false, recommended: false };
+	}
+	const out = cleanOutline( mp );
+	if ( out.partsBefore >= 4 && out.partsAfter === 1 ) {
+		return { available: true, recommended: true };
+	}
+	const before = mpArea( unionAll( mp.map( ( poly ) => [ poly ] ) ) );
+	const growth = before > 0 ? mpArea( out.mp ) / before - 1 : 0;
+	return {
+		available: true,
+		recommended: out.partsAfter < out.partsBefore && growth <= 0.02,
+	};
+}
+
+/**
  * @param mp                   A multipolygon in degrees.
  * @param options
  * @param options.closeMeters  Gaps up to twice this wide are closed.

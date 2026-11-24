@@ -19,6 +19,8 @@ class Map_Post_Type {
 	const META_DOC   = '_mappulse_map';
 	const META_SVG   = '_mappulse_svg';
 	const META_HASH  = '_mappulse_hash';
+	// The boundaries a builder map's zones came from. Kept apart so a page view never has to read them.
+	const META_SOURCES = '_mappulse_sources';
 
 	/**
 	 * Documents already read and cleaned in this request, keyed by post ID and content hash.
@@ -154,7 +156,21 @@ class Map_Post_Type {
 			return $post_id;
 		}
 
+		// Source boundaries are large and only the builder needs them. They go into their own meta entry.
+		$sources = array();
+		foreach ( $doc['zones'] as $i => $zone ) {
+			if ( isset( $zone['geometry'] ) ) {
+				$sources[ $zone['id'] ] = $zone['geometry'];
+				unset( $doc['zones'][ $i ]['geometry'] );
+			}
+		}
+
 		update_post_meta( $post_id, self::META_DOC, wp_slash( wp_json_encode( $doc, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) ) );
+		if ( $sources ) {
+			update_post_meta( $post_id, self::META_SOURCES, wp_slash( wp_json_encode( $sources ) ) );
+		} else {
+			delete_post_meta( $post_id, self::META_SOURCES );
+		}
 		self::rebuild( $post_id );
 
 		return (int) $post_id;
@@ -183,6 +199,30 @@ class Map_Post_Type {
 		}
 
 		return self::$documents[ $key ];
+	}
+
+	/**
+	 * Reads a map's document with each builder zone's source boundary put back. For the builder only.
+	 *
+	 * @param int $post_id Map post ID.
+	 */
+	public static function get_full( int $post_id ): ?array {
+		$doc = self::get( $post_id );
+		if ( null === $doc ) {
+			return null;
+		}
+		$sources = json_decode( (string) get_post_meta( $post_id, self::META_SOURCES, true ), true );
+		if ( ! is_array( $sources ) || ! $sources ) {
+			return $doc;
+		}
+		foreach ( $doc['zones'] as $i => $zone ) {
+			if ( isset( $sources[ $zone['id'] ] ) ) {
+				$doc['zones'][ $i ]['geometry'] = $sources[ $zone['id'] ];
+			}
+		}
+		// Cleaned on the way out, like the document itself.
+		$full = Map_Document::sanitize( $doc );
+		return is_array( $full ) ? $full : $doc;
 	}
 
 	/**

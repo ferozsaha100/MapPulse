@@ -4,6 +4,7 @@ import {
 	zoneFromResult,
 	toDocument,
 	zonesFromDocument,
+	saveActions,
 } from '../store';
 import fisher from '../../geometry/test/fixtures/fisher-island.json';
 import gulfport from '../../geometry/test/fixtures/gulfport.json';
@@ -200,5 +201,114 @@ describe( 'builder store', () => {
 			{ id: 'a', name: 'A', type: 'neighborhood' },
 		] );
 		expect( add( loaded, gulfportZone() ).zones ).toEqual( [] );
+	} );
+
+	it( 'keeps a zone link and text through reopening', () => {
+		const doc = {
+			schema: 1,
+			zones: [
+				{
+					id: 'a',
+					name: 'A',
+					type: 'city',
+					source: { layer: 'census', record: 'place:1' },
+					link: 'https://example.com/a',
+					text: 'Note',
+					geometry: gulfport.features[ 0 ].geometry,
+				},
+			],
+		};
+		expect( zonesFromDocument( doc )[ 0 ] ).toMatchObject( {
+			link: 'https://example.com/a',
+			text: 'Note',
+		} );
+	} );
+
+	it( 'turns clean outline on by itself only where it clearly helps', () => {
+		// A city with an enclave: cleaning is offered but off, because it would swallow the enclave.
+		const enclave = {
+			type: 'Feature',
+			properties: {},
+			geometry: {
+				type: 'Polygon',
+				coordinates: [
+					[
+						[ 0, 0 ],
+						[ 0.2, 0 ],
+						[ 0.2, 0.2 ],
+						[ 0, 0.2 ],
+						[ 0, 0 ],
+					],
+					[
+						[ 0.08, 0.08 ],
+						[ 0.08, 0.12 ],
+						[ 0.12, 0.12 ],
+						[ 0.12, 0.08 ],
+						[ 0.08, 0.08 ],
+					],
+				],
+			},
+		};
+		const city = zoneFromResult(
+			result( 'Ring City', 'place:2' ),
+			enclave
+		);
+		expect( city.needsClean ).toBe( true );
+		expect( city.clean ).toBe( false );
+	} );
+} );
+
+describe( 'saveActions', () => {
+	const ready = {
+		doc: { schema: 1 },
+		zones: [ {} ],
+		saving: false,
+		legacy: false,
+		mapId: 0,
+		status: 'draft',
+	};
+	const drawn = { busy: false, current: true };
+
+	it( 'allows saving only when the drawing matches the area list', () => {
+		expect( saveActions( ready, drawn ).canSave ).toBe( true );
+		expect(
+			saveActions( ready, { busy: true, current: true } ).canSave
+		).toBe( false );
+		expect(
+			saveActions( ready, { busy: false, current: false } ).canSave
+		).toBe( false );
+		expect( saveActions( { ...ready, zones: [] }, drawn ).canSave ).toBe(
+			false
+		);
+		expect( saveActions( { ...ready, saving: true }, drawn ).canSave ).toBe(
+			false
+		);
+		expect( saveActions( { ...ready, doc: null }, drawn ).canSave ).toBe(
+			false
+		);
+	} );
+
+	it( 'does not offer Save draft on a published map, which would take it off the site', () => {
+		expect( saveActions( ready, drawn ).showDraft ).toBe( true );
+		expect(
+			saveActions( { ...ready, mapId: 4, status: 'draft' }, drawn )
+				.showDraft
+		).toBe( true );
+		expect(
+			saveActions( { ...ready, mapId: 4, status: 'publish' }, drawn )
+		).toMatchObject( { showDraft: false, primary: 'update' } );
+	} );
+
+	it( 'lets an imported map be renamed', () => {
+		const legacy = {
+			...ready,
+			legacy: true,
+			zones: [],
+			mapId: 3,
+			status: 'publish',
+		};
+		expect(
+			saveActions( legacy, { busy: false, current: false } ).canSave
+		).toBe( true );
 	} );
 } );

@@ -127,10 +127,14 @@ class Map_Document {
 				}
 			}
 
+			// A zone made in the builder is marked "built". Its boundary is stored beside the document, so the
+			// mark is what tells a stored builder zone from an imported one once the boundary is set aside.
+			$built = null !== $geometry || ! empty( $raw_zone['built'] );
+
 			// Such a zone may have nothing left to draw once other zones are cut out of it. It is kept, hidden.
 			$raw_shape = $raw_shapes[ $raw_id ] ?? ( $raw_shapes[ $id ] ?? null );
 			$has_shape = is_array( $raw_shape ) && isset( $raw_shape['d'] ) && '' !== $raw_shape['d'];
-			if ( ! $has_shape && null === $geometry ) {
+			if ( ! $has_shape && ! ( $built && ( null !== $geometry || ! empty( $raw_zone['hidden'] ) ) ) ) {
 				return new \WP_Error( 'mappulse_zone_shape', __( 'A zone in the map file has no shape.', 'mappulse' ) );
 			}
 			if ( $has_shape && ! self::is_path( $raw_shape['d'] ) ) {
@@ -148,8 +152,11 @@ class Map_Document {
 				'link'   => self::link( $raw_zone['link'] ?? '' ),
 				'text'   => self::text( $raw_zone['text'] ?? '' ),
 			);
-			if ( null !== $geometry ) {
-				$zone['geometry'] = $geometry;
+			if ( $built ) {
+				if ( null !== $geometry ) {
+					$zone['geometry'] = $geometry;
+				}
+				$zone['built']    = true;
 				$zone['backdrop'] = ! empty( $raw_zone['backdrop'] );
 				$zone['clean']    = ! empty( $raw_zone['clean'] );
 				if ( ! $has_shape ) {

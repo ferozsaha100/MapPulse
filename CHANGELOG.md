@@ -13,6 +13,8 @@ All notable changes to MapPulse are recorded here. Versions follow semantic vers
   Backdrop area stays whole and is drawn underneath.
 - The geometry pipeline from the spike now runs in the browser (`mappulse/src/geometry`), with Jest tests.
 - Base map (land, cities, water, roads) fetched per layer and drawn around the areas.
+- Source boundaries are stored in their own post meta entry (`_mappulse_sources`), so a page view reads
+  only the small document it draws from.
 - New REST routes: `/maps`, `/maps/<id>`, `/render`. The document gains optional `priority` and, per
   zone, `geometry`, `backdrop`, `clean`, `hidden`. Still schema 1; older maps load unchanged.
 - The plugin now has a JavaScript build (`npm run build` in `mappulse/`); the release zip ships it built.

@@ -220,7 +220,7 @@ class Maps_Controller {
 		if ( is_wp_error( $post ) ) {
 			return $post;
 		}
-		$doc = Map_Post_Type::get( $id );
+		$doc = Map_Post_Type::get_full( $id );
 		if ( null === $doc ) {
 			return new \WP_Error( 'mappulse_unreadable', __( 'This map\'s stored data cannot be read.', 'mappulse' ), array( 'status' => 500 ) );
 		}

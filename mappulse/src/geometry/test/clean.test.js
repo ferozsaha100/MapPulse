@@ -1,4 +1,4 @@
-import { cleanOutline, needsCleaning } from '../clean';
+import { cleanOutline, needsCleaning, cleanAdvice } from '../clean';
 import { toMP, mpArea, mapMP } from '../shapes';
 import { makeProjection } from '../project';
 import { square, metres } from '../test-helpers';
@@ -106,5 +106,68 @@ describe( 'needsCleaning', () => {
 		expect( needsCleaning( square( 0, 0, 1 ) ) ).toBe( false );
 		expect( needsCleaning( shapeOf( gulfport ) ) ).toBe( false );
 		expect( needsCleaning( [] ) ).toBe( false );
+	} );
+} );
+
+describe( 'cleanAdvice', () => {
+	const enclave = [
+		[
+			square( 0, 0, metres( 2000 ) )[ 0 ][ 0 ],
+			[
+				...square(
+					metres( 800 ),
+					metres( 800 ),
+					metres( 400 )
+				)[ 0 ][ 0 ],
+			].reverse(),
+		],
+	];
+
+	it( 'recommends cleaning a place drawn as many pieces', () => {
+		expect( cleanAdvice( shapeOf( fisher ) ) ).toEqual( {
+			available: true,
+			recommended: true,
+		} );
+	} );
+
+	it( 'offers but does not recommend it for a city with an enclave', () => {
+		expect( cleanAdvice( enclave ) ).toEqual( {
+			available: true,
+			recommended: false,
+		} );
+	} );
+
+	it( 'does not recommend it for islands that stay apart', () => {
+		const islands = [
+			...square( 0, 0, metres( 400 ) ),
+			...square( metres( 1000 ), 0, metres( 400 ) ),
+		];
+		expect( cleanAdvice( islands ) ).toEqual( {
+			available: true,
+			recommended: false,
+		} );
+	} );
+
+	it( 'recommends joining two blocks a street apart', () => {
+		const blocks = [
+			...square( 0, 0, metres( 200 ) ),
+			...square( metres( 240 ), 0, metres( 200 ) ),
+		];
+		expect( cleanAdvice( blocks ).recommended ).toBe( false );
+		const many = [ 0, 1, 2, 3 ].map(
+			( i ) => square( metres( i * 240 ), 0, metres( 200 ) )[ 0 ]
+		);
+		expect( cleanAdvice( many ).recommended ).toBe( true );
+	} );
+
+	it( 'is not offered for a plain shape', () => {
+		expect( cleanAdvice( shapeOf( gulfport ) ) ).toEqual( {
+			available: false,
+			recommended: false,
+		} );
+		expect( cleanAdvice( [] ) ).toEqual( {
+			available: false,
+			recommended: false,
+		} );
 	} );
 } );

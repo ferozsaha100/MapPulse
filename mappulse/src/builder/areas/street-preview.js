@@ -7,7 +7,7 @@ import { __, sprintf } from '@wordpress/i18n';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { toMP } from '../../geometry/shapes';
-import { cleanOutline, needsCleaning } from '../../geometry/clean';
+import { cleanOutline, cleanAdvice } from '../../geometry/clean';
 
 const geometryOf = ( mp ) => ( { type: 'MultiPolygon', coordinates: mp } );
 
@@ -20,12 +20,13 @@ export default function StreetPreview( {
 	const { result, feature } = candidate;
 	const holder = useRef( null );
 	const raw = useMemo( () => toMP( feature.geometry ), [ feature ] );
-	const fragmented = useMemo( () => needsCleaning( raw ), [ raw ] );
+	const advice = useMemo( () => cleanAdvice( raw ), [ raw ] );
+	const fragmented = advice.available;
 	const cleaned = useMemo(
 		() => ( fragmented ? cleanOutline( raw ) : null ),
 		[ raw, fragmented ]
 	);
-	const [ clean, setClean ] = useState( fragmented );
+	const [ clean, setClean ] = useState( advice.recommended );
 
 	useEffect( () => {
 		if ( ! holder.current ) {

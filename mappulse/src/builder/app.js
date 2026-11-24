@@ -4,7 +4,7 @@
 import { useReducer, useEffect, useCallback } from '@wordpress/element';
 import { Button, TextControl, Notice, Spinner } from '@wordpress/components';
 import { __, sprintf } from '@wordpress/i18n';
-import { reduce, initialState, toDocument } from './store';
+import { reduce, initialState, toDocument, saveActions } from './store';
 import { loadMap, saveMap, messageOf } from './api';
 import { useDocument } from './areas/use-document';
 import AreasStep from './areas/areas-step';
@@ -93,12 +93,7 @@ export default function App( { settings } ) {
 	);
 
 	// Saving waits for the drawing to catch up with the last change, so what is stored is what is shown.
-	const canSave =
-		!! state.doc &&
-		! state.saving &&
-		! preview.busy &&
-		! state.legacy &&
-		state.zones.length > 0;
+	const { canSave, showDraft, primary } = saveActions( state, preview );
 	let status = __( 'Not saved yet', 'mappulse' );
 	if ( state.saving ) {
 		status = __( 'Saving…', 'mappulse' );
@@ -132,21 +127,23 @@ export default function App( { settings } ) {
 				<span className="mappulse-builder__status" role="status">
 					{ status }
 				</span>
-				<Button
-					variant="secondary"
-					disabled={ ! canSave }
-					onClick={ () => save( 'draft' ) }
-					__next40pxDefaultSize
-				>
-					{ __( 'Save draft', 'mappulse' ) }
-				</Button>
+				{ showDraft && (
+					<Button
+						variant="secondary"
+						disabled={ ! canSave }
+						onClick={ () => save( 'draft' ) }
+						__next40pxDefaultSize
+					>
+						{ __( 'Save draft', 'mappulse' ) }
+					</Button>
+				) }
 				<Button
 					variant="primary"
 					disabled={ ! canSave }
 					onClick={ () => save( 'publish' ) }
 					__next40pxDefaultSize
 				>
-					{ state.status === 'publish' && state.mapId
+					{ primary === 'update'
 						? __( 'Update', 'mappulse' )
 						: __( 'Publish', 'mappulse' ) }
 				</Button>

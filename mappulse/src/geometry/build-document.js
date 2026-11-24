@@ -470,6 +470,7 @@ export function buildDocument( {
 			link: zone.link || '',
 			text: zone.text || '',
 			geometry: zone.feature.geometry,
+			built: true,
 			backdrop,
 			clean: !! zone.clean,
 			...( hidden ? { hidden: true } : {} ),

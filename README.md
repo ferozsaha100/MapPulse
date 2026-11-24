@@ -93,8 +93,8 @@ The map builder will replace this step.
   layer is shown there as an example.
 - Each result has a "Show boundary" button and a link to check the same area on a street map.
 
-Your site contacts only the Census server and the layers you register, only from the admin, and saves
-each answer for 30 days. The same search is available as `wp mappulse find gulfport --state=FL`.
+Your site's server contacts only the Census server and the layers you register, only from the admin, and
+saves each answer for 30 days. (The builder also loads OpenStreetMap street tiles in the admin's browser.) The same search is available as `wp mappulse find gulfport --state=FL`.
 
 ### Known limits
 
