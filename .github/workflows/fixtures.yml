@@ -1,0 +1,24 @@
+name: Fetch test fixtures
+# Prints real Census records so they can be stored as test fixtures. Runs only when this file changes.
+on:
+  push:
+    paths:
+      - '.github/workflows/fixtures.yml'
+permissions:
+  contents: read
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch and print
+        run: |
+          base=https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer
+          lid() { curl -fsS "$base?f=json" | jq -r --arg n "$1" '.layers[] | select(.name==$n) | .id'; }
+          get() { curl -fsS --get "$base/$1/query" --data-urlencode "where=GEOID='$2'" -d outFields=GEOID,BASENAME -d outSR=4326 -d geometryPrecision=5 -d f=geojson; }
+          cdp=$(lid "Census Designated Places"); inc=$(lid "Incorporated Places")
+          echo "layers cdp=$cdp inc=$inc"
+          for pair in "fisher-island:$cdp:1222375" "gulfport:$inc:1228175"; do
+            IFS=: read -r name layer geoid <<< "$pair"
+            get "$layer" "$geoid" > "$name.json"
+            echo "FIXTURE $name $(jq -c '[.features[0].geometry.type, (.features[0].geometry.coordinates|length)]' "$name.json") $(gzip -9c "$name.json" | base64 -w0)"
+          done
