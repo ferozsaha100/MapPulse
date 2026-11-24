@@ -19,7 +19,7 @@ rm -rf "$work"
 list=$(unzip -Z1 "$out")
 if echo "$list" | grep -qv '^mappulse/'; then echo "The zip has paths outside mappulse/"; exit 1; fi
 if echo "$list" | grep -Eq '^mappulse/(tests|vendor)/'; then echo "The zip holds development files"; exit 1; fi
-for needed in mappulse/mappulse.php mappulse/readme.txt mappulse/samples/st-petersburg.map.json mappulse/assets/css/mappulse.css mappulse/blocks/mappulse/block.json; do
+for needed in mappulse/mappulse.php mappulse/readme.txt mappulse/samples/st-petersburg.map.json mappulse/assets/css/mappulse.css mappulse/blocks/mappulse/block.json mappulse/includes/boundaries/class-service.php mappulse/assets/css/mappulse-admin.css; do
 	echo "$list" | grep -qx "$needed" || { echo "The zip is missing $needed"; exit 1; }
 done
 

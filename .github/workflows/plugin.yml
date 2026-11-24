@@ -100,7 +100,7 @@ jobs:
       - name: Smoke test
         run: |
           set -o pipefail
-          MAPPULSE_REQUIRE_ELEMENTOR=1 bash mappulse/tests/smoke.sh 2>&1 | tee smoke.log || {
+          MAPPULSE_REQUIRE_ELEMENTOR=1 MAPPULSE_LIVE=1 bash mappulse/tests/smoke.sh 2>&1 | tee smoke.log || {
             msg=$(tail -n 30 smoke.log | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
             echo "::error title=Smoke test::$msg"
             exit 1

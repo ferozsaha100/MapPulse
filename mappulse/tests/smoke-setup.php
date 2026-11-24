@@ -8,6 +8,7 @@
  *   versions        Print the WordPress, PHP and Elementor versions.
  *   errors          Print the number of PHP errors in debug.log that mention MapPulse, plus fatals.
  *   cap             Print whether administrators hold manage_mappulse_maps.
+ *   base <bbox>     Ask the REST route for base-map layers as an administrator. Prints the feature counts.
  */
 
 $mode = $args[0] ?? '';
@@ -101,6 +102,30 @@ if ( 'errors' === $mode ) {
 		}
 	}
 	echo "errors=$count\n";
+	return;
+}
+
+if ( 'base' === $mode ) {
+	$admins = get_users(
+		array(
+			'role'   => 'administrator',
+			'number' => 1,
+			'fields' => 'ID',
+		)
+	);
+	wp_set_current_user( (int) ( $admins[0] ?? 0 ) );
+	$request = new WP_REST_Request( 'GET', '/mappulse/v1/boundaries/base' );
+	$request->set_param( 'bbox', (string) ( $args[1] ?? '' ) );
+	$response = rest_do_request( $request );
+	$data     = (array) $response->get_data();
+	$line     = 'base status=' . $response->get_status();
+	foreach ( array( 'land', 'cities', 'areas', 'water', 'roadsMajor', 'roadsMinor' ) as $layer ) {
+		$line .= ' ' . $layer . '=' . ( isset( $data[ $layer ]['features'] ) ? count( $data[ $layer ]['features'] ) : 0 );
+	}
+	if ( 200 !== $response->get_status() ) {
+		fwrite( STDERR, wp_json_encode( $data ) . "\n" );
+	}
+	echo $line . "\n";
 	return;
 }
 

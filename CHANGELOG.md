@@ -2,6 +2,20 @@
 
 All notable changes to MapPulse are recorded here. Versions follow semantic versioning.
 
+## 0.2.0 (boundary service)
+
+- Added boundary sources behind one interface: the US Census Bureau (cities, ZIP areas, counties) and
+  registered ArcGIS layers (a city's neighborhoods).
+- Added the Sources screen: register a layer, find an area by name, and see its real outline with a
+  street-map link for checking it.
+- Added `mappulse/v1` routes for sources, boundary search, shape fetch and base-map layers (land, cities,
+  surrounding areas, water, major and minor roads), all limited to map managers.
+- Added `wp mappulse find`, `shape`, `sources list|add|remove` and `cache flush`.
+- All remote requests go through one client: https only, allowed hosts only, 20 second timeout, spacing
+  between requests, a size cap and two retries. Answers are cached as files for 30 days.
+- Maps screen: an Import button and a Shortcode column. The empty widget notice links to the Import screen.
+- Uninstalling now removes registered layers and saved boundary answers. Maps are still kept.
+
 ## 0.1.0 (first installable plugin version)
 
 - Added the `mappulse/` plugin: the `mappulse_map` map store, with each map's SVG cached and rebuilt when

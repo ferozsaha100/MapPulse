@@ -3,7 +3,7 @@
  * Plugin Name:       MapPulse
  * Plugin URI:        https://github.com/ferozsaha100/MapPulse
  * Description:       Clickable, branded market maps for real estate websites, drawn from real boundary data. Works as an Elementor widget, a Gutenberg block and a shortcode.
- * Version:           0.1.0
+ * Version:           0.2.0
  * Requires at least: 6.8
  * Requires PHP:      8.1
  * Author:            Agent View Digital
@@ -17,7 +17,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'MAPPULSE_VERSION', '0.1.0' );
+define( 'MAPPULSE_VERSION', '0.2.0' );
 define( 'MAPPULSE_FILE', __FILE__ );
 define( 'MAPPULSE_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MAPPULSE_URL', plugin_dir_url( __FILE__ ) );
