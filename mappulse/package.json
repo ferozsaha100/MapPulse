@@ -1,0 +1,26 @@
+{
+  "name": "mappulse",
+  "version": "0.3.0",
+  "private": true,
+  "description": "MapPulse plugin: builder and geometry library sources.",
+  "license": "GPL-2.0-or-later",
+  "scripts": {
+    "build": "wp-scripts build builder=./src/builder/index.js --output-path=build",
+    "start": "wp-scripts start builder=./src/builder/index.js --output-path=build",
+    "test:js": "wp-scripts test-unit-js",
+    "lint:js": "wp-scripts lint-js src"
+  },
+  "dependencies": {
+    "clipper-lib": "^6.4.2",
+    "leaflet": "^1.9.4",
+    "polygon-clipping": "^0.15.7",
+    "polylabel": "^1.1.0",
+    "topojson-client": "^3.1.0",
+    "topojson-server": "^3.0.1",
+    "topojson-simplify": "^3.0.3"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "^30.27.0",
+    "typescript": "^5.4.5"
+  }
+}

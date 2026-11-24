@@ -5,3 +5,8 @@
 /phpunit.xml.dist
 /phpcs.xml.dist
 /.distignore
+/src
+/node_modules
+/package.json
+/package-lock.json
+/.eslintrc.json
