@@ -87,7 +87,9 @@ class Test_Service extends MapPulse_Boundary_Test_Case {
 		$this->base_routes();
 		$this->add_layer();
 		$base = Service::base( Service::parse_bbox( self::BOX ) );
-		$this->assertSame( array( 'land', 'cities', 'areas', 'water', 'roadsMajor', 'roadsMinor' ), array_keys( $base ) );
+		$this->assertSame( array( 'land', 'cities', 'areas', 'water', 'roadsMajor', 'roadsMinor', 'errors' ), array_keys( $base ) );
+		$this->assertSame( array(), $base['errors'] );
+		unset( $base['errors'] );
 		foreach ( $base as $name => $layer ) {
 			$this->assertSame( 'FeatureCollection', $layer['type'], $name );
 			$this->assertNotEmpty( $layer['features'], $name );
@@ -116,6 +118,7 @@ class Test_Service extends MapPulse_Boundary_Test_Case {
 		$this->base_routes();
 		$this->http->reset()->on( 'tigerweb', 'down', 503 );
 		$this->assertWPError( Service::base( Service::parse_bbox( self::BOX ) ) );
+		\MapPulse\Boundaries\Http::reset();
 		$this->base_routes();
 		$this->assertIsArray( Service::base( Service::parse_bbox( self::BOX ) )['water'] );
 	}

@@ -106,6 +106,36 @@ class Test_Sources_Screen extends MapPulse_Boundary_Test_Case {
 		$this->assertStringContainsString( 'name="mappulse_layer_url"', $html );
 	}
 
+	public function test_page_says_when_a_source_has_more_matches_than_it_shows() {
+		$features = array();
+		for ( $i = 0; $i < 20; $i++ ) {
+			$features[] = array(
+				'type'       => 'Feature',
+				'geometry'   => null,
+				'properties' => array(
+					'BASENAME' => 'Springfield ' . $i,
+					'NAME'     => 'Springfield city',
+					'STATE'    => '12',
+					'GEOID'    => (string) ( 1200000 + $i ),
+				),
+			);
+		}
+		$this->http->reset()->on(
+			'/28/query',
+			array(
+				'type'     => 'FeatureCollection',
+				'features' => $features,
+			)
+		)->fixture( 'tigerWMS_Current/MapServer?f=json', 'layers.json' );
+		$html = $this->page( array( 'q' => 'springfield', 'type' => 'city' ) );
+		$this->assertStringContainsString( 'Springfield 19', $html );
+		$this->assertStringContainsString( 'mappulse-more', $html );
+	}
+
+	public function test_page_does_not_claim_more_matches_for_a_narrow_search() {
+		$this->assertStringNotContainsString( 'mappulse-more', $this->page( array( 'q' => 'gulfport', 'type' => 'city', 'state' => 'FL' ) ) );
+	}
+
 	public function test_search_text_is_escaped_in_the_page() {
 		$html = $this->page( array( 'q' => '"><script>x</script>' ) );
 		$this->assertStringNotContainsString( '<script>x', $html );

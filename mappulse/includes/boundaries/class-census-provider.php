@@ -73,8 +73,8 @@ class Census_Provider implements Provider {
 	 * @return array|\WP_Error
 	 */
 	public function search( string $query, array $args ) {
-		$text = Arcgis::clean( $query );
-		if ( mb_strlen( str_replace( "''", "'", $text ) ) < 2 ) {
+		$text = Arcgis::like( $query );
+		if ( mb_strlen( str_replace( '%', '', $text ) ) < 2 ) {
 			return new \WP_Error( 'mappulse_bad_query', __( 'Type at least two letters or digits.', 'mappulse' ) );
 		}
 
@@ -180,7 +180,7 @@ class Census_Provider implements Provider {
 	 * Searches one layer: names that start with the text first, then names that contain it.
 	 *
 	 * @param string $type  Area type.
-	 * @param string $text  Cleaned search text.
+	 * @param string $text  LIKE pattern from Arcgis::like().
 	 * @param string $fips  State FIPS code, or '' for the whole country.
 	 * @param int    $limit Maximum results.
 	 * @return array|\WP_Error
@@ -211,14 +211,11 @@ class Census_Provider implements Provider {
 					'orderByFields'     => 'BASENAME',
 					'resultRecordCount' => $limit,
 				),
-				$limit
+				$limit,
+				true
 			);
 			if ( is_wp_error( $data ) ) {
-				// More matches than the limit is not a failure here: the person needs a more specific name.
-				if ( 'mappulse_too_many_features' !== $data->get_error_code() ) {
-					return $data;
-				}
-				continue;
+				return $data;
 			}
 			$features = $data['features'];
 			if ( $features ) {

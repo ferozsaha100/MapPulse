@@ -1,0 +1,29 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "BASENAME": "St. Pete Beach",
+    "NAME": "St. Pete Beach city",
+    "STATE": "12",
+    "GEOID": "1262885",
+    "CENTLON": "-082.7400000",
+    "CENTLAT": "+27.7200000"
+   },
+   "geometry": null
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "BASENAME": "St. Petersburg",
+    "NAME": "St. Petersburg city",
+    "STATE": "12",
+    "GEOID": "1263000",
+    "CENTLON": "-082.6400000",
+    "CENTLAT": "+27.7700000"
+   },
+   "geometry": null
+  }
+ ]
+}

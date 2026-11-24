@@ -50,8 +50,12 @@ without redrawing the map.
 
 ## How the plugin talks to sources (0.2.0)
 
-- Requests are made by the WordPress site, from the admin only, through one client: https only, a 20 second
-  timeout, at least 300 ms between requests to one host, a 12 MB answer cap and two retries.
+- Requests are made by the WordPress site, from the admin only, through one client: https only, no redirects,
+  a 20 second timeout, at least 300 ms between requests to one host, and a 4 MB cap per query (raise it with the
+  `mappulse_max_response_bytes` filter). A server error is retried twice and a timeout once. A host that fails
+  is not asked again during the same page request, so one dead source cannot stall a screen.
+- Base-map layers are simplified at the source to about four metres and can be asked for one at a time
+  (`/boundaries/base?bbox=…&layer=water`), which keeps each request small.
 - The site may contact `tigerweb.geo.census.gov` and the hosts of the layers registered under MapPulse, Sources.
   Nothing else. The list can be changed with the `mappulse_allowed_hosts` filter.
 - Answers are saved as JSON files in `wp-content/uploads/mappulse/cache/` for 30 days (searches and layer lists

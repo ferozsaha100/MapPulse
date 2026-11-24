@@ -33,6 +33,19 @@ class Arcgis {
 	}
 
 	/**
+	 * Turns user text into the middle of a LIKE pattern: cleaned, with every run of spaces and
+	 * punctuation replaced by a wildcard, so "St Petersburg" matches "St. Petersburg".
+	 *
+	 * The result holds only letters, digits and % signs, so it needs no quoting.
+	 *
+	 * @param string $text Raw text.
+	 */
+	public static function like( string $text ): string {
+		$clean = str_replace( "''", "'", self::clean( $text ) );
+		return trim( (string) preg_replace( "/[ .'\\-]+/", '%', $clean ), '%' );
+	}
+
+	/**
 	 * Lists the layers of a map service. Group layers are left out.
 	 *
 	 * @param string $service_url URL ending in MapServer or FeatureServer.
@@ -75,7 +88,11 @@ class Arcgis {
 	 */
 	public static function find_layer( string $service_url, string $name_pattern, ?int $fallback_id ) {
 		$layers = self::layers( $service_url );
-		$found  = null;
+		if ( is_wp_error( $layers ) && 'mappulse_http' === $layers->get_error_code() ) {
+			// The service cannot be reached. Guessing a layer number would only wait for it again.
+			return $layers;
+		}
+		$found = null;
 		foreach ( is_array( $layers ) ? $layers : array() as $layer ) {
 			if ( preg_match( $name_pattern, $layer['name'] ) ) {
 				$found = $layer['id'];
@@ -128,9 +145,10 @@ class Arcgis {
 	 * @param string $layer_url    URL ending in the layer number.
 	 * @param array  $params       ArcGIS query parameters (where, outFields, geometry and so on).
 	 * @param int    $max_features Stop with an error beyond this many features.
+	 * @param bool   $first_page   Return only the first $max_features and set "truncated" when there are more.
 	 * @return array|\WP_Error
 	 */
-	public static function query( string $layer_url, array $params, int $max_features = 2000 ) {
+	public static function query( string $layer_url, array $params, int $max_features = 2000, bool $first_page = false ) {
 		$params = array_merge(
 			array(
 				'where'     => '1=1',
@@ -145,6 +163,7 @@ class Arcgis {
 		);
 
 		$features = array();
+		$bytes    = 0;
 		for ( $page = 0; $page < 50; $page++ ) {
 			if ( $features ) {
 				$params['resultOffset'] = count( $features );
@@ -154,9 +173,27 @@ class Arcgis {
 				return $data;
 			}
 
-			$batch    = isset( $data['features'] ) && is_array( $data['features'] ) ? $data['features'] : array();
+			if ( ! isset( $data['features'] ) || ! is_array( $data['features'] ) ) {
+				return new \WP_Error( 'mappulse_bad_response', __( 'The boundary source sent an answer MapPulse could not read.', 'mappulse' ) );
+			}
+
+			// The size cap applies to a whole query, not to each page of it.
+			$bytes += Http::last_bytes();
+			if ( $bytes > Http::max_bytes() ) {
+				return new \WP_Error( 'mappulse_too_large', __( 'The boundary source sent more data than MapPulse accepts. Try a smaller area.', 'mappulse' ) );
+			}
+
+			$batch    = $data['features'];
 			$features = array_merge( $features, $batch );
 			$more     = ! empty( $data['exceededTransferLimit'] ) || ! empty( $data['properties']['exceededTransferLimit'] );
+
+			if ( $first_page ) {
+				return array(
+					'type'      => 'FeatureCollection',
+					'features'  => array_slice( $features, 0, $max_features ),
+					'truncated' => $more || count( $features ) > $max_features,
+				);
+			}
 
 			if ( count( $features ) > $max_features || ( $more && count( $features ) >= $max_features ) ) {
 				return new \WP_Error( 'mappulse_too_many_features', __( 'The boundary source returned more shapes than MapPulse accepts. Try a smaller area or a more specific name.', 'mappulse' ) );

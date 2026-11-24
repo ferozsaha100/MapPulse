@@ -272,6 +272,10 @@ class Sources_Screen {
 			return;
 		}
 
+		if ( ! empty( $found['more'] ) ) {
+			echo '<p class="mappulse-more"><strong>' . esc_html__( 'These are the first matches, and there are more.', 'mappulse' ) . '</strong> ' . esc_html__( 'Add a state, choose a kind of area, or type more of the name to narrow the list.', 'mappulse' ) . '</p>';
+		}
+
 		echo '<table class="widefat striped mappulse-results"><thead><tr>';
 		foreach ( array( __( 'Name', 'mappulse' ), __( 'Kind', 'mappulse' ), __( 'Where', 'mappulse' ), __( 'Source', 'mappulse' ), '' ) as $heading ) {
 			echo '<th scope="col">' . esc_html( $heading ) . '</th>';

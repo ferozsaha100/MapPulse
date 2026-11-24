@@ -97,6 +97,9 @@ class CLI {
 		foreach ( $found['errors'] as $source => $message ) {
 			\WP_CLI::warning( $source . ': ' . $message );
 		}
+		if ( ! empty( $found['more'] ) ) {
+			\WP_CLI::warning( 'These are the first matches, and there are more. Add --state or --type, or type more of the name.' );
+		}
 		\WP_CLI\Utils\format_items( $assoc_args['format'] ?? 'table', $found['results'], array( 'name', 'type', 'parent', 'source', 'record' ) );
 	}
 

@@ -8,6 +8,9 @@ class MapPulse_Http_Mock {
 	/** @var string[] URLs requested, in order. */
 	public $requests = array();
 
+	/** @var array[] Arguments of each request, in order. */
+	public $args = array();
+
 	/** @var array[] Each: fragment, body, status. First match wins. */
 	private $routes = array();
 
@@ -35,6 +38,7 @@ class MapPulse_Http_Mock {
 
 	public function answer( $pre, $args, $url ) {
 		$this->requests[] = $url;
+		$this->args[]     = $args;
 		foreach ( $this->routes as $route ) {
 			if ( false !== strpos( $url, $route[0] ) ) {
 				return array(

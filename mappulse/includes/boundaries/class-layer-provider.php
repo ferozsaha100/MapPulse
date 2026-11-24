@@ -59,6 +59,14 @@ class Layer_Provider implements Provider {
 	}
 
 	/**
+	 * Start of this layer's cache keys. It holds the address, so a different layer registered later
+	 * under the same name never reads this one's saved answers.
+	 */
+	private function cache_prefix(): string {
+		return $this->id() . '|' . md5( strtolower( $this->entry['url'] ) );
+	}
+
+	/**
 	 * Finds areas in the layer whose name contains the text.
 	 *
 	 * @param string $query Text typed by a person.
@@ -66,8 +74,8 @@ class Layer_Provider implements Provider {
 	 * @return array|\WP_Error
 	 */
 	public function search( string $query, array $args ) {
-		$text = Arcgis::clean( $query );
-		if ( mb_strlen( str_replace( "''", "'", $text ) ) < 2 ) {
+		$text = Arcgis::like( $query );
+		if ( mb_strlen( str_replace( '%', '', $text ) ) < 2 ) {
 			return new \WP_Error( 'mappulse_bad_query', __( 'Type at least two letters or digits.', 'mappulse' ) );
 		}
 		if ( ! empty( $args['type'] ) && 'neighborhood' !== $args['type'] ) {
@@ -75,7 +83,7 @@ class Layer_Provider implements Provider {
 		}
 		$limit = isset( $args['limit'] ) ? max( 1, min( 50, (int) $args['limit'] ) ) : 20;
 
-		$key    = $this->id() . '|search|' . $limit . '|' . $text;
+		$key    = $this->cache_prefix() . '|search|' . $limit . '|' . $text;
 		$cached = Cache::get( $key );
 		if ( null !== $cached ) {
 			return $cached;
@@ -92,7 +100,8 @@ class Layer_Provider implements Provider {
 				'orderByFields'     => $name,
 				'resultRecordCount' => $limit,
 			),
-			$limit
+			$limit,
+			true
 		);
 		if ( is_wp_error( $data ) ) {
 			return $data;
@@ -129,7 +138,7 @@ class Layer_Provider implements Provider {
 			return new \WP_Error( 'mappulse_bad_record', __( 'That is not a valid record for this layer.', 'mappulse' ) );
 		}
 
-		$key    = $this->id() . '|shape|' . $record;
+		$key    = $this->cache_prefix() . '|shape|' . $record;
 		$cached = Cache::get( $key );
 		if ( null !== $cached ) {
 			return $cached;

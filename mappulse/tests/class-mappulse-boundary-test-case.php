@@ -22,6 +22,8 @@ abstract class MapPulse_Boundary_Test_Case extends MapPulse_Test_Case {
 			}
 		);
 		\MapPulse\Boundaries\Cache::flush();
+		// Each test stands for a new page request: forget which hosts failed in the last one.
+		\MapPulse\Boundaries\Http::reset();
 	}
 
 	/** Decoded fixture from tests/fixtures/http/. */

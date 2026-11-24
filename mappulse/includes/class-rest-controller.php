@@ -121,7 +121,11 @@ class Rest_Controller {
 				'callback'            => array( self::class, 'base' ),
 				'permission_callback' => $can,
 				'args'                => array(
-					'bbox' => $text + array( 'required' => true ),
+					'bbox'  => $text + array( 'required' => true ),
+					'layer' => array(
+						'type' => 'string',
+						'enum' => array_merge( array( '' ), Service::BASE_LAYERS ),
+					),
 				),
 			)
 		);
@@ -209,7 +213,27 @@ class Rest_Controller {
 	 */
 	public static function base( \WP_REST_Request $request ) {
 		$bbox = Service::parse_bbox( (string) $request['bbox'] );
-		return self::answer( is_wp_error( $bbox ) ? $bbox : Service::base( $bbox ) );
+		if ( is_wp_error( $bbox ) ) {
+			return self::answer( $bbox );
+		}
+
+		// The builder asks for one layer at a time, which keeps each request small.
+		$layer = (string) $request['layer'];
+		if ( '' === $layer ) {
+			return self::answer( Service::base( $bbox ) );
+		}
+		$data = Service::base_layer( $bbox, $layer );
+		if ( is_wp_error( $data ) ) {
+			return self::answer( $data );
+		}
+		$errors = isset( $data['errors'] ) ? $data['errors'] : array();
+		unset( $data['errors'] );
+		return self::answer(
+			array(
+				$layer   => $data,
+				'errors' => $errors,
+			)
+		);
 	}
 
 	/**
