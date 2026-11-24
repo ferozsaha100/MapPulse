@@ -173,7 +173,7 @@ test( 'a map is built, styled, linked, published, shown on a page and reopened',
 	const tinted = page
 		.locator( '.mappulse-preview__map .mappulse__zone path' )
 		.first();
-	await expect( tinted ).toHaveCSS( 'fill', 'rgb(197, 204, 213)', {
+	await expect( tinted ).toHaveCSS( 'fill', 'rgb(165, 176, 191)', {
 		timeout: SLOW,
 	} );
 	await page.getByLabel( 'Border style' ).selectOption( 'dashed' );
@@ -304,7 +304,7 @@ test( 'a map is built, styled, linked, published, shown on a page and reopened',
 	// The style and the hand-set label are on the page.
 	await expect(
 		page.locator( '.mappulse svg .mappulse__zone path' ).first()
-	).toHaveCSS( 'fill', 'rgb(197, 204, 213)' );
+	).toHaveCSS( 'fill', 'rgb(165, 176, 191)' );
 	await expect(
 		page.locator( '.mappulse svg .mappulse__zone path' ).first()
 	).toHaveCSS( 'stroke-dasharray', /6px,? 4px/ );

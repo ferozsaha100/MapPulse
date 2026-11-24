@@ -3,7 +3,7 @@
  * person's own choices and are kept when a preset is applied.
  */
 import { __ } from '@wordpress/i18n';
-import { mix, normalHex, contrastRatio, AA } from './contrast';
+import { mix, normalHex, contrastRatio, luminance, AA } from './contrast';
 
 export const COLOR_KEYS = [
 	'zone',
@@ -57,7 +57,11 @@ function brandTint( brand ) {
 	) {
 		hover = mix( hover, INK, 0.15 );
 	}
-	const zone = mix( brand, WHITE, 0.74 );
+	// The areas are a mid tint: clearly darker than the land and water around them, light enough for dark labels.
+	let zone = mix( brand, WHITE, 0.6 );
+	for ( let step = 0; step < 12 && luminance( zone ) > 0.5; step++ ) {
+		zone = mix( zone, INK, 0.08 );
+	}
 	// Ink with a little of the brand in it; darkened further until it reads on the area color.
 	let label = mix( brand, INK, 0.78 );
 	if ( contrastRatio( label, zone ) < AA ) {
@@ -69,11 +73,11 @@ function brandTint( brand ) {
 		zoneHover: hover,
 		label,
 		labelHover: textOn( hover ),
-		land: mix( brand, WHITE, 0.95 ),
-		context: mix( brand, WHITE, 0.89 ),
+		land: mix( brand, WHITE, 0.96 ),
+		context: mix( brand, WHITE, 0.9 ),
 		contextStroke: WHITE,
-		water: mix( mix( brand, '#8FB3BD', 0.7 ), WHITE, 0.66 ),
-		coast: mix( mix( brand, '#8FB3BD', 0.7 ), WHITE, 0.3 ),
+		water: mix( mix( brand, '#8FB3BD', 0.7 ), WHITE, 0.86 ),
+		coast: mix( mix( brand, '#8FB3BD', 0.7 ), WHITE, 0.55 ),
 		waterLabel: mix( mix( brand, '#8FB3BD', 0.5 ), INK, 0.45 ),
 		road: WHITE,
 		roadCasing: mix( brand, WHITE, 0.62 ),

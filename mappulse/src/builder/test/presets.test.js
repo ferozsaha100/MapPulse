@@ -79,6 +79,33 @@ describe( 'presets', () => {
 		}
 	} );
 
+	it( 'keeps the areas clearly apart from the water and the land around them', () => {
+		for ( const brand of [
+			'#1F3A5F',
+			'#7A1F3D',
+			'#0B6E4F',
+			'#C8A24A',
+			'#FFFFFF',
+			'#000000',
+		] ) {
+			const style = applyPreset(
+				'brand-tint',
+				DEFAULTS,
+				brand,
+				DEFAULTS
+			);
+			expect( contrastRatio( style.zone, style.water ) ).toBeGreaterThan(
+				1.5
+			);
+			expect( contrastRatio( style.zone, style.land ) ).toBeGreaterThan(
+				1.5
+			);
+			expect(
+				contrastRatio( style.zone, style.context )
+			).toBeGreaterThan( 1.35 );
+		}
+	} );
+
 	it( 'falls back to Atlas for an unknown preset or a bad brand color', () => {
 		expect( applyPreset( 'other', DEFAULTS, '', DEFAULTS ).preset ).toBe(
 			'atlas'
