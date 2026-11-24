@@ -7,9 +7,10 @@ export const DEFAULT_PRIORITY = [ 'neighborhood', 'city', 'zip', 'county' ];
 
 /**
  * Cuts each zone out of every lower-priority zone beneath it. Zones of one type keep their list order,
- * so an earlier zone wins over a later one. A backdrop zone is left whole and cuts nothing.
+ * so an earlier zone wins over a later one, except that a zone marked "first" goes before the others
+ * of its type. A backdrop zone is left whole and cuts nothing.
  *
- * @param zones    Items with type, mp and optionally backdrop. They are changed in place.
+ * @param zones    Items with type, mp and optionally backdrop and first. They are changed in place.
  * @param priority Area types, most important first.
  * @return The zones in priority order, each with cutShare (0 to 1) and parts.
  */
@@ -20,7 +21,12 @@ export function resolveOverlaps( zones, priority = DEFAULT_PRIORITY ) {
 	};
 	const ordered = zones
 		.map( ( z, i ) => ( { z, i } ) )
-		.sort( ( a, b ) => rank( a.z ) - rank( b.z ) || a.i - b.i )
+		.sort(
+			( a, b ) =>
+				rank( a.z ) - rank( b.z ) ||
+				Number( !! b.z.first ) - Number( !! a.z.first ) ||
+				a.i - b.i
+		)
 		.map( ( o ) => o.z );
 	const done = [];
 	for ( const z of ordered ) {

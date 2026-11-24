@@ -82,4 +82,19 @@ describe( 'resolveOverlaps', () => {
 		);
 		expect( out.find( ( z ) => z.id === 'wide' ).parts ).toBe( 2 );
 	} );
+
+	it( 'lets a zone marked first win over an earlier zone of the same type, but not over a higher type', () => {
+		const out = resolveOverlaps(
+			[
+				zone( 'early', 'city', square( 0, 0, 2 ) ),
+				zone( 'solid', 'city', square( 1, 0, 2 ), { first: true } ),
+				zone( 'hood', 'neighborhood', square( 2, 0, 0.5 ) ),
+			],
+			DEFAULT_PRIORITY
+		);
+		const byId = Object.fromEntries( out.map( ( z ) => [ z.id, z ] ) );
+		expect( mpArea( byId.early.mp ) ).toBeCloseTo( 2 );
+		expect( mpArea( byId.solid.mp ) ).toBeCloseTo( 4 - 0.25 );
+		expect( mpArea( byId.hood.mp ) ).toBeCloseTo( 0.25 );
+	} );
 } );

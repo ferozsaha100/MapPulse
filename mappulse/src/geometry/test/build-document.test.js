@@ -252,6 +252,46 @@ describe( 'buildDocument', () => {
 		);
 	} );
 
+	it( 'keeps a cleaned zone solid when an earlier neighbour of the same kind owns strips inside it', () => {
+		// The real case: the streets between Fisher Island's blocks belong to a neighbouring city's boundary.
+		const strip = zone(
+			'neighbour',
+			'city',
+			feature( [
+				[
+					[
+						[ -80.1435, 25.7609 ],
+						[ -80.1378, 25.7609 ],
+						[ -80.1378, 25.7611 ],
+						[ -80.1435, 25.7611 ],
+						[ -80.1435, 25.7609 ],
+					],
+				],
+				...square( -80.16, 25.75, 0.004 ),
+			] ),
+			{ name: 'Neighbour' }
+		);
+		const island = zone( 'fisher-island', 'city', fisher.features[ 0 ], {
+			name: 'Fisher Island',
+			clean: true,
+		} );
+		const { doc, warnings } = buildDocument( {
+			title: 't',
+			zones: [ strip, island ],
+		} );
+		expect( count( doc.topology.zones[ 'fisher-island' ].d, 'M' ) ).toBe(
+			1
+		);
+		expect(
+			warnings.filter( ( w ) => w.zone === 'fisher-island' )
+		).toEqual( [] );
+		// The list keeps the order the areas were given in.
+		expect( doc.zones.map( ( z ) => z.id ) ).toEqual( [
+			'neighbour',
+			'fisher-island',
+		] );
+	} );
+
 	it( 'works without a base map and with no zones', () => {
 		expect(
 			buildDocument( { title: 't', zones: [], base: base() } )

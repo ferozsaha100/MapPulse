@@ -251,6 +251,9 @@ export function buildDocument( {
 	for ( const item of work ) {
 		item.type = item.zone.type;
 		item.backdrop = !! item.zone.backdrop;
+		// A cleaned outline is a deliberate solid shape. Slivers of a neighbour of the same kind that lie
+		// inside it (streets a city boundary runs along, say) must not cut it back into pieces.
+		item.first = !! item.zone.clean;
 		item.mp = mapMP( item.flat, frame.toPx );
 	}
 	resolveOverlaps( work, order );

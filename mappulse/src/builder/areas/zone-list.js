@@ -160,7 +160,7 @@ export default function ZoneList( { settings, state, dispatch } ) {
 													'mappulse'
 												) }
 												help={ __(
-													'Join separate pieces into one solid shape.',
+													'Join separate pieces into one solid shape. It then keeps that shape where it overlaps areas of the same kind.',
 													'mappulse'
 												) }
 												checked={ zone.clean }
