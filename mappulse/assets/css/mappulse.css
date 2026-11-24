@@ -110,9 +110,20 @@
 .mappulse__zone path {
 	fill: var(--mappulse-zone, var(--mappulse-doc-zone));
 	stroke: var(--mappulse-zone-stroke, var(--mappulse-doc-zone-stroke));
-	stroke-width: 1.6;
+	stroke-width: var(--mappulse-zone-stroke-width, var(--mappulse-doc-zone-stroke-width, 1.6));
+	stroke-dasharray: var(--mappulse-doc-zone-dash, none);
 	stroke-linejoin: round;
 	transition: fill 0.18s ease;
+}
+
+/* Hover effect "outline": the area keeps its color and gains a border in the hover color. */
+.mappulse--hover-outline .mappulse__zone:hover path,
+.mappulse--hover-outline .mappulse__zone:focus-visible path,
+.mappulse--hover-outline .mappulse__zone.is-active path {
+	fill: var(--mappulse-zone, var(--mappulse-doc-zone));
+	stroke: var(--mappulse-zone-hover, var(--mappulse-doc-zone-hover));
+	stroke-width: 3;
+	stroke-dasharray: none;
 }
 
 .mappulse__zone:hover path,
@@ -199,6 +210,13 @@
 	fill: var(--mappulse-label-hover, var(--mappulse-doc-label-hover));
 	stroke: var(--mappulse-zone-hover, var(--mappulse-doc-zone-hover));
 	stroke-opacity: 1;
+}
+
+/* With the outline effect the area keeps its color, so its label keeps its own too. */
+.mappulse--hover-outline .mappulse__label.is-active {
+	fill: var(--mappulse-label, var(--mappulse-doc-label));
+	stroke: var(--mappulse-label-halo, #fff);
+	stroke-opacity: 0.72;
 }
 
 .mappulse__water-label {

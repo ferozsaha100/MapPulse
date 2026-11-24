@@ -65,14 +65,15 @@ class Renderer {
 			$shape = $shapes[ $id ];
 			$path  = '<path d="' . esc_attr( $shape['d'] ) . '" fill-rule="evenodd"/>';
 
-			if ( '' !== $zone['link'] ) {
-				$zones .= '<a class="mappulse__zone" href="' . esc_url( $zone['link'] ) . '" data-zone="' . esc_attr( $id ) . '" aria-label="' . esc_attr( $zone['name'] ) . '">' . $path . '</a>';
+			$link = self::link( $zone );
+			if ( '' !== $link ) {
+				$zones .= '<a class="mappulse__zone" href="' . esc_url( $link ) . '" data-zone="' . esc_attr( $id ) . '" aria-label="' . esc_attr( $zone['name'] ) . '">' . $path . '</a>';
 			} else {
 				$zones .= '<g class="mappulse__zone mappulse__zone--static" tabindex="0" role="img" data-zone="' . esc_attr( $id ) . '" aria-label="' . esc_attr( $zone['name'] ) . '">' . $path . '</g>';
 			}
 
-			$label = $shape['label'];
-			if ( ! $label['lines'] ) {
+			$label = self::placed_label( $shape['label'], $zone['label'] ?? null, (float) $doc['frame']['width'], (float) $doc['frame']['height'] );
+			if ( null === $label ) {
 				continue;
 			}
 			$size        = (float) $label['size'];
@@ -123,6 +124,90 @@ class Renderer {
 	}
 
 	/**
+	 * Where a zone links to. A link chosen from the site's pages follows the page while it is published;
+	 * otherwise the address stored with the map is used.
+	 *
+	 * @param array $zone A sanitized zone.
+	 */
+	public static function link( array $zone ): string {
+		if ( ! empty( $zone['linkPost'] ) ) {
+			$post = get_post( (int) $zone['linkPost'] );
+			if ( $post && 'publish' === $post->post_status && is_post_type_viewable( $post->post_type ) ) {
+				$url = get_permalink( $post );
+				if ( $url ) {
+					return $url;
+				}
+			}
+		}
+		return (string) $zone['link'];
+	}
+
+	/**
+	 * Upper-case label text over at most two lines, broken at the space nearest the middle.
+	 *
+	 * @param string $text Label text.
+	 */
+	public static function label_lines( string $text ): array {
+		$text  = mb_strtoupper( trim( $text ) );
+		$words = preg_split( '/\s+/', $text );
+		if ( count( $words ) < 2 || mb_strlen( $text ) <= 9 ) {
+			return '' === $text ? array() : array( $text );
+		}
+		$best  = 1;
+		$score = PHP_INT_MAX;
+		for ( $i = 1, $n = count( $words ); $i < $n; $i++ ) {
+			$diff = abs( mb_strlen( implode( ' ', array_slice( $words, 0, $i ) ) ) - mb_strlen( implode( ' ', array_slice( $words, $i ) ) ) );
+			if ( $diff < $score ) {
+				$score = $diff;
+				$best  = $i;
+			}
+		}
+		return array( implode( ' ', array_slice( $words, 0, $best ) ), implode( ' ', array_slice( $words, $best ) ) );
+	}
+
+	/**
+	 * A zone's label after any hand-set text, offset or hiding. Null when there is nothing to draw.
+	 *
+	 * @param array      $label    The label the builder placed.
+	 * @param array|null $override The zone's hand-set label, if any.
+	 * @param float      $width    Frame width.
+	 * @param float      $height   Frame height.
+	 */
+	private static function placed_label( array $label, ?array $override, float $width, float $height ): ?array {
+		if ( null === $override ) {
+			return $label['lines'] ? $label : null;
+		}
+		if ( $override['hidden'] ) {
+			return null;
+		}
+		if ( '' !== $override['text'] ) {
+			$label['lines'] = self::label_lines( $override['text'] );
+		}
+		if ( ! $label['lines'] ) {
+			return null;
+		}
+		if ( 0.0 === (float) $override['dx'] && 0.0 === (float) $override['dy'] ) {
+			return $label;
+		}
+
+		$size   = (float) $label['size'];
+		$half_w = ( max( array_map( 'mb_strlen', $label['lines'] ) ) * $size * 0.8 + 6 ) / 2;
+		$half_h = ( count( $label['lines'] ) * $size * 1.18 + 3 ) / 2;
+		// The point the label belongs to: its leader's anchor if it has one, else where the builder put it.
+		$home = $label['anchor'] ? $label['anchor'] : array(
+			'x' => $label['x'],
+			'y' => $label['y'],
+		);
+
+		$label['x'] = min( max( $label['x'] + $override['dx'], min( $half_w + 4, $width / 2 ) ), max( $width - $half_w - 4, $width / 2 ) );
+		$label['y'] = min( max( $label['y'] + $override['dy'], min( $half_h + 4, $height / 2 ) ), max( $height - $half_h - 4, $height / 2 ) );
+		// A label moved clear of its point is tied back to it with a leader line.
+		$clear           = abs( $home['x'] - $label['x'] ) > $half_w + 3 || abs( $home['y'] - $label['y'] ) > $half_h + 3;
+		$label['anchor'] = $clear ? $home : null;
+		return $label;
+	}
+
+	/**
 	 * The whole section: heading, intro, area list and the map.
 	 *
 	 * @param array  $doc  A sanitized map document.
@@ -140,7 +225,17 @@ class Renderer {
 			$variables[] = $name . ':' . $doc['style'][ $key ];
 		}
 
-		$html = '<section class="mappulse mappulse--' . esc_attr( $layout ) . '" data-mappulse style="' . esc_attr( implode( ';', $variables ) ) . '">';
+		// Border and hover values are written only when they differ from the built-in look.
+		$style = $doc['style'];
+		if ( 1.6 !== (float) $style['zoneStrokeWidth'] ) {
+			$variables[] = '--mappulse-doc-zone-stroke-width:' . self::num( $style['zoneStrokeWidth'] );
+		}
+		if ( 'solid' !== $style['zoneStrokeStyle'] ) {
+			$variables[] = '--mappulse-doc-zone-dash:' . Map_Document::STROKE_STYLES[ $style['zoneStrokeStyle'] ];
+		}
+		$hover = 'outline' === $style['hoverEffect'] ? ' mappulse--hover-outline' : '';
+
+		$html = '<section class="mappulse mappulse--' . esc_attr( $layout ) . $hover . '" data-mappulse style="' . esc_attr( implode( ';', $variables ) ) . '">';
 		if ( '' !== $heading ) {
 			$html .= '<h2 class="mappulse__heading">' . esc_html( $heading ) . '</h2>';
 		}
@@ -153,8 +248,9 @@ class Renderer {
 				if ( ! empty( $zone['hidden'] ) ) {
 					continue;
 				}
-				$html .= '' !== $zone['link']
-					? '<li><a href="' . esc_url( $zone['link'] ) . '" data-zone="' . esc_attr( $zone['id'] ) . '">' . esc_html( $zone['name'] ) . '</a></li>'
+				$link  = self::link( $zone );
+				$html .= '' !== $link
+					? '<li><a href="' . esc_url( $link ) . '" data-zone="' . esc_attr( $zone['id'] ) . '">' . esc_html( $zone['name'] ) . '</a></li>'
 					: '<li><span data-zone="' . esc_attr( $zone['id'] ) . '">' . esc_html( $zone['name'] ) . '</span></li>';
 			}
 			$html .= '</ul>';

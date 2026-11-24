@@ -15,6 +15,7 @@ foreach ( array_keys( wp_roles()->roles ) as $mappulse_role_name ) {
 }
 
 delete_option( 'mappulse_layers' );
+delete_option( 'mappulse_link_epoch' );
 
 // Saved boundary answers. The path mirrors MapPulse\Boundaries\Cache::dir(); plugin classes are not loaded here.
 $mappulse_uploads = wp_upload_dir( null, false );

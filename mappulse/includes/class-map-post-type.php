@@ -19,6 +19,7 @@ class Map_Post_Type {
 	const META_DOC   = '_mappulse_map';
 	const META_SVG   = '_mappulse_svg';
 	const META_HASH  = '_mappulse_hash';
+	const LINK_EPOCH = 'mappulse_link_epoch';
 	// The boundaries a builder map's zones came from. Kept apart so a page view never has to read them.
 	const META_SOURCES = '_mappulse_sources';
 
@@ -82,7 +83,43 @@ class Map_Post_Type {
 		);
 
 		add_filter( 'manage_' . self::POST_TYPE . '_posts_columns', array( self::class, 'columns' ) );
+		add_action( 'post_updated', array( self::class, 'post_moved' ), 10, 3 );
+		add_action( 'transition_post_status', array( self::class, 'status_changed' ), 10, 3 );
+		add_action( 'deleted_post', array( self::class, 'bump_links' ) );
 		add_action( 'manage_' . self::POST_TYPE . '_posts_custom_column', array( self::class, 'column' ), 10, 2 );
+	}
+
+	/**
+	 * Marks every stored drawing as out of date for links. Each map is redrawn the next time it is shown.
+	 */
+	public static function bump_links(): void {
+		update_option( self::LINK_EPOCH, (int) get_option( self::LINK_EPOCH, 0 ) + 1, true );
+	}
+
+	/**
+	 * Runs when a post is updated: a changed slug or parent changes its address.
+	 *
+	 * @param int      $post_id Post ID.
+	 * @param \WP_Post $after   The post after the update.
+	 * @param \WP_Post $before  The post before the update.
+	 */
+	public static function post_moved( $post_id, $after, $before ): void {
+		if ( self::POST_TYPE !== $after->post_type && ( $after->post_name !== $before->post_name || $after->post_parent !== $before->post_parent ) ) {
+			self::bump_links();
+		}
+	}
+
+	/**
+	 * Runs when a post changes status: publishing or unpublishing changes whether a map may link to it.
+	 *
+	 * @param string   $new_status New status.
+	 * @param string   $old_status Old status.
+	 * @param \WP_Post $post       The post.
+	 */
+	public static function status_changed( $new_status, $old_status, $post ): void {
+		if ( $new_status !== $old_status && self::POST_TYPE !== $post->post_type && in_array( 'publish', array( $new_status, $old_status ), true ) ) {
+			self::bump_links();
+		}
 	}
 
 	/**
@@ -298,6 +335,7 @@ class Map_Post_Type {
 	 * @param string $svg The SVG rendered from it.
 	 */
 	private static function signature( array $doc, string $svg ): string {
-		return wp_hash( Map_Document::hash( $doc ) . '|' . md5( $svg ), 'nonce' );
+		// The link epoch moves whenever a post's address or status changes, so a stored drawing never keeps a stale link.
+		return wp_hash( Map_Document::hash( $doc ) . '|' . md5( $svg ) . '|' . (int) get_option( self::LINK_EPOCH, 0 ), 'nonce' );
 	}
 }
