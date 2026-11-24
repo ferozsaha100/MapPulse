@@ -94,7 +94,7 @@ class Test_Links_Controller extends MapPulse_Test_Case {
 
 	public function test_match_refuses_bad_input() {
 		$this->sign_in( 'administrator' );
-		$this->assertSame( 400, $this->call( 'POST', '/links/match', array( 'names' => 'Aventura' ) )->get_status() );
+		$this->assertSame( 400, $this->call( 'POST', '/links/match', array() )->get_status() );
 		$this->assertSame( 400, $this->call( 'POST', '/links/match', array( 'names' => array_fill( 0, MAPPULSE_MAX_ZONES + 1, 'x' ) ) )->get_status() );
 		$data = $this->call( 'POST', '/links/match', array( 'names' => array( '<b>Aventura</b>', '', array( 'x' ) ) ) )->get_data();
 		$this->assertSame( array( 'Aventura' ), array_keys( $data ) );

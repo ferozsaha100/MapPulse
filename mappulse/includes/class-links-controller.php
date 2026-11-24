@@ -108,7 +108,7 @@ class Links_Controller {
 	 * @return \WP_Post[]
 	 */
 	private static function titled( string $text, int $limit ): array {
-		$only_titles = static function ( $columns ) {
+		$only_titles = static function () {
 			return array( 'post_title' );
 		};
 		add_filter( 'post_search_columns', $only_titles );
