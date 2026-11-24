@@ -44,6 +44,7 @@ class Plugin {
 		Integrations\Elementor::register();
 		Boundaries\Sources::register();
 		Rest_Controller::register();
+		Maps_Controller::register();
 
 		if ( is_admin() ) {
 			( new Importer() )->register();

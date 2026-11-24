@@ -141,8 +141,12 @@ class Map_Post_Type {
 		);
 		if ( $post_id > 0 ) {
 			$post['ID'] = $post_id;
-		} else {
-			$post['post_title'] = '' !== $doc['title'] ? $doc['title'] : __( 'Untitled map', 'mappulse' );
+		}
+		// A replaced map keeps its name unless the new document carries one.
+		if ( '' !== $doc['title'] ) {
+			$post['post_title'] = $doc['title'];
+		} elseif ( $post_id <= 0 ) {
+			$post['post_title'] = __( 'Untitled map', 'mappulse' );
 		}
 
 		$post_id = $post_id > 0 ? wp_update_post( wp_slash( $post ), true ) : wp_insert_post( wp_slash( $post ), true );
