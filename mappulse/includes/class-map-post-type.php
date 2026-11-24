@@ -165,7 +165,12 @@ class Map_Post_Type {
 			}
 		}
 
-		update_post_meta( $post_id, self::META_DOC, wp_slash( wp_json_encode( $doc, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) ) );
+		$json = wp_json_encode( $doc, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+		update_post_meta( $post_id, self::META_DOC, wp_slash( $json ) );
+		// A large document can be refused by the database without an error reaching PHP. Read it back.
+		if ( get_post_meta( $post_id, self::META_DOC, true ) !== $json ) {
+			return new \WP_Error( 'mappulse_not_stored', __( 'The map could not be stored. It may be too large for this site\'s database; remove an area and try again.', 'mappulse' ) );
+		}
 		if ( $sources ) {
 			update_post_meta( $post_id, self::META_SOURCES, wp_slash( wp_json_encode( $sources ) ) );
 		} else {

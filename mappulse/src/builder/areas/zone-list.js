@@ -3,6 +3,7 @@
  */
 import { Button, TextControl, ToggleControl } from '@wordpress/components';
 import { __, sprintf } from '@wordpress/i18n';
+import { warningText } from '../messages';
 
 export default function ZoneList( { settings, state, dispatch } ) {
 	const { zones, warnings } = state;
@@ -173,7 +174,7 @@ export default function ZoneList( { settings, state, dispatch } ) {
 									</div>
 									{ warning && (
 										<p className="mappulse-zone-row__warning">
-											{ warning.message }
+											{ warningText( warning.code ) }
 										</p>
 									) }
 								</li>

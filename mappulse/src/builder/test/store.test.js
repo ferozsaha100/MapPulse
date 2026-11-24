@@ -258,6 +258,32 @@ describe( 'builder store', () => {
 	} );
 } );
 
+describe( 'a map that fails to open', () => {
+	it( 'blocks the builder, so the map cannot be overwritten with an empty one', () => {
+		const state = reduce( initialState( { mapId: 9 } ), {
+			type: 'FAILED',
+			message: 'Gone.',
+		} );
+		expect( state ).toMatchObject( {
+			blocked: true,
+			loading: false,
+			error: 'Gone.',
+		} );
+		expect(
+			saveActions(
+				{ ...state, doc: { schema: 1 }, zones: [ {} ] },
+				{ busy: false, current: true }
+			).canSave
+		).toBe( false );
+	} );
+
+	it( 'does not block after a failed save', () => {
+		let state = reduce( initialState(), { type: 'SAVING' } );
+		state = reduce( state, { type: 'FAILED', message: 'No.' } );
+		expect( state.blocked ).toBe( false );
+	} );
+} );
+
 describe( 'saveActions', () => {
 	const ready = {
 		doc: { schema: 1 },

@@ -208,7 +208,6 @@ export function buildDocument( {
 			warnings.push( {
 				zone: zone.id,
 				code: 'no_shape',
-				message: 'This area has no outline that can be drawn.',
 			} );
 			continue;
 		}
@@ -280,6 +279,8 @@ export function buildDocument( {
 		// A zone that lies fully in mapped water (a pier, a sandbar) is kept as it was rather than erased.
 		if ( mpArea( trimmed ) > before * 0.02 ) {
 			item.mp = trimmed;
+		} else if ( before > 0 ) {
+			item.underWater = true;
 		}
 	}
 
@@ -345,26 +346,24 @@ export function buildDocument( {
 		const { zone } = item;
 		const area = mpArea( item.mp );
 		item.point = labelPoint( item.mp );
-		if ( ! item.point || item.cutShare > 0.8 ) {
+		if ( item.cutShare > 0.8 ) {
 			item.hidden = ! item.point || area < 1;
-			warnings.push( {
-				zone: zone.id,
-				code: 'mostly_cut',
-				message:
-					'Other areas on this map cover almost all of this one. Move it up the list, or make it a backdrop.',
-			} );
+			warnings.push( { zone: zone.id, code: 'mostly_cut' } );
+		} else if ( ! item.point || area < 1 ) {
+			// Nothing cut it away: it is simply smaller than the map can show.
+			item.hidden = true;
+			warnings.push( { zone: zone.id, code: 'too_small' } );
+		} else if ( item.underWater ) {
+			warnings.push( { zone: zone.id, code: 'under_water' } );
 		} else if ( item.mp.length > 1 && item.cutShare > 0.02 ) {
 			warnings.push( {
 				zone: zone.id,
 				code: 'in_pieces',
-				message: 'Other areas split this one into separate pieces.',
 			} );
 		} else if ( area < TINY_ZONE ) {
 			warnings.push( {
 				zone: zone.id,
 				code: 'tiny',
-				message:
-					'This area is very small on this map and may be hard to click.',
 			} );
 		}
 		if ( item.hidden ) {

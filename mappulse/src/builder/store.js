@@ -21,6 +21,8 @@ export const initialState = ( settings = {} ) => ( {
 	// A map made before the builder has no source boundaries, so its areas cannot be edited here.
 	legacy: false,
 	legacyZones: [],
+	// Set when a saved map could not be opened. Nothing can be edited or saved then, so it is not overwritten.
+	blocked: false,
 	maxZones: settings.maxZones || 200,
 } );
 
@@ -89,7 +91,7 @@ export function saveActions( state, preview ) {
 		state.legacy ||
 		( state.zones.length > 0 && preview.current && ! preview.busy );
 	return {
-		canSave: !! state.doc && ! state.saving && drawn,
+		canSave: !! state.doc && ! state.saving && ! state.blocked && drawn,
 		// Saving a published map as a draft would take it off every page it is placed on.
 		showDraft: ! published,
 		primary: published ? 'update' : 'publish',
@@ -222,6 +224,7 @@ export function reduce( state, action ) {
 				...state,
 				saving: false,
 				loading: false,
+				blocked: state.blocked || state.loading,
 				error: action.message,
 			};
 		case 'CLEAR_ERROR':

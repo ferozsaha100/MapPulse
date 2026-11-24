@@ -197,11 +197,20 @@ export default function App( { settings } ) {
 				</p>
 			) }
 
-			{ state.loading ? (
+			{ state.blocked && (
+				<p className="mappulse-builder__loading">
+					{ __(
+						'Go back to the list of maps and open it again. Nothing was changed.',
+						'mappulse'
+					) }
+				</p>
+			) }
+			{ ! state.blocked && state.loading && (
 				<p className="mappulse-builder__loading">
 					<Spinner /> { __( 'Opening the map…', 'mappulse' ) }
 				</p>
-			) : (
+			) }
+			{ ! state.blocked && ! state.loading && (
 				<AreasStep
 					settings={ settings }
 					state={ state }
