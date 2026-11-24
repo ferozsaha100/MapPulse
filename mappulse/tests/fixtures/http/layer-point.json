@@ -1,0 +1,16 @@
+{
+ "id": 3,
+ "name": "Fire Stations",
+ "type": "Feature Layer",
+ "geometryType": "esriGeometryPoint",
+ "fields": [
+  {
+   "name": "OBJECTID",
+   "type": "esriFieldTypeOID"
+  },
+  {
+   "name": "NAME",
+   "type": "esriFieldTypeString"
+  }
+ ]
+}

@@ -42,14 +42,19 @@ class Plugin {
 		add_action( 'enqueue_block_editor_assets', array( $this, 'block_editor_data' ) );
 
 		Integrations\Elementor::register();
+		Boundaries\Sources::register();
+		Rest_Controller::register();
 
 		if ( is_admin() ) {
 			( new Importer() )->register();
+			( new Sources_Screen() )->register();
 		}
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {
 			require_once MAPPULSE_DIR . 'includes/class-cli.php';
+			require_once MAPPULSE_DIR . 'includes/class-cli-sources.php';
 			\WP_CLI::add_command( 'mappulse', CLI::class );
+			\WP_CLI::add_command( 'mappulse sources', CLI_Sources::class );
 		}
 	}
 

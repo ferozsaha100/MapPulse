@@ -6,6 +6,7 @@
 #   MAPPULSE_BASE   site URL                            (default: http://localhost:8888)
 #   MAPPULSE_SETUP  path of smoke-setup.php as WP sees it
 #   MAPPULSE_REQUIRE_ELEMENTOR=1  fail instead of skipping when Elementor is not active
+#   MAPPULSE_LIVE=1               also ask the real boundary sources (needs outbound network)
 #
 # Prints one PASS, SKIP or FAIL line per check and stops at the first failure.
 # The last check deactivates and uninstalls MapPulse (files are kept).
@@ -106,6 +107,39 @@ fi
 ERRORS=$(wp eval-file "$SETUP" errors | field errors)
 [ "$ERRORS" = "0" ] || fail "8 debug.log holds $ERRORS PHP errors from MapPulse or fatals"
 pass "8 no PHP errors from MapPulse in debug.log"
+
+# 10 to 13: the real boundary sources
+if [ "${MAPPULSE_LIVE:-}" = "1" ]; then
+	FOUND=$(wp mappulse find gulfport --state=FL --type=city --format=json)
+	RECORD=$(echo "$FOUND" | grep -Eo '"record":"place:12[0-9]+"' | head -n 1 | cut -d'"' -f4)
+	if ! echo "$FOUND" | grep -q '"name":"Gulfport"' || [ -z "$RECORD" ]; then
+		fail "10 live search did not find Gulfport, FL: $(echo "$FOUND" | tail -n 2 | cut -c1-300)"
+	fi
+	pass "10 live search found Gulfport, FL as $RECORD"
+
+	SHAPE=$(wp mappulse shape census "$RECORD")
+	POINTS=$(echo "$SHAPE" | grep -Eo '^points: [0-9]+' | grep -Eo '[0-9]+')
+	WEST=$(echo "$SHAPE" | grep -Eo '^bbox: -?[0-9.]+' | grep -Eo -- '-?[0-9.]+$')
+	[ "${POINTS:-0}" -ge 100 ] || fail "11 live shape has ${POINTS:-no} points, expected at least 100"
+	python3 -c "import sys; sys.exit(0 if -82.8 < float(sys.argv[1]) < -82.6 else 1)" "${WEST:-0}" || fail "11 live shape is not where Gulfport is (west edge ${WEST:-unknown})"
+	pass "11 live shape: $POINTS points, west edge $WEST"
+
+	$WP mappulse sources add "https://egis.stpete.org/arcgis/rest/services/ServicesDOTS/NeighborhoodRelations/MapServer/22" --label=StPeteNeighborhoods --parent=StPetersburgFL >/dev/null 2>&1 || fail "12 could not register the St. Petersburg neighborhood layer"
+	HOODS=$(wp mappulse find kenwood --type=neighborhood --format=json)
+	echo "$HOODS" | grep -qi 'kenwood' || fail "12 live neighborhood search found no Kenwood: $(echo "$HOODS" | tail -n 2 | cut -c1-300)"
+	pass "12 registered a city layer and found $(echo "$HOODS" | grep -Eo '"name":"[^"]*"' | wc -l | tr -d ' ') Kenwood neighborhoods"
+
+	BASE=$(wp eval-file "$SETUP" base "-82.75,27.72,-82.60,27.82" | grep -Eo 'base .*')
+	[ "$(echo "$BASE" | field status)" = "200" ] || fail "13 live base layers: $BASE"
+	[ "$(echo "$BASE" | field water)" -ge 1 ] && [ "$(echo "$BASE" | field roadsMajor)" -ge 1 ] || fail "13 live base layers are missing water or major roads: $BASE"
+	pass "13 live $BASE"
+
+	ISLAND=$(wp mappulse find fisher --state=FL --type=city --format=json)
+	echo "$ISLAND" | grep -q '"name":"Fisher Island"' && echo "$ISLAND" | grep -q '"record":"cdp:12' || fail "14 live search did not find Fisher Island, FL as an unincorporated place: $(echo "$ISLAND" | tail -n 2 | cut -c1-300)"
+	pass "14 live search found Fisher Island, FL ($(echo "$ISLAND" | grep -Eo '"record":"cdp:12[0-9]+"' | head -n 1 | cut -d'"' -f4))"
+else
+	skip "10 to 14 live boundary sources (set MAPPULSE_LIVE=1)"
+fi
 
 # 9
 $WP plugin deactivate mappulse >/dev/null 2>&1 || fail "9 could not deactivate MapPulse"

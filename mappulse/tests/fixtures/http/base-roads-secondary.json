@@ -1,0 +1,43 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "NAME": "US Hwy 19"
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -82.7,
+      27.74
+     ],
+     [
+      -82.65,
+      27.79
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "NAME": "Central Ave"
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -82.72,
+      27.77
+     ],
+     [
+      -82.67,
+      27.82
+     ]
+    ]
+   }
+  }
+ ]
+}

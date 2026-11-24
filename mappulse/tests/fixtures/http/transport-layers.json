@@ -1,0 +1,19 @@
+{
+ "layers": [
+  {
+   "id": 2,
+   "name": "Primary Roads",
+   "subLayerIds": null
+  },
+  {
+   "id": 6,
+   "name": "Secondary Roads 72_1k scale",
+   "subLayerIds": null
+  },
+  {
+   "id": 8,
+   "name": "Local Roads",
+   "subLayerIds": null
+  }
+ ]
+}

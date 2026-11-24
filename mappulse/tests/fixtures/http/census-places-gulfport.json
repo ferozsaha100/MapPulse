@@ -1,0 +1,17 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "BASENAME": "Gulfport",
+    "NAME": "Gulfport city",
+    "STATE": "12",
+    "GEOID": "1228175",
+    "CENTLON": "-082.7104000",
+    "CENTLAT": "+27.7462000"
+   },
+   "geometry": null
+  }
+ ]
+}

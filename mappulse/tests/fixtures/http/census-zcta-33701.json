@@ -1,0 +1,15 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "ZCTA5": "33701",
+    "BASENAME": "33701",
+    "CENTLON": "-082.6387000",
+    "CENTLAT": "+27.7702000"
+   },
+   "geometry": null
+  }
+ ]
+}

@@ -1,0 +1,14 @@
+{
+ "layers": [
+  {
+   "id": 0,
+   "name": "Linear Hydrography",
+   "subLayerIds": null
+  },
+  {
+   "id": 1,
+   "name": "Areal Hydrography",
+   "subLayerIds": null
+  }
+ ]
+}

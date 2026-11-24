@@ -39,3 +39,5 @@ tests_add_filter(
 
 require $_tests_dir . '/includes/bootstrap.php';
 require __DIR__ . '/class-mappulse-test-case.php';
+require __DIR__ . '/class-mappulse-http-mock.php';
+require __DIR__ . '/class-mappulse-boundary-test-case.php';

@@ -1,0 +1,24 @@
+{
+ "id": 22,
+ "name": "Neighborhood Associations",
+ "type": "Feature Layer",
+ "geometryType": "esriGeometryPolygon",
+ "fields": [
+  {
+   "name": "OBJECTID",
+   "type": "esriFieldTypeOID"
+  },
+  {
+   "name": "NANAME",
+   "type": "esriFieldTypeString"
+  },
+  {
+   "name": "WEBSITE",
+   "type": "esriFieldTypeString"
+  },
+  {
+   "name": "STATUS",
+   "type": "esriFieldTypeString"
+  }
+ ]
+}

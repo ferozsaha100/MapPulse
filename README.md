@@ -6,9 +6,9 @@ MapPulse is a WordPress plugin in development. It shows the areas an agent or br
 interactive map, where every neighborhood, city or ZIP area links to its area page or property search.
 The map is placed with an Elementor widget, a Gutenberg block or a shortcode.
 
-> **Status: version 0.1.0, early release.** The plugin installs and renders maps through all three
-> placements. Maps are added from a map file for now: the visual map builder is not built yet. A real
-> sample map of St. Petersburg, Florida is included for testing.
+> **Status: version 0.2.1, early release.** The plugin installs, renders maps through all three
+> placements, and finds real boundaries from inside WordPress. Maps are still added from a map file:
+> the visual map builder is the next version. A real sample map of St. Petersburg, Florida is included.
 
 ## Install and try it
 
@@ -58,12 +58,27 @@ file again:
 
 The map builder will replace this step.
 
-### Known limits in 0.1.0
+### Finding boundaries
+
+**MapPulse, Sources** finds the real boundary of an area and draws its outline so you can confirm it.
+
+- Cities, unincorporated communities, ZIP areas and counties anywhere in the US come from the US Census Bureau. Type a name or a
+  ZIP code, and narrow by state if needed.
+- Neighborhoods come from map layers that cities publish. Under "Add a neighborhood layer", paste the
+  address of the city's ArcGIS layer once; its neighborhoods are then found by name. The St. Petersburg
+  layer is shown there as an example.
+- Each result has a "Show boundary" button and a link to check the same area on a street map.
+
+Your site contacts only the Census server and the layers you register, only from the admin, and saves
+each answer for 30 days. The same search is available as `wp mappulse find gulfport --state=FL`.
+
+### Known limits
 
 - There is no map builder yet. Maps come from a map file made by the script in `spike/`.
 - On a phone the map scales down with the screen, so the labels of a detailed map are too small to read.
   The area list stays readable and usable. Pan and zoom are planned for the Polish phase.
 - Hover cards, decoration, a compass and a legend are not built yet.
+- Found boundaries cannot be turned into a map inside WordPress yet. That is the builder, version 0.3.0.
 - This version is for testing. It is not meant for a live client site yet.
 
 ### From the command line
@@ -186,7 +201,7 @@ See [`spike/README.md`](spike/README.md) for the configuration file and what the
 | Phase | Delivers | Exit check |
 | --- | --- | --- |
 | 0 Spike | One real market rebuilt by script as a full-context SVG | No gaps, no overlaps, look approved |
-| 1 Core build | Plugin skeleton, map storage, renderer, shortcode, Elementor widget, Gutenberg block (done in 0.1.0). Then the boundary service (0.2.0) and the builder steps for areas, base map, style, zones and links (0.3.0) | A map made in the builder is live through all three placements |
+| 1 Core build | Plugin skeleton, map storage, renderer, shortcode, Elementor widget, Gutenberg block (0.1.0) and the boundary service (0.2.0) are done. Next: the builder steps for areas, base map, style, zones and links (0.3.0) | A map made in the builder is live through all three placements |
 | 2 Decorate | Icon library, labels, compass, legend, clickable landmarks, SVG import | A decorated generated map and an imported hand-drawn map both render correctly |
 | 3 Polish | Phone pan and zoom, bottom sheet, keyboard access, crawlable list, performance budgets, compatibility matrix | Budgets met and the matrix passes |
 | 4 Release | Migration of existing maps, user guide, packaging, version 1.0.0 | 1.0 running on production sites |

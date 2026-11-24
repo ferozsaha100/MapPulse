@@ -62,7 +62,7 @@ class Map_Post_Type {
 					'all_items'          => __( 'All Maps', 'mappulse' ),
 					'edit_item'          => __( 'Edit Map', 'mappulse' ),
 					'search_items'       => __( 'Search Maps', 'mappulse' ),
-					'not_found'          => __( 'No maps yet. Import a map file to get started.', 'mappulse' ),
+					'not_found'          => __( 'No maps yet. Use the Import a map button above to add one.', 'mappulse' ),
 					'not_found_in_trash' => __( 'No maps in the Trash.', 'mappulse' ),
 				),
 				'public'        => false,
@@ -77,6 +77,44 @@ class Map_Post_Type {
 				'rewrite'       => false,
 				'query_var'     => false,
 			)
+		);
+
+		add_filter( 'manage_' . self::POST_TYPE . '_posts_columns', array( self::class, 'columns' ) );
+		add_action( 'manage_' . self::POST_TYPE . '_posts_custom_column', array( self::class, 'column' ), 10, 2 );
+	}
+
+	/**
+	 * Adds the Shortcode column to the map list, before the date.
+	 *
+	 * @param array $columns List table columns.
+	 */
+	public static function columns( array $columns ): array {
+		$result = array();
+		foreach ( $columns as $key => $label ) {
+			if ( 'date' === $key ) {
+				$result['mappulse_shortcode'] = __( 'Shortcode', 'mappulse' );
+			}
+			$result[ $key ] = $label;
+		}
+		if ( ! isset( $result['mappulse_shortcode'] ) ) {
+			$result['mappulse_shortcode'] = __( 'Shortcode', 'mappulse' );
+		}
+		return $result;
+	}
+
+	/**
+	 * Prints a map's shortcode in the map list, ready to select and copy.
+	 *
+	 * @param string $column  Column key.
+	 * @param int    $post_id Map post ID.
+	 */
+	public static function column( string $column, int $post_id ): void {
+		if ( 'mappulse_shortcode' !== $column ) {
+			return;
+		}
+		printf(
+			'<input type="text" class="code" readonly size="22" value="%s" onfocus="this.select()">',
+			esc_attr( '[mappulse id="' . $post_id . '"]' )
 		);
 	}
 

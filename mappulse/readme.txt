@@ -3,7 +3,7 @@ Tags: map, real estate, neighborhoods, elementor, block
 Requires at least: 6.8
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.1.0
+Stable tag: 0.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,7 +23,9 @@ Place a map with any of these:
 
 All three show the same server-rendered output.
 
-Version 0.1.0 is an early release for testing. Maps are added from a MapPulse map file; the visual map builder comes in a later version. A real sample map of St. Petersburg, Florida is included. Its areas have no links yet: links are set in the map file's `link` fields.
+This is an early release for testing. Maps are added from a MapPulse map file; the visual map builder comes in a later version. A real sample map of St. Petersburg, Florida is included. Its areas have no links yet: links are set in the map file's `link` fields.
+
+Since 0.2.0, MapPulse, Sources finds the real boundary of any US city, ZIP area or county from the US Census Bureau, and of neighborhoods from a city map layer you register. Boundary answers are saved on your site for 30 days.
 
 == Installation ==
 
@@ -41,6 +43,10 @@ No. The block and the shortcode work without Elementor. The widget appears when 
 
 In Elementor, use the widget's Style tab. Anywhere else, set the CSS custom properties on the map or a parent element, for example `.mappulse { --mappulse-zone-hover: #7a1f1f; }`. The properties are `--mappulse-zone`, `--mappulse-zone-hover`, `--mappulse-label`, `--mappulse-label-hover`, `--mappulse-water`, `--mappulse-land`, `--mappulse-context`, `--mappulse-road`, `--mappulse-font` and `--mappulse-max-height`.
 
+= Where do the boundaries come from? =
+
+Cities, ZIP areas and counties come from the US Census Bureau (TIGERweb). ZIP areas are Census ZIP Code Tabulation Areas, which follow USPS ZIP codes closely but not exactly. Neighborhoods come from ArcGIS map layers that cities publish; you register a layer's address under MapPulse, Sources. Your site contacts only the Census server and the layers you register, and only from the admin.
+
 = Who can manage maps? =
 
 Administrators. The capability is `manage_mappulse_maps`.
@@ -50,6 +56,16 @@ Administrators. The capability is `manage_mappulse_maps`.
 They are kept in the database.
 
 == Changelog ==
+
+= 0.2.1 =
+* City search now also finds communities that are not incorporated cities (census designated places), such as Fisher Island, FL.
+
+= 0.2.0 =
+* New Sources screen: find the real boundary of a US city, ZIP area, county or registered neighborhood and see its outline.
+* Register a city's neighborhood layer as a boundary source.
+* Boundary routes under `mappulse/v1` and `wp mappulse find`, `shape`, `sources` and `cache` commands.
+* Import button on the Maps screen, a Shortcode column, and a link from the empty widget notice.
+* Uninstalling removes registered layers and saved boundary answers. Maps are kept.
 
 = 0.1.0 =
 * First installable version.

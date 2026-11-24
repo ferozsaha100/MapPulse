@@ -1,0 +1,39 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "OBJECTID": 41,
+    "NANAME": "OLD AREA"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -82.6,
+       27.7
+      ],
+      [
+       -82.58999999999999,
+       27.7
+      ],
+      [
+       -82.58999999999999,
+       27.71
+      ],
+      [
+       -82.6,
+       27.71
+      ],
+      [
+       -82.6,
+       27.7
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}

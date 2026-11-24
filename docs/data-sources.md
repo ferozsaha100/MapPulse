@@ -47,3 +47,18 @@ The fetch script finds each layer by name and records the layer it used in `spik
 
 Each zone stores its source, record ID and fetch date, so a boundary can be checked for updates later
 without redrawing the map.
+
+## How the plugin talks to sources (0.2.0)
+
+- Requests are made by the WordPress site, from the admin only, through one client: https only, no redirects,
+  a 20 second timeout, at least 300 ms between requests to one host, and a 4 MB cap per query (raise it with the
+  `mappulse_max_response_bytes` filter). A server error is retried twice and a timeout once. A host that fails
+  is not asked again during the same page request, so one dead source cannot stall a screen.
+- Base-map layers are simplified at the source to about four metres and can be asked for one at a time
+  (`/boundaries/base?bbox=…&layer=water`), which keeps each request small.
+- The site may contact `tigerweb.geo.census.gov` and the hosts of the layers registered under MapPulse, Sources.
+  Nothing else. The list can be changed with the `mappulse_allowed_hosts` filter.
+- Answers are saved as JSON files in `wp-content/uploads/mappulse/cache/` for 30 days (searches and layer lists
+  for one day). "Clear the boundary cache" on the Sources screen, or `wp mappulse cache flush`, removes them.
+- A registered layer must be one polygon layer of an ArcGIS MapServer or FeatureServer. MapPulse reads its
+  fields once and searches the first text field whose name contains "name".

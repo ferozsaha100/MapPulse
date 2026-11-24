@@ -1,0 +1,73 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "BASENAME": "St. Petersburg",
+    "NAME": "St. Petersburg city"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -82.75,
+       27.7
+      ],
+      [
+       -82.6,
+       27.7
+      ],
+      [
+       -82.6,
+       27.849999999999998
+      ],
+      [
+       -82.75,
+       27.849999999999998
+      ],
+      [
+       -82.75,
+       27.7
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "BASENAME": "Gulfport",
+    "NAME": "Gulfport city"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -82.72,
+       27.74
+      ],
+      [
+       -82.7,
+       27.74
+      ],
+      [
+       -82.7,
+       27.759999999999998
+      ],
+      [
+       -82.72,
+       27.759999999999998
+      ],
+      [
+       -82.72,
+       27.74
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}

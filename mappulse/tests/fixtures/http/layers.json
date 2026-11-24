@@ -1,0 +1,37 @@
+{
+ "layers": [
+  {
+   "id": 0,
+   "name": "Census Tracts",
+   "subLayerIds": null
+  },
+  {
+   "id": 2,
+   "name": "2020 Census ZIP Code Tabulation Areas",
+   "subLayerIds": null
+  },
+  {
+   "id": 27,
+   "name": "Places",
+   "subLayerIds": [
+    28,
+    29
+   ]
+  },
+  {
+   "id": 28,
+   "name": "Incorporated Places",
+   "subLayerIds": null
+  },
+  {
+   "id": 82,
+   "name": "Counties",
+   "subLayerIds": null
+  },
+  {
+   "id": 30,
+   "name": "Census Designated Places",
+   "subLayerIds": null
+  }
+ ]
+}
