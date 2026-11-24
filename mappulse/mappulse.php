@@ -39,6 +39,7 @@ require_once MAPPULSE_DIR . 'includes/class-rest-controller.php';
 require_once MAPPULSE_DIR . 'includes/class-maps-controller.php';
 require_once MAPPULSE_DIR . 'includes/class-importer.php';
 require_once MAPPULSE_DIR . 'includes/class-sources-screen.php';
+require_once MAPPULSE_DIR . 'includes/class-builder-screen.php';
 require_once MAPPULSE_DIR . 'includes/class-shortcode.php';
 require_once MAPPULSE_DIR . 'includes/integrations/class-elementor.php';
 require_once MAPPULSE_DIR . 'includes/class-plugin.php';

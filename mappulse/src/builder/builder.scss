@@ -1,0 +1,312 @@
+/* MapPulse builder. Admin only. */
+.mappulse-builder {
+	max-width: 1500px;
+	margin-top: 12px;
+
+	h2 {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin: 0 0 12px;
+		font-size: 14px;
+	}
+
+	&__header {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 12px;
+		padding: 12px 16px;
+		background: #fff;
+		border: 1px solid #dcdcde;
+	}
+
+	&__back {
+		text-decoration: none;
+		white-space: nowrap;
+	}
+
+	&__title {
+		flex: 1 1 240px;
+		min-width: 180px;
+	}
+
+	&__status {
+		color: #50575e;
+		white-space: nowrap;
+	}
+
+	&__steps ol {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px 20px;
+		margin: 0;
+		padding: 10px 16px;
+		list-style: none;
+		background: #fff;
+		border: 1px solid #dcdcde;
+		border-top: 0;
+	}
+
+	&__steps li {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin: 0;
+		font-weight: 600;
+
+		&.is-later {
+			color: #646970;
+			font-weight: 400;
+		}
+	}
+
+	&__step-number {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 22px;
+		height: 22px;
+		border-radius: 50%;
+		background: #1f3a5f;
+		color: #fff;
+		font-size: 12px;
+
+		.is-later & {
+			background: #dcdcde;
+			color: #2c3338;
+		}
+	}
+
+	&__soon {
+		font-size: 11px;
+		color: #646970;
+	}
+
+	&__shortcode,
+	&__loading {
+		margin: 12px 0 0;
+	}
+
+	.components-notice {
+		margin: 12px 0 0;
+	}
+
+	&__body {
+		display: grid;
+		grid-template-columns: minmax(320px, 440px) minmax(0, 1fr);
+		gap: 16px;
+		align-items: start;
+		margin-top: 16px;
+	}
+
+	&__side {
+		display: grid;
+		gap: 16px;
+	}
+
+	&__legacy {
+		margin: 0;
+		padding: 12px 16px 12px 32px;
+		list-style: disc;
+		background: #fff;
+		border: 1px solid #dcdcde;
+	}
+}
+
+.mappulse-search,
+.mappulse-zones,
+.mappulse-preview {
+	padding: 16px;
+	background: #fff;
+	border: 1px solid #dcdcde;
+}
+
+.mappulse-search {
+	&__form {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 12px;
+		align-items: end;
+
+		> :first-child {
+			grid-column: 1 / -1;
+		}
+
+		> button {
+			grid-column: 1 / -1;
+			justify-content: center;
+		}
+	}
+
+	&__results {
+		margin: 16px 0 0;
+		max-height: 320px;
+		overflow: auto;
+		border: 1px solid #dcdcde;
+
+		li {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			margin: 0;
+			padding: 8px 12px;
+			border-bottom: 1px solid #f0f0f1;
+
+			&:last-child {
+				border-bottom: 0;
+			}
+		}
+	}
+
+	&__name {
+		display: grid;
+		gap: 2px;
+		min-width: 0;
+
+		span {
+			color: #50575e;
+			font-size: 12px;
+		}
+	}
+
+	&__added {
+		color: #50575e;
+		font-size: 12px;
+		white-space: nowrap;
+	}
+
+	&__error,
+	&__none {
+		margin: 12px 0 0;
+	}
+
+	&__error {
+		color: #b32d2e;
+	}
+}
+
+.mappulse-zones {
+	&__hint,
+	&__empty {
+		margin: 0 0 12px;
+		color: #50575e;
+	}
+
+	&__list {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+}
+
+.mappulse-zone-row {
+	margin: 0;
+	padding: 12px 0;
+	border-top: 1px solid #f0f0f1;
+
+	&__head {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+
+		> :first-child {
+			flex: 1;
+		}
+	}
+
+	&__meta {
+		margin: 6px 0 8px;
+		color: #50575e;
+		font-size: 12px;
+	}
+
+	&__toggles {
+		display: grid;
+		gap: 8px;
+	}
+
+	&__warning {
+		margin: 8px 0 0;
+		padding: 6px 10px;
+		background: #fcf9e8;
+		border-left: 4px solid #dba617;
+	}
+}
+
+.mappulse-preview {
+	position: sticky;
+	top: 44px;
+
+	&__map {
+		transition: opacity 0.15s;
+
+		&.is-busy {
+			opacity: 0.55;
+		}
+
+		svg {
+			display: block;
+			width: 100%;
+			height: auto;
+		}
+	}
+
+	&__empty {
+		margin: 0;
+		padding: 80px 16px;
+		text-align: center;
+		color: #50575e;
+		background: #f6f7f7;
+	}
+
+	&__error {
+		color: #b32d2e;
+	}
+
+	&__note {
+		color: #50575e;
+	}
+}
+
+.mappulse-street {
+	&__where {
+		margin: 0 0 12px;
+		color: #50575e;
+	}
+
+	&__map {
+		height: min(56vh, 520px);
+		min-height: 280px;
+		border: 1px solid #dcdcde;
+		background: #f0f0f1;
+	}
+
+	&__clean {
+		margin-top: 12px;
+	}
+
+	&__actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 8px;
+		margin-top: 16px;
+	}
+}
+
+@media (max-width: 960px) {
+	.mappulse-builder__body {
+		grid-template-columns: 1fr;
+	}
+
+	.mappulse-preview {
+		position: static;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.mappulse-preview__map {
+		transition: none;
+	}
+}

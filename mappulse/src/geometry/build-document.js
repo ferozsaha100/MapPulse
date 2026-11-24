@@ -168,6 +168,16 @@ export function bboxForBase( zones ) {
 	return [ west, south, east, north ];
 }
 
+// True when the zones lie too far apart for one base-map request, so land, water and roads cover only the middle.
+export function baseIsPartial( zones ) {
+	const box = degreesBox( zones );
+	return (
+		!! box &&
+		( ( box[ 2 ] - box[ 0 ] ) * 1.3 > MAX_BASE_SIDE ||
+			( box[ 3 ] - box[ 1 ] ) * 1.3 > MAX_BASE_SIDE )
+	);
+}
+
 /**
  * @param input
  * @param input.title    Map title.

@@ -105,7 +105,7 @@ class Maps_Controller {
 			array(
 				'post_type'      => Map_Post_Type::POST_TYPE,
 				'post_status'    => array( 'publish', 'draft' ),
-				'posts_per_page' => 200,
+				'posts_per_page' => 100,
 				'orderby'        => 'modified',
 				'order'          => 'DESC',
 				'no_found_rows'  => true,
@@ -186,7 +186,13 @@ class Maps_Controller {
 		if ( is_wp_error( $doc ) ) {
 			return self::refused( $doc );
 		}
-		return rest_ensure_response( array( 'svg' => Renderer::svg( $doc ) ) );
+		$svg = Renderer::svg( $doc );
+		return rest_ensure_response(
+			array(
+				'svg'  => $svg,
+				'html' => Renderer::section( $doc, $svg, array( 'layout' => 'map-only' ) ),
+			)
+		);
 	}
 
 	/**

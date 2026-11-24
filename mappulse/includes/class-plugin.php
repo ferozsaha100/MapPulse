@@ -45,10 +45,13 @@ class Plugin {
 		Boundaries\Sources::register();
 		Rest_Controller::register();
 		Maps_Controller::register();
+		// A map's Edit links open the builder wherever they appear, the admin bar included.
+		add_filter( 'get_edit_post_link', array( Builder_Screen::class, 'edit_link' ), 10, 2 );
 
 		if ( is_admin() ) {
 			( new Importer() )->register();
 			( new Sources_Screen() )->register();
+			( new Builder_Screen() )->register();
 		}
 
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {

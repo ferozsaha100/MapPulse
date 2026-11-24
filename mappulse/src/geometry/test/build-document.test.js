@@ -1,6 +1,11 @@
 import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { buildDocument, bboxForBase, clipLine } from '../build-document';
+import {
+	buildDocument,
+	bboxForBase,
+	baseIsPartial,
+	clipLine,
+} from '../build-document';
 import { square, feature, collection } from '../test-helpers';
 import fisher from './fixtures/fisher-island.json';
 import gulfport from './fixtures/gulfport.json';
@@ -294,6 +299,19 @@ describe( 'bboxForBase', () => {
 
 	it( 'returns null without zones', () => {
 		expect( bboxForBase( [] ) ).toBeNull();
+	} );
+
+	it( 'says when the zones are too far apart for the base map to cover them', () => {
+		expect(
+			baseIsPartial( [ { feature: feature( square( 10, 20, 1 ) ) } ] )
+		).toBe( false );
+		expect(
+			baseIsPartial( [
+				{ feature: feature( square( 10, 20, 0.1 ) ) },
+				{ feature: feature( square( 12, 20, 0.1 ) ) },
+			] )
+		).toBe( true );
+		expect( baseIsPartial( [] ) ).toBe( false );
 	} );
 } );
 

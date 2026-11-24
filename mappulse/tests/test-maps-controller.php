@@ -111,6 +111,11 @@ class Test_Maps_Controller extends MapPulse_Test_Case {
 		$this->sign_in( 'administrator' );
 		$data = $this->call( 'POST', '/render', array( 'document' => $this->built() ) )->get_data();
 		$this->assertStringStartsWith( '<svg', $data['svg'] );
+		// The builder shows the whole section, so the preview carries the map's own colors.
+		$this->assertStringContainsString( 'data-mappulse', $data['html'] );
+		$this->assertStringContainsString( '--mappulse-doc-', $data['html'] );
+		$this->assertStringContainsString( 'mappulse--map-only', $data['html'] );
+		$this->assertStringNotContainsString( 'mappulse__list', $data['html'] );
 		$this->assertSame( 3, substr_count( $data['svg'], 'class="mappulse__zone ' ) );
 		$this->assertCount( 0, get_posts( array( 'post_type' => Map_Post_Type::POST_TYPE, 'post_status' => 'any' ) ) );
 	}
