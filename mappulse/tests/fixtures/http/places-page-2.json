@@ -1,0 +1,41 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "BASENAME": "Gulf Stream",
+    "NAME": "Gulf Stream town",
+    "STATE": "12",
+    "GEOID": "1228100"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -80.06,
+       26.49
+      ],
+      [
+       -80.04,
+       26.49
+      ],
+      [
+       -80.04,
+       26.509999999999998
+      ],
+      [
+       -80.06,
+       26.509999999999998
+      ],
+      [
+       -80.06,
+       26.49
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}

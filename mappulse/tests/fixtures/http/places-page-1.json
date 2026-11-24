@@ -1,0 +1,78 @@
+{
+ "type": "FeatureCollection",
+ "exceededTransferLimit": true,
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "BASENAME": "Gulfport",
+    "NAME": "Gulfport city",
+    "STATE": "12",
+    "GEOID": "1228175"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -82.72,
+       27.74
+      ],
+      [
+       -82.7,
+       27.74
+      ],
+      [
+       -82.7,
+       27.759999999999998
+      ],
+      [
+       -82.72,
+       27.759999999999998
+      ],
+      [
+       -82.72,
+       27.74
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "BASENAME": "Gulf Breeze",
+    "NAME": "Gulf Breeze city",
+    "STATE": "12",
+    "GEOID": "1227825"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -87.18,
+       30.35
+      ],
+      [
+       -87.16000000000001,
+       30.35
+      ],
+      [
+       -87.16000000000001,
+       30.37
+      ],
+      [
+       -87.18,
+       30.37
+      ],
+      [
+       -87.18,
+       30.35
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}
