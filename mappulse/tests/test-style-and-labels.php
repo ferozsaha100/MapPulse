@@ -190,9 +190,14 @@ class Test_Style_And_Labels extends MapPulse_Test_Case {
 		$both( $page );
 		update_option( 'show_on_front', 'posts' );
 
-		update_option( 'home', 'http://moved.example' );
+		// The site address. A filter stands in for the change, because a test site may fix the address in its configuration.
+		$moved = static function () {
+			return 'http://moved.example';
+		};
+		add_filter( 'option_home', $moved, 99 );
 		$this->assertStringContainsString( 'moved.example', get_permalink( $post ) );
 		$both( $post );
+		remove_filter( 'option_home', $moved, 99 );
 	}
 
 	public function test_unrelated_post_changes_do_not_redraw_maps() {
