@@ -166,7 +166,7 @@ test( 'a map is built, published, shown on a page and reopened', async ( {
 	expect(
 		await page
 			.locator(
-				'script[src*="builder"], link[href*="builder"], link[href*="leaflet"]'
+				'[src*="mappulse/build"], [href*="mappulse/build"], [href*="leaflet"]'
 			)
 			.count()
 	).toBe( 0 );

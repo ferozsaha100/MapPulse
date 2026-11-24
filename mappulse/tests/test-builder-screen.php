@@ -114,8 +114,10 @@ class Test_Builder_Screen extends MapPulse_Test_Case {
 	}
 
 	public function test_nothing_loads_on_the_front_end() {
+		// The enqueue hook is admin-only. Called for a front-end request, it must still load nothing.
 		$this->go_to( home_url( '/' ) );
-		do_action( 'wp_enqueue_scripts' );
+		( new Builder_Screen() )->enqueue( '' );
+		$this->assertFalse( has_action( 'wp_enqueue_scripts', array( Builder_Screen::class, 'enqueue' ) ) );
 		$this->assertFalse( wp_script_is( 'mappulse-builder', 'enqueued' ) );
 		$this->assertFalse( wp_script_is( 'mappulse-builder', 'registered' ) );
 	}
