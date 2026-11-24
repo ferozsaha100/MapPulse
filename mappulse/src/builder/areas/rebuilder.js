@@ -48,6 +48,8 @@ export function createRebuilder( {
 	let built = last.signature;
 	let run = 0;
 	let timer = null;
+	// True from a change that needs a new drawing until that drawing is done.
+	let pending = false;
 
 	const set = ( patch ) => {
 		view = { ...view, ...patch };
@@ -152,9 +154,6 @@ export function createRebuilder( {
 
 		// Call after every change to the area list.
 		update( input ) {
-			// Any change, including one that undoes the last, cancels a drawing still on its way.
-			const id = ++run;
-			clearTimeout( timer );
 			const next = {
 				signature: signature( input ),
 				wanted: bboxForBase( input.zones ),
@@ -162,21 +161,36 @@ export function createRebuilder( {
 			};
 			const plan = planRebuild( last, next );
 			if ( ! plan.rebuild ) {
-				// The list is back to what is drawn. A failed build of some other list no longer matters.
+				// The list is back to what is drawn. A drawing of some other list still on its way is dropped.
+				if ( pending ) {
+					run++;
+					clearTimeout( timer );
+					pending = false;
+				}
+				// A failed build of some other list no longer matters either.
 				set( {
 					busy: false,
 					error: built === next.signature ? '' : view.error,
 				} );
 				return;
 			}
+			const id = ++run;
+			clearTimeout( timer );
+			pending = true;
 			set( { busy: true } );
-			timer = setTimeout( () => draw( id, input, next, plan ), delay );
+			timer = setTimeout( async () => {
+				await draw( id, input, next, plan );
+				if ( id === run ) {
+					pending = false;
+				}
+			}, delay );
 		},
 
 		// A saved map is shown as stored when it opens, without building it again.
 		adopt( { doc, zones, priority } ) {
 			const id = ++run;
 			clearTimeout( timer );
+			pending = false;
 			last = { ...last, signature: signature( { zones, priority } ) };
 			built = last.signature;
 			renderDocument( forPreview( doc ) )

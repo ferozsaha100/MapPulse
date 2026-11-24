@@ -117,6 +117,41 @@ test( 'a map is built, published, shown on a page and reopened', async ( {
 		.locator( '.mappulse__zone[data-zone="fisher-island"] path' )
 		.getAttribute( 'd' );
 	const rings = fisher.split( 'M' ).length - 1;
+	if ( rings > 4 ) {
+		// Say what the builder held, so a failure here can be understood from the log.
+		const rows = await page
+			.locator( '.mappulse-zone-row' )
+			.evaluateAll( ( list ) =>
+				list.map(
+					( row ) =>
+						`${
+							row.querySelector( 'input[type=text]' ).value
+						}: ${ [
+							...row.querySelectorAll( 'input[type=checkbox]' ),
+						]
+							.map(
+								( box ) =>
+									`${ box
+										.closest( '.components-toggle-control' )
+										.textContent.slice( 0, 14 ) }=${
+										box.checked
+									}`
+							)
+							.join( ', ' ) } | ${
+							(
+								row.querySelector(
+									'.mappulse-zone-row__warning'
+								) || {}
+							).textContent || ''
+						}`
+				)
+			);
+		throw new Error(
+			`Fisher Island is drawn with ${ rings } rings. Rows: ${ JSON.stringify(
+				rows
+			) }`
+		);
+	}
 	expect( rings ).toBeGreaterThanOrEqual( 1 );
 	expect( rings ).toBeLessThanOrEqual( CITY === 'Gulfport' ? 1 : 4 );
 

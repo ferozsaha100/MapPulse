@@ -236,6 +236,23 @@ describe( 'rebuilder', () => {
 		);
 	} );
 
+	it( 'still draws an adopted map when the unchanged area list is reported right after', async () => {
+		const { rebuilder, deps, update, run } = setup();
+		const zones = [ zone( 'a' ) ];
+		rebuilder.adopt( {
+			doc: { schema: 1, zones: [ { id: 'a' } ] },
+			zones,
+			priority: PRIORITY,
+		} );
+		update( zones );
+		await run();
+		expect( rebuilder.get() ).toMatchObject( {
+			busy: false,
+			html: '<section>a</section>',
+		} );
+		expect( deps.build ).not.toHaveBeenCalled();
+	} );
+
 	it( 'clears the drawing when the last area is removed', async () => {
 		const { rebuilder, docs, update, run } = setup();
 		update( [ zone( 'a' ) ] );
