@@ -21,7 +21,7 @@ define( 'MAPPULSE_VERSION', '0.2.1' );
 define( 'MAPPULSE_FILE', __FILE__ );
 define( 'MAPPULSE_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MAPPULSE_URL', plugin_dir_url( __FILE__ ) );
-define( 'MAPPULSE_MAX_IMPORT_BYTES', 2 * 1024 * 1024 );
+define( 'MAPPULSE_MAX_IMPORT_BYTES', 4 * 1024 * 1024 );
 define( 'MAPPULSE_MAX_ZONES', 200 );
 
 require_once MAPPULSE_DIR . 'includes/class-map-document.php';

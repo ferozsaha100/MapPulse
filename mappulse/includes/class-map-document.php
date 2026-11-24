@@ -25,6 +25,12 @@ class Map_Document {
 
 	const LAYERS = array( 'land', 'cities', 'areas', 'water', 'roadsMinor', 'roadsMajor' );
 
+	const PRIORITY = array( 'neighborhood', 'city', 'zip', 'county' );
+
+	// Limits on what a map may store: one zone's source boundary, and the whole document, as JSON.
+	const MAX_ZONE_BYTES = 400000;
+	const MAX_BYTES      = 4000000;
+
 	const FRAME_MIN = 100;
 	const FRAME_MAX = 4000;
 
@@ -96,6 +102,7 @@ class Map_Document {
 
 		$zones  = array();
 		$shapes = array();
+		$seen   = array();
 		foreach ( $raw_zones as $raw_zone ) {
 			if ( ! is_array( $raw_zone ) ) {
 				continue;
@@ -105,21 +112,34 @@ class Map_Document {
 			if ( '' === $id ) {
 				continue;
 			}
-			if ( isset( $shapes[ $id ] ) ) {
+			if ( isset( $seen[ $id ] ) ) {
 				return new \WP_Error( 'mappulse_duplicate_zone', __( 'Two zones in the map file share one ID.', 'mappulse' ) );
 			}
 
+			$name = self::text( $raw_zone['name'] ?? $id );
+
+			// A zone added in the builder carries the boundary it came from, so the map can be rebuilt.
+			$geometry = null;
+			if ( isset( $raw_zone['geometry'] ) ) {
+				$geometry = self::geometry( $raw_zone['geometry'], $name );
+				if ( is_wp_error( $geometry ) ) {
+					return $geometry;
+				}
+			}
+
+			// Such a zone may have nothing left to draw once other zones are cut out of it. It is kept, hidden.
 			$raw_shape = $raw_shapes[ $raw_id ] ?? ( $raw_shapes[ $id ] ?? null );
-			if ( ! is_array( $raw_shape ) || ! isset( $raw_shape['d'] ) || '' === $raw_shape['d'] ) {
+			$has_shape = is_array( $raw_shape ) && isset( $raw_shape['d'] ) && '' !== $raw_shape['d'];
+			if ( ! $has_shape && null === $geometry ) {
 				return new \WP_Error( 'mappulse_zone_shape', __( 'A zone in the map file has no shape.', 'mappulse' ) );
 			}
-			if ( ! self::is_path( $raw_shape['d'] ) ) {
+			if ( $has_shape && ! self::is_path( $raw_shape['d'] ) ) {
 				return self::bad_path();
 			}
 
-			$zones[]       = array(
+			$zone = array(
 				'id'     => $id,
-				'name'   => self::text( $raw_zone['name'] ?? $id ),
+				'name'   => $name,
 				'type'   => sanitize_key( $raw_zone['type'] ?? '' ),
 				'source' => array(
 					'layer'  => self::text( $raw_zone['source']['layer'] ?? '' ),
@@ -128,10 +148,22 @@ class Map_Document {
 				'link'   => self::link( $raw_zone['link'] ?? '' ),
 				'text'   => self::text( $raw_zone['text'] ?? '' ),
 			);
-			$shapes[ $id ] = array(
-				'd'     => $raw_shape['d'],
-				'label' => self::label( isset( $raw_shape['label'] ) && is_array( $raw_shape['label'] ) ? $raw_shape['label'] : array() ),
-			);
+			if ( null !== $geometry ) {
+				$zone['geometry'] = $geometry;
+				$zone['backdrop'] = ! empty( $raw_zone['backdrop'] );
+				$zone['clean']    = ! empty( $raw_zone['clean'] );
+				if ( ! $has_shape ) {
+					$zone['hidden'] = true;
+				}
+			}
+			$zones[]     = $zone;
+			$seen[ $id ] = true;
+			if ( $has_shape ) {
+				$shapes[ $id ] = array(
+					'd'     => $raw_shape['d'],
+					'label' => self::label( isset( $raw_shape['label'] ) && is_array( $raw_shape['label'] ) ? $raw_shape['label'] : array() ),
+				);
+			}
 		}
 
 		$water_labels = array();
@@ -150,7 +182,7 @@ class Map_Document {
 			);
 		}
 
-		return array(
+		$doc = array(
 			'schema'   => self::SCHEMA,
 			'title'    => self::text( $raw['title'] ?? '' ),
 			'frame'    => array(
@@ -169,6 +201,81 @@ class Map_Document {
 				'synthetic' => ! empty( $raw['meta']['synthetic'] ),
 			),
 		);
+
+		if ( isset( $raw['priority'] ) ) {
+			$doc['priority'] = self::priority( $raw['priority'] );
+		}
+
+		if ( strlen( (string) wp_json_encode( $doc ) ) > self::MAX_BYTES ) {
+			return new \WP_Error( 'mappulse_too_large', __( 'This map is too large to save. Remove an area, or use areas with simpler outlines.', 'mappulse' ) );
+		}
+		return $doc;
+	}
+
+	/**
+	 * Cleans the order in which area types cut each other. Anything but a full reordering of the four types gives the default.
+	 *
+	 * @param mixed $raw Raw priority list.
+	 */
+	private static function priority( $raw ): array {
+		$raw    = is_array( $raw ) ? array_values( array_map( 'strval', array_filter( $raw, 'is_scalar' ) ) ) : array();
+		$sorted = $raw;
+		sort( $sorted );
+		$wanted = self::PRIORITY;
+		sort( $wanted );
+		return $sorted === $wanted ? $raw : self::PRIORITY;
+	}
+
+	/**
+	 * Cleans the source boundary of one zone: a GeoJSON Polygon or MultiPolygon holding numbers only.
+	 *
+	 * @param mixed  $raw  Raw geometry.
+	 * @param string $name Zone name, for the error message.
+	 * @return array|\WP_Error
+	 */
+	private static function geometry( $raw, string $name ) {
+		/* translators: %s: area name. */
+		$bad  = new \WP_Error( 'mappulse_zone_geometry', sprintf( __( 'The boundary stored for "%s" is not a valid shape.', 'mappulse' ), $name ) );
+		$type = is_array( $raw ) ? ( $raw['type'] ?? '' ) : '';
+		if ( ! in_array( $type, array( 'Polygon', 'MultiPolygon' ), true ) || ! isset( $raw['coordinates'] ) || ! is_array( $raw['coordinates'] ) ) {
+			return $bad;
+		}
+
+		$polygons = array();
+		foreach ( 'Polygon' === $type ? array( $raw['coordinates'] ) : $raw['coordinates'] as $polygon ) {
+			if ( ! is_array( $polygon ) ) {
+				return $bad;
+			}
+			$rings = array();
+			foreach ( $polygon as $ring ) {
+				if ( ! is_array( $ring ) ) {
+					return $bad;
+				}
+				$points = array();
+				foreach ( $ring as $point ) {
+					if ( ! is_array( $point ) || ! isset( $point[0], $point[1] ) || ! is_numeric( $point[0] ) || ! is_numeric( $point[1] )
+						|| abs( (float) $point[0] ) > 180 || abs( (float) $point[1] ) > 90 ) {
+						return $bad;
+					}
+					$points[] = array( (float) $point[0], (float) $point[1] );
+				}
+				$rings[] = $points;
+			}
+			$polygons[] = $rings;
+		}
+
+		$geometry = array(
+			'type'        => $type,
+			'coordinates' => 'Polygon' === $type ? $polygons[0] : $polygons,
+		);
+		if ( strlen( (string) wp_json_encode( $geometry ) ) > self::MAX_ZONE_BYTES ) {
+			return new \WP_Error(
+				'mappulse_zone_too_large',
+				/* translators: %s: area name. */
+				sprintf( __( 'The boundary of "%s" is too detailed to store. Choose a simpler area.', 'mappulse' ), $name )
+			);
+		}
+		return $geometry;
 	}
 
 	/**

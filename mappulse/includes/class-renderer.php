@@ -58,7 +58,10 @@ class Renderer {
 		$captions = '';
 
 		foreach ( $doc['zones'] as $zone ) {
-			$id    = $zone['id'];
+			$id = $zone['id'];
+			if ( ! isset( $shapes[ $id ] ) ) {
+				continue;
+			}
 			$shape = $shapes[ $id ];
 			$path  = '<path d="' . esc_attr( $shape['d'] ) . '" fill-rule="evenodd"/>';
 
@@ -147,6 +150,9 @@ class Renderer {
 		if ( $show_list && $doc['zones'] ) {
 			$html .= '<ul class="mappulse__list">';
 			foreach ( $doc['zones'] as $zone ) {
+				if ( ! empty( $zone['hidden'] ) ) {
+					continue;
+				}
 				$html .= '' !== $zone['link']
 					? '<li><a href="' . esc_url( $zone['link'] ) . '" data-zone="' . esc_attr( $zone['id'] ) . '">' . esc_html( $zone['name'] ) . '</a></li>'
 					: '<li><span data-zone="' . esc_attr( $zone['id'] ) . '">' . esc_html( $zone['name'] ) . '</span></li>';
