@@ -1,0 +1,17 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "BASENAME": "Pinellas",
+    "NAME": "Pinellas County",
+    "STATE": "12",
+    "GEOID": "12103",
+    "CENTLON": "-082.7400000",
+    "CENTLAT": "+27.9000000"
+   },
+   "geometry": null
+  }
+ ]
+}

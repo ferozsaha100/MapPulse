@@ -1,0 +1,63 @@
+<?php
+/**
+ * US states, the District of Columbia and Puerto Rico: postal code => FIPS code and name.
+ *
+ * @package MapPulse
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+return array(
+	'AL' => array( '01', 'Alabama' ),
+	'AK' => array( '02', 'Alaska' ),
+	'AZ' => array( '04', 'Arizona' ),
+	'AR' => array( '05', 'Arkansas' ),
+	'CA' => array( '06', 'California' ),
+	'CO' => array( '08', 'Colorado' ),
+	'CT' => array( '09', 'Connecticut' ),
+	'DE' => array( '10', 'Delaware' ),
+	'DC' => array( '11', 'District of Columbia' ),
+	'FL' => array( '12', 'Florida' ),
+	'GA' => array( '13', 'Georgia' ),
+	'HI' => array( '15', 'Hawaii' ),
+	'ID' => array( '16', 'Idaho' ),
+	'IL' => array( '17', 'Illinois' ),
+	'IN' => array( '18', 'Indiana' ),
+	'IA' => array( '19', 'Iowa' ),
+	'KS' => array( '20', 'Kansas' ),
+	'KY' => array( '21', 'Kentucky' ),
+	'LA' => array( '22', 'Louisiana' ),
+	'ME' => array( '23', 'Maine' ),
+	'MD' => array( '24', 'Maryland' ),
+	'MA' => array( '25', 'Massachusetts' ),
+	'MI' => array( '26', 'Michigan' ),
+	'MN' => array( '27', 'Minnesota' ),
+	'MS' => array( '28', 'Mississippi' ),
+	'MO' => array( '29', 'Missouri' ),
+	'MT' => array( '30', 'Montana' ),
+	'NE' => array( '31', 'Nebraska' ),
+	'NV' => array( '32', 'Nevada' ),
+	'NH' => array( '33', 'New Hampshire' ),
+	'NJ' => array( '34', 'New Jersey' ),
+	'NM' => array( '35', 'New Mexico' ),
+	'NY' => array( '36', 'New York' ),
+	'NC' => array( '37', 'North Carolina' ),
+	'ND' => array( '38', 'North Dakota' ),
+	'OH' => array( '39', 'Ohio' ),
+	'OK' => array( '40', 'Oklahoma' ),
+	'OR' => array( '41', 'Oregon' ),
+	'PA' => array( '42', 'Pennsylvania' ),
+	'RI' => array( '44', 'Rhode Island' ),
+	'SC' => array( '45', 'South Carolina' ),
+	'SD' => array( '46', 'South Dakota' ),
+	'TN' => array( '47', 'Tennessee' ),
+	'TX' => array( '48', 'Texas' ),
+	'UT' => array( '49', 'Utah' ),
+	'VT' => array( '50', 'Vermont' ),
+	'VA' => array( '51', 'Virginia' ),
+	'WA' => array( '53', 'Washington' ),
+	'WV' => array( '54', 'West Virginia' ),
+	'WI' => array( '55', 'Wisconsin' ),
+	'WY' => array( '56', 'Wyoming' ),
+	'PR' => array( '72', 'Puerto Rico' ),
+);
