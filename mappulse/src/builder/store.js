@@ -5,6 +5,7 @@ import { toMP } from '../geometry/shapes';
 import { cleanAdvice, needsCleaning } from '../geometry/clean';
 import { slug } from '../geometry/labels';
 import { DEFAULT_PRIORITY } from '../geometry/overlaps';
+import { applyPreset } from './style/presets';
 
 export const initialState = ( settings = {} ) => ( {
 	mapId: settings.mapId || 0,
@@ -24,6 +25,10 @@ export const initialState = ( settings = {} ) => ( {
 	// Set when a saved map could not be opened. Nothing can be edited or saved then, so it is not overwritten.
 	blocked: false,
 	maxZones: settings.maxZones || 200,
+	// The builder's steps: areas, style, links.
+	step: 'areas',
+	styleDefaults: settings.styleDefaults || {},
+	style: { ...( settings.styleDefaults || {} ) },
 } );
 
 /**
@@ -46,6 +51,10 @@ export function zoneFromResult( result, feature ) {
 			properties: {},
 			geometry: feature.geometry,
 		},
+		link: '',
+		linkPost: 0,
+		text: '',
+		label: null,
 		backdrop: false,
 		clean: advice.recommended,
 		needsClean: advice.available,
@@ -65,7 +74,9 @@ export function zonesFromDocument( doc ) {
 		record: ( z.source && z.source.record ) || '',
 		parent: '',
 		link: z.link || '',
+		linkPost: z.linkPost || 0,
 		text: z.text || '',
+		label: z.label || null,
 		feature: { type: 'Feature', properties: {}, geometry: z.geometry },
 		backdrop: !! z.backdrop,
 		clean: !! z.clean,
@@ -108,6 +119,8 @@ function uniqueId( name, zones ) {
 	return id;
 }
 
+export const STEPS = [ 'areas', 'style', 'links' ];
+
 export function reduce( state, action ) {
 	switch ( action.type ) {
 		case 'ADD_ZONE': {
@@ -138,10 +151,39 @@ export function reduce( state, action ) {
 				error: '',
 			};
 		}
-		case 'REMOVE_ZONE':
+		case 'REMOVE_ZONE': {
+			const zones = state.zones.filter( ( z ) => z.id !== action.id );
+			// The other steps need an area to work on.
 			return {
 				...state,
-				zones: state.zones.filter( ( z ) => z.id !== action.id ),
+				zones,
+				dirty: true,
+				step: zones.length ? state.step : 'areas',
+			};
+		}
+		case 'SET_STEP':
+			if (
+				! STEPS.includes( action.step ) ||
+				( action.step !== 'areas' && ! state.zones.length )
+			) {
+				return state;
+			}
+			return { ...state, step: action.step };
+		case 'SET_STYLE':
+			return {
+				...state,
+				style: { ...state.style, ...action.patch },
+				dirty: true,
+			};
+		case 'APPLY_PRESET':
+			return {
+				...state,
+				style: applyPreset(
+					action.name,
+					state.style,
+					action.brand,
+					state.styleDefaults
+				),
 				dirty: true,
 			};
 		case 'MOVE_ZONE': {
@@ -195,6 +237,10 @@ export function reduce( state, action ) {
 					? map.document.priority
 					: DEFAULT_PRIORITY,
 				doc: map.document,
+				style: {
+					...state.styleDefaults,
+					...( map.document.style || {} ),
+				},
 				legacy,
 				legacyZones: legacy
 					? map.document.zones.map( ( z ) => ( {

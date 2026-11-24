@@ -40,4 +40,14 @@ export const renderDocument = ( document ) =>
 		data: { document },
 	} );
 
+export const searchLinks = ( q ) =>
+	apiFetch( { path: addQueryArgs( `${ ROOT }/links/search`, { q } ) } );
+
+export const matchLinks = ( names ) =>
+	apiFetch( {
+		path: `${ ROOT }/links/match`,
+		method: 'POST',
+		data: { names },
+	} );
+
 export { messageOf } from './message';

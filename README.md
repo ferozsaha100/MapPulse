@@ -6,7 +6,7 @@ MapPulse is a WordPress plugin in development. It shows the areas an agent or br
 interactive map, where every neighborhood, city or ZIP area links to its area page or property search.
 The map is placed with an Elementor widget, a Gutenberg block or a shortcode.
 
-> **Status: version 0.3.0, early release.** The plugin installs, renders maps through all three
+> **Status: version 0.4.0, early release.** The plugin installs, renders maps through all three
 > placements, and finds real boundaries from inside WordPress. Maps are still added from a map file:
 > the visual map builder is the next version. A real sample map of St. Petersburg, Florida is included.
 
@@ -61,14 +61,16 @@ The map builder will replace this step.
 
 ### Building a map
 
-**MapPulse, Add New Map** opens the builder. Version 0.3.0 has its first step, Areas.
+**MapPulse, Add New Map** opens the builder. It has three steps: Areas, Style, and Zones and links.
 
 1. Type a name or ZIP code, pick the kind of area and the state, and press Find.
 2. Press Preview on a result. The outline is drawn on a live street map so you can confirm it is the
    area you mean. Press **Add to map**.
 3. Repeat for each area. The finished map is drawn on the right as you go, with land, water and major
    roads around the areas.
-4. Name the map and press Publish. Place it with the widget, the block or the shortcode shown.
+4. Open **Style** to choose a preset and colors, and **Zones and links** to link each area to its page
+   (see below).
+5. Name the map and press Publish. Place it with the widget, the block or the shortcode shown.
 
 - **Overlaps** are cut for you: a neighborhood out of a city, a city out of a ZIP area, a ZIP area out of
   a county. Between two areas of one kind, the one higher in the list wins. **Backdrop** keeps an area
@@ -77,8 +79,14 @@ The map builder will replace this step.
   into one solid shape. It is switched on for you when a shape needs it and can be switched off.
 - Street tiles come from OpenStreetMap and load only in the builder. The front end still makes no
   third-party request.
-- A map built in 0.3.0 uses the default colors and its areas are not links yet. Style and links are the
-  next builder steps, in 0.4.0.
+- **Style**: Atlas is the built-in look; Brand Tint builds the whole palette from one brand color. Every
+  color can be changed, with your theme's and Elementor's colors offered first. Label font and size,
+  border width and style, and the hover effect are set here too. The Elementor widget's own color
+  controls still override these for one placement.
+- **Zones and links**: search your pages and posts, or paste any address such as an IDX search for that
+  area. "Match areas to pages" links each area to the page with its name and asks you where two pages
+  fit. A link to a page follows the page if its address changes. Each label can get its own text, be
+  hidden, or be moved by dragging it or with the arrow buttons.
 - A map imported from a file opens in the builder read-only, because the file does not hold the
   boundaries its areas came from.
 
@@ -98,13 +106,13 @@ saves each answer for 30 days. (The builder also loads OpenStreetMap street tile
 
 ### Known limits
 
-- The builder has only its Areas step. Colors and links cannot be set in it yet (0.4.0), and an area
-  cannot be drawn by hand, uploaded or edited point by point.
+- An area cannot be drawn by hand, uploaded or edited point by point.
 - Areas more than about 1.5 degrees apart get land, water and roads for the middle of the map only.
   Maps of one metro area work best.
 - On a phone the map scales down with the screen, so the labels of a detailed map are too small to read.
   The area list stays readable and usable. Pan and zoom are planned for the Polish phase.
-- Hover cards, decoration, a compass and a legend are not built yet.
+- Hover cards, decoration, a compass and a legend are not built yet. A label font is used by name; it
+  shows on the site only when the theme already loads that font.
 - This version is for testing. It is not meant for a live client site yet.
 
 ### From the command line
@@ -230,7 +238,7 @@ See [`spike/README.md`](spike/README.md) for the configuration file and what the
 | Phase | Delivers | Exit check |
 | --- | --- | --- |
 | 0 Spike | One real market rebuilt by script as a full-context SVG | No gaps, no overlaps, look approved |
-| 1 Core build | Plugin skeleton, map storage, renderer, shortcode, Elementor widget, Gutenberg block (0.1.0) and the boundary service (0.2.x) and the builder's Areas step with the base map (0.3.0) are done. Next: the Style step and the Zones and links step (0.4.0) | A map made in the builder is live through all three placements |
+| 1 Core build | Plugin skeleton, map storage, renderer, shortcode, Elementor widget, Gutenberg block (0.1.0) and the boundary service (0.2.x), the builder's Areas step with the base map (0.3.0) and its Style and Zones and links steps (0.4.0) are done. Left from the spec's Phase 1 list: the hover card | A map made in the builder is live through all three placements |
 | 2 Decorate | Icon library, labels, compass, legend, clickable landmarks, SVG import | A decorated generated map and an imported hand-drawn map both render correctly |
 | 3 Polish | Phone pan and zoom, bottom sheet, keyboard access, crawlable list, performance budgets, compatibility matrix | Budgets met and the matrix passes |
 | 4 Release | Migration of existing maps, user guide, packaging, version 1.0.0 | 1.0 running on production sites |

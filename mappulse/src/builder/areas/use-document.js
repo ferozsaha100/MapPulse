@@ -6,8 +6,17 @@ import { createRebuilder } from './rebuilder';
 import { fetchBaseLayer, renderDocument } from '../api';
 
 export function useDocument( state, dispatch ) {
-	const { zones, priority, legacy, loading, doc, mapId, dirty, title } =
-		state;
+	const {
+		zones,
+		priority,
+		legacy,
+		loading,
+		doc,
+		mapId,
+		dirty,
+		title,
+		style,
+	} = state;
 	const [ view, setView ] = useState( {
 		busy: false,
 		html: '',
@@ -34,8 +43,8 @@ export function useDocument( state, dispatch ) {
 			return;
 		}
 		opened.current = true;
-		rebuilder.adopt( { doc, zones, priority } );
-	}, [ rebuilder, doc, mapId, dirty, loading, zones, priority ] );
+		rebuilder.adopt( { doc, zones, priority, style } );
+	}, [ rebuilder, doc, mapId, dirty, loading, zones, priority, style ] );
 
 	useEffect( () => {
 		if ( legacy || loading ) {
@@ -45,14 +54,14 @@ export function useDocument( state, dispatch ) {
 		if ( mapId && ! opened.current && ! dirty ) {
 			return;
 		}
-		rebuilder.update( { zones, priority, title } );
+		rebuilder.update( { zones, priority, title, style } );
 		// The title is read when a build runs but does not start one.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ rebuilder, zones, priority, legacy, loading ] );
+	}, [ rebuilder, zones, priority, style, legacy, loading ] );
 
 	return {
 		...view,
 		svg: view.html,
-		current: rebuilder.isCurrent( { zones, priority } ),
+		current: rebuilder.isCurrent( { zones, priority, style } ),
 	};
 }

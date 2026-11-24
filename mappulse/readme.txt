@@ -3,7 +3,7 @@ Tags: map, real estate, neighborhoods, elementor, block
 Requires at least: 6.8
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.3.0
+Stable tag: 0.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -56,6 +56,15 @@ Administrators. The capability is `manage_mappulse_maps`.
 They are kept in the database.
 
 == Changelog ==
+
+= 0.4.0 =
+* New: the Style step. Two presets (Atlas, and Brand Tint from one brand color), every color editable with your site's colors offered first, label font and size, border width and style, and a fill or outline hover effect.
+* New: the Zones and links step. Link each area to a page or post, or paste any address such as an IDX search. "Match areas to pages" links areas to the pages with their names.
+* New: a link to a page follows the page if its address changes.
+* New: set a label's own text, hide it, or move it by dragging or with the arrow buttons.
+* Fixed: when two cleaned areas overlap, the smaller keeps its shape.
+* Fixed: a map that cannot be opened can no longer be overwritten, and a save the database refuses is reported.
+* Area warnings are now translatable.
 
 = 0.3.0 =
 * New: the map builder (MapPulse, Add New Map). Search an area, check its outline on a live street map, add it, and see the finished map drawn as you go.

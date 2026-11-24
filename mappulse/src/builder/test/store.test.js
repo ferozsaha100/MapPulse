@@ -338,3 +338,139 @@ describe( 'saveActions', () => {
 		).toBe( true );
 	} );
 } );
+
+describe( 'style and steps', () => {
+	const DEFAULTS = {
+		zone: '#DCCFB6',
+		zoneHover: '#1F3A5F',
+		label: '#2B2F36',
+		labelHover: '#FFFFFF',
+		labelFont: 'Inter, sans-serif',
+		labelSize: 11.5,
+		preset: 'atlas',
+		brand: '',
+		zoneStrokeWidth: 1.6,
+		zoneStrokeStyle: 'solid',
+		hoverEffect: 'fill',
+	};
+	const start = () => initialState( { styleDefaults: DEFAULTS } );
+
+	it( 'starts with the built-in style on the Areas step', () => {
+		expect( start() ).toMatchObject( { step: 'areas', style: DEFAULTS } );
+	} );
+
+	it( 'opens the other steps only once the map has an area', () => {
+		expect(
+			reduce( start(), { type: 'SET_STEP', step: 'style' } ).step
+		).toBe( 'areas' );
+		const withArea = add( start(), gulfportZone() );
+		expect(
+			reduce( withArea, { type: 'SET_STEP', step: 'style' } ).step
+		).toBe( 'style' );
+		expect(
+			reduce( withArea, { type: 'SET_STEP', step: 'links' } ).step
+		).toBe( 'links' );
+		expect(
+			reduce( withArea, { type: 'SET_STEP', step: 'nope' } ).step
+		).toBe( 'areas' );
+		// Removing the last area returns to Areas.
+		const onStyle = reduce( withArea, { type: 'SET_STEP', step: 'style' } );
+		expect(
+			reduce( onStyle, { type: 'REMOVE_ZONE', id: 'gulfport' } ).step
+		).toBe( 'areas' );
+	} );
+
+	it( 'changes one style value and marks the map as changed', () => {
+		const state = reduce(
+			{ ...start(), dirty: false },
+			{ type: 'SET_STYLE', patch: { zone: '#000000' } }
+		);
+		expect( state.style ).toEqual( { ...DEFAULTS, zone: '#000000' } );
+		expect( state.dirty ).toBe( true );
+	} );
+
+	it( 'applies a preset to the colors and keeps the font and size', () => {
+		let state = reduce( start(), {
+			type: 'SET_STYLE',
+			patch: { labelFont: 'Georgia, serif', labelSize: 14 },
+		} );
+		state = reduce( state, {
+			type: 'APPLY_PRESET',
+			name: 'brand-tint',
+			brand: '#7A1F3D',
+		} );
+		expect( state.style ).toMatchObject( {
+			preset: 'brand-tint',
+			brand: '#7A1F3D',
+			zoneHover: '#7A1F3D',
+			labelFont: 'Georgia, serif',
+			labelSize: 14,
+		} );
+		state = reduce( state, { type: 'APPLY_PRESET', name: 'atlas' } );
+		expect( state.style ).toMatchObject( {
+			preset: 'atlas',
+			zone: '#DCCFB6',
+			labelFont: 'Georgia, serif',
+		} );
+	} );
+
+	it( 'sets a link, a description and a label on a zone, and marks the map as changed', () => {
+		let state = { ...add( start(), gulfportZone() ), dirty: false };
+		state = reduce( state, {
+			type: 'SET_ZONE',
+			id: 'gulfport',
+			patch: {
+				link: 'https://example.com/g/',
+				linkPost: 4,
+				text: 'Bay town',
+				label: { text: 'GP', dx: 8, dy: 0, hidden: false },
+			},
+		} );
+		expect( state.zones[ 0 ] ).toMatchObject( {
+			link: 'https://example.com/g/',
+			linkPost: 4,
+			text: 'Bay town',
+			label: { text: 'GP', dx: 8 },
+		} );
+		expect( state.dirty ).toBe( true );
+	} );
+
+	it( 'reads the style, links and labels back from a saved map', () => {
+		const document = {
+			schema: 1,
+			title: 'T',
+			style: { zone: '#112233', preset: 'brand-tint', brand: '#112233' },
+			zones: [
+				{
+					id: 'gulfport',
+					name: 'Gulfport',
+					type: 'city',
+					source: { layer: 'census', record: 'place:1228175' },
+					link: 'https://example.com/g/',
+					linkPost: 4,
+					text: 'Bay town',
+					label: { text: 'GP', dx: 8, dy: 0, hidden: false },
+					geometry: gulfport.features[ 0 ].geometry,
+					built: true,
+				},
+			],
+		};
+		const state = reduce( start(), {
+			type: 'LOADED',
+			map: { id: 5, title: 'T', status: 'draft', document },
+		} );
+		expect( state.style ).toEqual( {
+			...DEFAULTS,
+			zone: '#112233',
+			preset: 'brand-tint',
+			brand: '#112233',
+		} );
+		expect( state.zones[ 0 ] ).toMatchObject( {
+			link: 'https://example.com/g/',
+			linkPost: 4,
+			text: 'Bay town',
+			label: { text: 'GP', dx: 8, dy: 0, hidden: false },
+		} );
+		expect( state.dirty ).toBe( false );
+	} );
+} );
