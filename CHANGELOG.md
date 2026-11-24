@@ -2,6 +2,22 @@
 
 All notable changes to MapPulse are recorded here. Versions follow semantic versioning.
 
+## 0.3.0 (builder, part 1: Areas)
+
+- Map builder screen in wp-admin (MapPulse → Add New Map; a map's Edit link opens it).
+- Areas step: search by name or ZIP code, preview the outline on live street tiles (Leaflet and
+  OpenStreetMap, in the admin only), add, rename, reorder, remove.
+- Clean outline: closes gaps up to 60 m and fills holes, so a place the source draws in pieces becomes
+  one solid shape. On by default only for shapes in pieces or with holes. Source boundaries are stored untouched.
+- Overlaps are cut by priority (neighborhood, city, ZIP area, county; list order within one kind). A
+  Backdrop area stays whole and is drawn underneath.
+- The geometry pipeline from the spike now runs in the browser (`mappulse/src/geometry`), with Jest tests.
+- Base map (land, cities, water, roads) fetched per layer and drawn around the areas.
+- New REST routes: `/maps`, `/maps/<id>`, `/render`. The document gains optional `priority` and, per
+  zone, `geometry`, `backdrop`, `clean`, `hidden`. Still schema 1; older maps load unchanged.
+- The plugin now has a JavaScript build (`npm run build` in `mappulse/`); the release zip ships it built.
+- Not yet: styling and links (0.4.0), drawing by hand, GeoJSON or KML upload, editing points.
+
 ## 0.2.1
 
 - City search now also covers census designated places: communities that are not incorporated cities,

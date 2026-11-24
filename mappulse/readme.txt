@@ -3,7 +3,7 @@ Tags: map, real estate, neighborhoods, elementor, block
 Requires at least: 6.8
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.2.1
+Stable tag: 0.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -56,6 +56,13 @@ Administrators. The capability is `manage_mappulse_maps`.
 They are kept in the database.
 
 == Changelog ==
+
+= 0.3.0 =
+* New: the map builder (MapPulse, Add New Map). Search an area, check its outline on a live street map, add it, and see the finished map drawn as you go.
+* New: clean outline. A place the source draws as separate pieces, such as Fisher Island, FL, becomes one solid shape.
+* New: overlapping areas are cut automatically (a neighborhood out of a city, a city out of a ZIP area, a ZIP area out of a county), with a Backdrop option to keep an area whole underneath.
+* New: land, water and major roads are drawn around the areas.
+* Maps built here use the default colors and their areas are not links yet. Style and links arrive in 0.4.0.
 
 = 0.2.1 =
 * City search now also finds communities that are not incorporated cities (census designated places), such as Fisher Island, FL.

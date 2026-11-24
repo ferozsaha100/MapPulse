@@ -146,15 +146,18 @@ Pipeline:
 1. Search a source. Results list the type, the parent place and the source.
 2. Preview the shape over live street tiles. The user confirms or rejects it.
 3. Store the source geometry and its source record.
-4. Resolve overlaps by priority.
-5. Snap shared borders so neighbors keep one common edge.
-6. Clip every zone to the coastline.
-7. Simplify the whole map at one tolerance, keeping shared edges shared.
-8. Project all layers with one projection fitted to the map frame.
-9. Place each label inside its zone, then resolve collisions.
-10. Write the SVG paths and save.
+4. Clean the outline where asked: close gaps up to 60 m and fill holes, so a place the source draws in
+   pieces becomes one solid shape. On by default only for shapes in pieces or with holes.
+5. Resolve overlaps by priority.
+6. Snap shared borders so neighbors keep one common edge.
+7. Clip every zone to the coastline.
+8. Simplify the whole map at one tolerance, keeping shared edges shared.
+9. Project all layers with one projection fitted to the map frame.
+10. Place each label inside its zone, then resolve collisions.
+11. Write the SVG paths and save.
 
-The Phase 0 spike in `spike/` implements steps 3, 4, 6, 7, 8, 9 and 10 as a script.
+Since 0.3.0 the builder runs every step except 6 in the browser (`mappulse/src/geometry`). Step 6,
+snapping, is not built yet. The Phase 0 spike in `spike/` is the script this library was ported from.
 
 ## 7. Front-end renderer
 
@@ -236,7 +239,9 @@ One capability, `manage_mappulse_maps`, guards every builder route.
 | 3 Polish | Phone pan and zoom, bottom sheet, area chips, keyboard access, crawlable list, budgets, the compatibility matrix | Budgets met and the matrix passes |
 | 4 Release | Existing maps migrated. User guide. Packaging. Version 1.0.0. | 1.0 running on production sites |
 
-Each phase gets its own task-level plan, written at its start against this repository.
+Each phase gets its own task-level plan, written at its start against this repository. Phase 1 is
+delivered in four releases: 0.1.0 (plugin foundation), 0.2.x (boundary service), 0.3.0 (builder: Areas
+and base map) and 0.4.0 (builder: Style, and Zones and links).
 
 ## 13. Testing
 
