@@ -1,0 +1,228 @@
+/*
+ * MapPulse front end.
+ * Each map sets its own defaults as --mappulse-doc-* on the section. To override one, set the public
+ * name on the section or any ancestor, for example: .my-page .mappulse { --mappulse-zone-hover: #7a1f1f; }
+ */
+.mappulse {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 1.25rem 2rem;
+	align-items: start;
+}
+
+.mappulse__heading,
+.mappulse__intro {
+	grid-column: 1 / -1;
+	margin: 0;
+}
+
+.mappulse__map {
+	min-width: 0;
+}
+
+.mappulse__svg {
+	display: block;
+	width: 100%;
+	height: auto;
+	max-height: var(--mappulse-max-height, none);
+}
+
+/* Area list: below the map on small screens, beside it from 782px up. */
+.mappulse__list {
+	order: 1;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25rem 0.5rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.mappulse__list li {
+	margin: 0;
+	padding: 0;
+}
+
+.mappulse__list a,
+.mappulse__list span {
+	display: block;
+	padding: 0.4rem 0.7rem;
+	border-radius: 4px;
+	color: inherit;
+	line-height: 1.3;
+	text-decoration: none;
+	transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.mappulse__list a:hover,
+.mappulse__list a:focus-visible,
+.mappulse__list .is-active {
+	background-color: var(--mappulse-zone-hover, var(--mappulse-doc-zone-hover));
+	color: var(--mappulse-label-hover, var(--mappulse-doc-label-hover));
+}
+
+@media (min-width: 782px) {
+	.mappulse--list-left {
+		grid-template-columns: minmax(10rem, 15rem) minmax(0, 1fr);
+	}
+
+	.mappulse--list-right {
+		grid-template-columns: minmax(0, 1fr) minmax(10rem, 15rem);
+	}
+
+	.mappulse--list-left .mappulse__list {
+		order: 0;
+	}
+
+	.mappulse--list-left .mappulse__list,
+	.mappulse--list-right .mappulse__list {
+		flex-direction: column;
+		flex-wrap: nowrap;
+	}
+}
+
+/* Map layers, in draw order. */
+.mappulse__sea {
+	fill: var(--mappulse-water, var(--mappulse-doc-water));
+}
+
+.mappulse__land path {
+	fill: var(--mappulse-land, var(--mappulse-doc-land));
+}
+
+.mappulse__cities path,
+.mappulse__areas path {
+	fill: var(--mappulse-context, var(--mappulse-doc-context));
+	stroke: var(--mappulse-context-stroke, var(--mappulse-doc-context-stroke));
+	stroke-width: 1;
+	stroke-linejoin: round;
+}
+
+.mappulse__zone {
+	cursor: pointer;
+	outline: none;
+}
+
+.mappulse__zone--static {
+	cursor: default;
+}
+
+.mappulse__zone path {
+	fill: var(--mappulse-zone, var(--mappulse-doc-zone));
+	stroke: var(--mappulse-zone-stroke, var(--mappulse-doc-zone-stroke));
+	stroke-width: 1.6;
+	stroke-linejoin: round;
+	transition: fill 0.18s ease;
+}
+
+.mappulse__zone:hover path,
+.mappulse__zone:focus-visible path,
+.mappulse__zone.is-active path {
+	fill: var(--mappulse-zone-hover, var(--mappulse-doc-zone-hover));
+}
+
+.mappulse__zone:focus-visible path {
+	stroke: var(--mappulse-label, var(--mappulse-doc-label));
+	stroke-width: 2.4;
+}
+
+.mappulse__water,
+.mappulse__roads,
+.mappulse__leaders,
+.mappulse__labels,
+.mappulse__water-labels {
+	pointer-events: none;
+}
+
+.mappulse__water path {
+	fill: var(--mappulse-water, var(--mappulse-doc-water));
+	stroke: var(--mappulse-coast, var(--mappulse-doc-coast));
+	stroke-width: 0.8;
+	stroke-linejoin: round;
+}
+
+.mappulse__road-casing,
+.mappulse__road {
+	fill: none;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.mappulse__road-casing {
+	stroke: var(--mappulse-road-casing, var(--mappulse-doc-road-casing));
+}
+
+.mappulse__road {
+	stroke: var(--mappulse-road, var(--mappulse-doc-road));
+}
+
+.mappulse__road-casing--minor {
+	stroke-width: 3.2;
+}
+
+.mappulse__road--minor {
+	stroke-width: 1.6;
+}
+
+.mappulse__road-casing--major {
+	stroke-width: 5.4;
+}
+
+.mappulse__road--major {
+	stroke-width: 3;
+}
+
+.mappulse__leaders line {
+	stroke: var(--mappulse-label, var(--mappulse-doc-label));
+	stroke-width: 0.8;
+	stroke-opacity: 0.75;
+}
+
+.mappulse__leaders circle {
+	fill: var(--mappulse-label, var(--mappulse-doc-label));
+}
+
+.mappulse__label {
+	font-family: var(--mappulse-font, var(--mappulse-doc-font));
+	font-weight: 600;
+	letter-spacing: 1.1px;
+	fill: var(--mappulse-label, var(--mappulse-doc-label));
+	stroke: var(--mappulse-label-halo, #fff);
+	stroke-opacity: 0.72;
+	stroke-width: 2.6px;
+	stroke-linejoin: round;
+	paint-order: stroke;
+	transition: fill 0.18s ease;
+}
+
+.mappulse__label.is-active {
+	fill: var(--mappulse-label-hover, var(--mappulse-doc-label-hover));
+	stroke: var(--mappulse-zone-hover, var(--mappulse-doc-zone-hover));
+	stroke-opacity: 1;
+}
+
+.mappulse__water-label {
+	font-family: var(--mappulse-font, var(--mappulse-doc-font));
+	font-size: 12px;
+	font-style: italic;
+	letter-spacing: 3px;
+	fill: var(--mappulse-water-label, var(--mappulse-doc-water-label));
+}
+
+.mappulse-notice {
+	margin: 0;
+	padding: 0.75rem 1rem;
+	border-left: 4px solid #b26200;
+	background: #fff8e5;
+	color: #1d2327;
+	font-size: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.mappulse__zone path,
+	.mappulse__label,
+	.mappulse__list a,
+	.mappulse__list span {
+		transition: none;
+	}
+}

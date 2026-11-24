@@ -1,0 +1,13 @@
+{
+	"core": null,
+	"phpVersion": "8.1",
+	"plugins": [
+		"./mappulse",
+		"https://downloads.wordpress.org/plugin/elementor.latest-stable.zip"
+	],
+	"config": {
+		"WP_DEBUG": true,
+		"WP_DEBUG_LOG": true,
+		"WP_DEBUG_DISPLAY": false
+	}
+}

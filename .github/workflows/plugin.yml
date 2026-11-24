@@ -1,0 +1,118 @@
+name: Plugin
+
+on:
+  push:
+    paths:
+      - 'mappulse/**'
+      - '.wp-env.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/plugin.yml'
+      - 'bin/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    name: PHP ${{ matrix.php }} syntax
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.1', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - name: Check every PHP file
+        run: |
+          status=0
+          while IFS= read -r -d '' file; do
+            php -l "$file" > /dev/null || { echo "::error file=$file::PHP syntax error"; status=1; }
+          done < <(find mappulse -name '*.php' -not -path '*/vendor/*' -print0)
+          exit $status
+
+  standards:
+    name: Coding standards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer
+      - run: composer install --no-interaction --no-progress
+        working-directory: mappulse
+      - name: PHPCS
+        working-directory: mappulse
+        run: |
+          set -o pipefail
+          composer lint 2>&1 | tee phpcs.log || {
+            msg=$(tail -n 60 phpcs.log | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+            echo "::error title=PHPCS::$msg"
+            exit 1
+          }
+
+  tests:
+    name: PHPUnit in WordPress
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer
+      - run: npm ci
+      - run: composer install --no-interaction --no-progress
+        working-directory: mappulse
+      - run: npx wp-env start
+      - name: PHPUnit
+        run: |
+          set -o pipefail
+          npx wp-env run tests-cli --env-cwd=wp-content/plugins/mappulse env MAPPULSE_REQUIRE_ELEMENTOR=1 vendor/bin/phpunit 2>&1 | tee phpunit.log || {
+            msg=$(grep -vE '^\s*$' phpunit.log | tail -n 45 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+            echo "::error title=PHPUnit::$msg"
+            exit 1
+          }
+          msg=$(tail -n 4 phpunit.log | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+          echo "::notice title=PHPUnit::$msg"
+
+  e2e:
+    name: End-to-end and package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx wp-env start
+      - name: Smoke test
+        run: |
+          set -o pipefail
+          MAPPULSE_REQUIRE_ELEMENTOR=1 bash mappulse/tests/smoke.sh 2>&1 | tee smoke.log || {
+            msg=$(tail -n 30 smoke.log | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+            echo "::error title=Smoke test::$msg"
+            exit 1
+          }
+          msg=$(sed 's/%/%25/g' smoke.log | sed ':a;N;$!ba;s/\n/%0A/g')
+          echo "::notice title=Smoke test::$msg"
+      - name: Build the plugin zip
+        run: |
+          set -o pipefail
+          bash bin/build-zip.sh "$PWD/mappulse.zip" | tee zip.log
+          echo "::notice title=Plugin zip::$(tail -n 1 zip.log)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mappulse-plugin
+          path: mappulse.zip

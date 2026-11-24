@@ -1,5 +1,5 @@
 
-> mappulse-spike@0.0.4 build
+> mappulse-spike@0.0.5 build
 > node scripts/build.mjs config/st-petersburg.json
 
 

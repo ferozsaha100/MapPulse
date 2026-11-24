@@ -1,0 +1,208 @@
+<?php
+/**
+ * Turns a sanitized map document into markup.
+ *
+ * svg() depends only on the document, so its result can be cached. section() wraps it with the
+ * heading, the area list and the per-placement options.
+ *
+ * @package MapPulse
+ */
+
+namespace MapPulse;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Builds the map SVG and the section around it.
+ */
+class Renderer {
+
+	const LAYOUTS = array( 'list-left', 'list-right', 'list-below', 'map-only' );
+
+	/**
+	 * Style keys and the custom properties that carry them on the section.
+	 *
+	 * These are the document's defaults. The stylesheet reads var(--mappulse-zone, var(--mappulse-doc-zone)),
+	 * so a placement or a theme overrides a value by setting the public name (--mappulse-zone) anywhere above.
+	 */
+	const VARIABLES = array(
+		'water'         => '--mappulse-doc-water',
+		'coast'         => '--mappulse-doc-coast',
+		'land'          => '--mappulse-doc-land',
+		'context'       => '--mappulse-doc-context',
+		'contextStroke' => '--mappulse-doc-context-stroke',
+		'zone'          => '--mappulse-doc-zone',
+		'zoneStroke'    => '--mappulse-doc-zone-stroke',
+		'zoneHover'     => '--mappulse-doc-zone-hover',
+		'label'         => '--mappulse-doc-label',
+		'labelHover'    => '--mappulse-doc-label-hover',
+		'waterLabel'    => '--mappulse-doc-water-label',
+		'road'          => '--mappulse-doc-road',
+		'roadCasing'    => '--mappulse-doc-road-casing',
+		'labelFont'     => '--mappulse-doc-font',
+	);
+
+	/**
+	 * The map as one <svg> element. Carries no ids, styles or scripts, so any number of copies can share a page.
+	 *
+	 * @param array $doc A sanitized map document.
+	 */
+	public static function svg( array $doc ): string {
+		$width    = self::num( $doc['frame']['width'] );
+		$height   = self::num( $doc['frame']['height'] );
+		$layers   = $doc['topology']['layers'];
+		$shapes   = $doc['topology']['zones'];
+		$zones    = '';
+		$leaders  = '';
+		$labels   = '';
+		$captions = '';
+
+		foreach ( $doc['zones'] as $zone ) {
+			$id    = $zone['id'];
+			$shape = $shapes[ $id ];
+			$path  = '<path d="' . esc_attr( $shape['d'] ) . '" fill-rule="evenodd"/>';
+
+			if ( '' !== $zone['link'] ) {
+				$zones .= '<a class="mappulse__zone" href="' . esc_url( $zone['link'] ) . '" data-zone="' . esc_attr( $id ) . '" aria-label="' . esc_attr( $zone['name'] ) . '">' . $path . '</a>';
+			} else {
+				$zones .= '<g class="mappulse__zone mappulse__zone--static" tabindex="0" role="img" data-zone="' . esc_attr( $id ) . '" aria-label="' . esc_attr( $zone['name'] ) . '">' . $path . '</g>';
+			}
+
+			$label = $shape['label'];
+			if ( ! $label['lines'] ) {
+				continue;
+			}
+			$size        = (float) $label['size'];
+			$line_height = $size * 1.18;
+			$first       = $label['y'] - ( ( count( $label['lines'] ) - 1 ) * $line_height ) / 2 + $size * 0.36;
+			$spans       = '';
+			foreach ( $label['lines'] as $index => $line ) {
+				$spans .= '<tspan x="' . self::num( $label['x'] ) . '" y="' . self::num( $first + $index * $line_height ) . '">' . esc_html( $line ) . '</tspan>';
+			}
+			$labels .= '<text class="mappulse__label" data-zone="' . esc_attr( $id ) . '" text-anchor="middle" font-size="' . self::num( $size ) . '">' . $spans . '</text>';
+
+			if ( $label['anchor'] ) {
+				$leaders .= self::leader( $label );
+			}
+		}
+
+		foreach ( $doc['topology']['waterLabels'] as $caption ) {
+			$place     = $caption['vertical']
+				? 'transform="translate(' . self::num( $caption['x'] ) . ' ' . self::num( $caption['y'] ) . ') rotate(90)"'
+				: 'x="' . self::num( $caption['x'] ) . '" y="' . self::num( $caption['y'] ) . '"';
+			$captions .= '<text class="mappulse__water-label" ' . $place . ' text-anchor="middle">' . esc_html( $caption['text'] ) . '</text>';
+		}
+
+		$roads = '';
+		foreach ( array(
+			'minor' => $layers['roadsMinor'],
+			'major' => $layers['roadsMajor'],
+		) as $rank => $d ) {
+			if ( '' === $d ) {
+				continue;
+			}
+			$roads .= '<path class="mappulse__road-casing mappulse__road-casing--' . $rank . '" d="' . esc_attr( $d ) . '"/>';
+			$roads .= '<path class="mappulse__road mappulse__road--' . $rank . '" d="' . esc_attr( $d ) . '"/>';
+		}
+
+		return '<svg class="mappulse__svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' . $width . ' ' . $height . '" role="group" aria-label="' . esc_attr( $doc['title'] ) . '">'
+			. '<rect class="mappulse__sea" width="' . $width . '" height="' . $height . '"/>'
+			. self::group( 'land', self::shape( $layers['land'] ) )
+			. self::group( 'cities', self::shape( $layers['cities'] ) )
+			. self::group( 'areas', self::shape( $layers['areas'] ) )
+			. self::group( 'zones', $zones )
+			. self::group( 'water', self::shape( $layers['water'] ) )
+			. self::group( 'roads', $roads )
+			. self::group( 'leaders', $leaders )
+			. self::group( 'labels', $labels )
+			. self::group( 'water-labels', $captions )
+			. '</svg>';
+	}
+
+	/**
+	 * The whole section: heading, intro, area list and the map.
+	 *
+	 * @param array  $doc  A sanitized map document.
+	 * @param string $svg  The result of svg() for the same document.
+	 * @param array  $args layout, heading, intro, show_list.
+	 */
+	public static function section( array $doc, string $svg, array $args ): string {
+		$layout    = isset( $args['layout'] ) && in_array( $args['layout'], self::LAYOUTS, true ) ? $args['layout'] : self::LAYOUTS[0];
+		$show_list = 'map-only' !== $layout && ( ! isset( $args['show_list'] ) || $args['show_list'] );
+		$heading   = isset( $args['heading'] ) ? trim( (string) $args['heading'] ) : '';
+		$intro     = isset( $args['intro'] ) ? trim( (string) $args['intro'] ) : '';
+
+		$variables = array();
+		foreach ( self::VARIABLES as $key => $name ) {
+			$variables[] = $name . ':' . $doc['style'][ $key ];
+		}
+
+		$html = '<section class="mappulse mappulse--' . esc_attr( $layout ) . '" data-mappulse style="' . esc_attr( implode( ';', $variables ) ) . '">';
+		if ( '' !== $heading ) {
+			$html .= '<h2 class="mappulse__heading">' . esc_html( $heading ) . '</h2>';
+		}
+		if ( '' !== $intro ) {
+			$html .= '<p class="mappulse__intro">' . esc_html( $intro ) . '</p>';
+		}
+		if ( $show_list && $doc['zones'] ) {
+			$html .= '<ul class="mappulse__list">';
+			foreach ( $doc['zones'] as $zone ) {
+				$html .= '' !== $zone['link']
+					? '<li><a href="' . esc_url( $zone['link'] ) . '" data-zone="' . esc_attr( $zone['id'] ) . '">' . esc_html( $zone['name'] ) . '</a></li>'
+					: '<li><span data-zone="' . esc_attr( $zone['id'] ) . '">' . esc_html( $zone['name'] ) . '</span></li>';
+			}
+			$html .= '</ul>';
+		}
+		$html .= '<div class="mappulse__map">' . $svg . '</div></section>';
+
+		return $html;
+	}
+
+	/**
+	 * A leader line from a zone's anchor point to the nearest edge of its moved label.
+	 *
+	 * @param array $label A sanitized label with an anchor.
+	 */
+	private static function leader( array $label ): string {
+		$size   = (float) $label['size'];
+		$chars  = max( array_map( 'mb_strlen', $label['lines'] ) );
+		$half_w = ( $chars * $size * 0.8 + 6 ) / 2;
+		$half_h = ( count( $label['lines'] ) * $size * 1.18 + 3 ) / 2;
+		$ax     = $label['anchor']['x'];
+		$ay     = $label['anchor']['y'];
+		$ex     = min( max( $ax, $label['x'] - $half_w ), $label['x'] + $half_w );
+		$ey     = min( max( $ay, $label['y'] - $half_h ), $label['y'] + $half_h );
+
+		return '<line x1="' . self::num( $ax ) . '" y1="' . self::num( $ay ) . '" x2="' . self::num( $ex ) . '" y2="' . self::num( $ey ) . '"/>'
+			. '<circle cx="' . self::num( $ax ) . '" cy="' . self::num( $ay ) . '" r="1.8"/>';
+	}
+
+	/**
+	 * One named SVG group.
+	 *
+	 * @param string $name    Group name, used in its class.
+	 * @param string $content Markup inside the group.
+	 */
+	private static function group( string $name, string $content ): string {
+		return '<g class="mappulse__' . $name . '">' . $content . '</g>';
+	}
+
+	/**
+	 * A filled shape from path data, or nothing when the layer is empty.
+	 *
+	 * @param string $d Path data.
+	 */
+	private static function shape( string $d ): string {
+		return '' === $d ? '' : '<path d="' . esc_attr( $d ) . '" fill-rule="evenodd"/>';
+	}
+
+	/**
+	 * A number as SVG wants it: at most two decimals, no trailing zeros.
+	 *
+	 * @param float|int $value Number.
+	 */
+	private static function num( $value ): string {
+		$text = number_format( (float) $value, 2, '.', '' );
+		return str_contains( $text, '.' ) ? rtrim( rtrim( $text, '0' ), '.' ) : $text;
+	}
+}

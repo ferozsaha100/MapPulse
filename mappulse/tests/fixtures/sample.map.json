@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "title": "Test Market",
+  "frame": {
+    "width": 1000,
+    "height": 800
+  },
+  "style": {
+    "water": "#DCE8EA",
+    "coast": "#B4C9CF",
+    "land": "#F6F1E6",
+    "context": "#EEE7D8",
+    "contextStroke": "#FFFFFF",
+    "zone": "#DCCFB6",
+    "zoneStroke": "#FFFFFF",
+    "zoneHover": "#1F3A5F",
+    "label": "#2B2F36",
+    "labelHover": "#FFFFFF",
+    "waterLabel": "#3F6470",
+    "road": "#FFFFFF",
+    "roadCasing": "#BDB198",
+    "labelFont": "Inter, Helvetica, Arial, sans-serif",
+    "labelSize": 11.5
+  },
+  "zones": [
+    {
+      "id": "downtown",
+      "name": "Downtown",
+      "type": "neighborhood",
+      "source": {
+        "layer": "neighborhoods",
+        "record": "DOWNTOWN NBRHD ASSN"
+      },
+      "link": "https://example.com/downtown/",
+      "text": "Waterfront core."
+    },
+    {
+      "id": "old-northeast",
+      "name": "Old Northeast",
+      "type": "neighborhood",
+      "source": {
+        "layer": "neighborhoods",
+        "record": "HISTORIC OLD NORTHEAST NBRHD ASSN"
+      },
+      "link": "",
+      "text": ""
+    },
+    {
+      "id": "historic-kenwood",
+      "name": "Historic Kenwood Bungalow District And The Old Trolley Block",
+      "type": "neighborhood",
+      "source": {
+        "layer": "neighborhoods",
+        "record": "HISTORIC KENWOOD NBRHD ASSN"
+      },
+      "link": "/neighborhoods/historic-kenwood/",
+      "text": ""
+    }
+  ],
+  "topology": {
+    "layers": {
+      "land": "M0 0L800 0L800 800L0 800Z",
+      "cities": "M50 50L750 50L750 750L50 750Z",
+      "areas": "M60 60L200 60L200 200L60 200Z",
+      "water": "M800 0L1000 0L1000 800L800 800Z",
+      "roadsMinor": "M0 400L800 400",
+      "roadsMajor": "M400 0L400 800"
+    },
+    "zones": {
+      "downtown": {
+        "d": "M300 300L500 300L500 500L300 500Z",
+        "label": {
+          "x": 400,
+          "y": 400,
+          "size": 11.5,
+          "lines": [
+            "DOWNTOWN"
+          ],
+          "anchor": null
+        }
+      },
+      "old-northeast": {
+        "d": "M520 100L700 100L700 280L520 280Z",
+        "label": {
+          "x": 610,
+          "y": 190,
+          "size": 11.5,
+          "lines": [
+            "OLD",
+            "NORTHEAST"
+          ],
+          "anchor": null
+        }
+      },
+      "historic-kenwood": {
+        "d": "M100 300L140 300L140 340L100 340Z",
+        "label": {
+          "x": 120.5,
+          "y": 372.4,
+          "size": 9.5,
+          "lines": [
+            "HISTORIC",
+            "KENWOOD"
+          ],
+          "anchor": {
+            "x": 120,
+            "y": 320
+          }
+        }
+      }
+    },
+    "waterLabels": [
+      {
+        "text": "TEST BAY",
+        "x": 900,
+        "y": 400,
+        "vertical": true
+      }
+    ]
+  },
+  "meta": {
+    "generator": "fixture",
+    "synthetic": true
+  }
+}

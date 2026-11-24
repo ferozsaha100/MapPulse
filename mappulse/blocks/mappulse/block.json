@@ -1,0 +1,30 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "agentview/mappulse",
+	"version": "0.1.0",
+	"title": "MapPulse Map",
+	"category": "widgets",
+	"icon": "location-alt",
+	"description": "A clickable map of the areas you serve.",
+	"keywords": [ "map", "neighborhood", "area", "real estate" ],
+	"textdomain": "mappulse",
+	"attributes": {
+		"mapId": { "type": "number", "default": 0 },
+		"layout": { "type": "string", "default": "list-left" },
+		"heading": { "type": "string", "default": "" },
+		"intro": { "type": "string", "default": "" },
+		"showList": { "type": "boolean", "default": true },
+		"anchor": { "type": "string" }
+	},
+	"supports": {
+		"align": [ "wide", "full" ],
+		"anchor": true,
+		"html": false,
+		"spacing": { "margin": true, "padding": true }
+	},
+	"editorScript": "file:./index.js",
+	"style": "mappulse",
+	"viewScript": "mappulse",
+	"render": "file:./render.php"
+}
