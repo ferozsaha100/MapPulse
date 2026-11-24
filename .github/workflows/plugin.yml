@@ -57,6 +57,32 @@ jobs:
             exit 1
           }
 
+  javascript:
+    name: JavaScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+        working-directory: mappulse
+      - name: ESLint
+        run: npm run lint:js
+        working-directory: mappulse
+      - name: Jest
+        working-directory: mappulse
+        run: |
+          set -o pipefail
+          npm run test:js 2>&1 | tee jest.log || {
+            msg=$(grep -vE '^\s*$' jest.log | tail -n 45 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+            echo "::error title=Jest::$msg"
+            exit 1
+          }
+          echo "::notice title=Jest::$(grep -E '^Tests:' jest.log | tail -n 1)"
+      - run: npm run build
+        working-directory: mappulse
+
   tests:
     name: PHPUnit in WordPress
     runs-on: ubuntu-latest
@@ -73,6 +99,9 @@ jobs:
           tools: composer
       - run: npm ci
       - run: composer install --no-interaction --no-progress
+        working-directory: mappulse
+      - name: Build the builder
+        run: npm ci --no-audit --no-fund && npm run build
         working-directory: mappulse
       - run: npx wp-env start
       - name: PHPUnit
@@ -96,6 +125,9 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Build the builder
+        run: npm ci --no-audit --no-fund && npm run build
+        working-directory: mappulse
       - run: npx wp-env start
       - name: Smoke test
         run: |
@@ -107,10 +139,22 @@ jobs:
           }
           msg=$(sed 's/%/%25/g' smoke.log | sed ':a;N;$!ba;s/\n/%0A/g')
           echo "::notice title=Smoke test::$msg"
+      - name: Builder in a browser
+        run: |
+          set -o pipefail
+          npx wp-env run cli wp plugin activate mappulse
+          cd mappulse
+          npx playwright install --with-deps chromium >/dev/null
+          MAPPULSE_E2E_URL=http://localhost:8888 MAPPULSE_E2E_PASS=password MAPPULSE_E2E_CITY='Miami Beach' MAPPULSE_E2E_SHOT=1 npx playwright test -c tests/e2e/playwright.config.js 2>&1 | tee ../e2e.log || {
+            msg=$(grep -v '^SHOT ' ../e2e.log | grep -vE '^\s*$' | tail -n 40 | cut -c1-300 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+            echo "::error title=Builder in a browser::$msg"
+            exit 1
+          }
+          echo "::notice title=Builder in a browser::$(grep -E 'passed|LAYERS' ../e2e.log | cut -c1-400 | tr '\n' ' ')"
       - name: Build the plugin zip
         run: |
           set -o pipefail
-          bash bin/build-zip.sh "$PWD/mappulse.zip" | tee zip.log
+          MAPPULSE_SKIP_BUILD=1 bash bin/build-zip.sh "$PWD/mappulse.zip" | tee zip.log
           echo "::notice title=Plugin zip::$(tail -n 1 zip.log)"
       - uses: actions/upload-artifact@v4
         with:

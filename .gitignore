@@ -9,3 +9,6 @@ mappulse/composer.lock
 .superpowers/
 .phpunit.result.cache
 mappulse.zip
+mappulse/build/
+mappulse/node_modules/
+mappulse/tests/e2e/results/

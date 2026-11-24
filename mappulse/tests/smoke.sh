@@ -141,6 +141,12 @@ else
 	skip "10 to 14 live boundary sources (set MAPPULSE_LIVE=1)"
 fi
 
+# 15 The builder is compiled and its routes answer.
+BUILT=$(wp eval 'echo ( is_readable( MAPPULSE_DIR . "build/builder.js" ) && is_readable( MAPPULSE_DIR . "build/builder.asset.php" ) ) ? "built=yes" : "built=no"; echo " routes=" . count( array_filter( array_keys( rest_get_server()->get_routes() ), static function ( $r ) { return in_array( $r, array( "/mappulse/v1/maps", "/mappulse/v1/render" ), true ); } ) );')
+[ "$(echo "$BUILT" | field built)" = "yes" ] || fail "15 the compiled builder is missing from the plugin folder (run npm run build in mappulse/)"
+[ "$(echo "$BUILT" | field routes)" = "2" ] || fail "15 the builder routes are not registered: $BUILT"
+pass "15 builder is compiled and its routes are registered"
+
 # 9
 $WP plugin deactivate mappulse >/dev/null 2>&1 || fail "9 could not deactivate MapPulse"
 $WP plugin uninstall mappulse --skip-delete >/dev/null 2>&1 || fail "9 uninstall failed"

@@ -6,7 +6,7 @@ MapPulse is a WordPress plugin in development. It shows the areas an agent or br
 interactive map, where every neighborhood, city or ZIP area links to its area page or property search.
 The map is placed with an Elementor widget, a Gutenberg block or a shortcode.
 
-> **Status: version 0.2.1, early release.** The plugin installs, renders maps through all three
+> **Status: version 0.3.0, early release.** The plugin installs, renders maps through all three
 > placements, and finds real boundaries from inside WordPress. Maps are still added from a map file:
 > the visual map builder is the next version. A real sample map of St. Petersburg, Florida is included.
 
@@ -16,7 +16,8 @@ The map is placed with an Elementor widget, a Gutenberg block or a shortcode.
    Before the first release, take it from the `mappulse-plugin` artifact of the latest
    [Plugin workflow run](https://github.com/ferozsaha100/MapPulse/actions/workflows/plugin.yml).
 2. In WordPress go to Plugins, Add New, Upload Plugin. Upload the zip and activate MapPulse.
-3. Go to MapPulse, Import, and choose **Import the sample map**.
+3. Go to MapPulse, Add New Map, and build a map (see [Building a map](#building-a-map)). To try the
+   placements first, go to MapPulse, Import, and choose **Import the sample map**.
 4. Place the map on a page, in any of three ways:
 
 | Placement | How |
@@ -58,6 +59,29 @@ file again:
 
 The map builder will replace this step.
 
+### Building a map
+
+**MapPulse, Add New Map** opens the builder. Version 0.3.0 has its first step, Areas.
+
+1. Type a name or ZIP code, pick the kind of area and the state, and press Find.
+2. Press Preview on a result. The outline is drawn on a live street map so you can confirm it is the
+   area you mean. Press **Add to map**.
+3. Repeat for each area. The finished map is drawn on the right as you go, with land, water and major
+   roads around the areas.
+4. Name the map and press Publish. Place it with the widget, the block or the shortcode shown.
+
+- **Overlaps** are cut for you: a neighborhood out of a city, a city out of a ZIP area, a ZIP area out of
+  a county. Between two areas of one kind, the one higher in the list wins. **Backdrop** keeps an area
+  whole and draws it underneath the others.
+- **Clean outline** joins a place that the source draws as separate pieces (Fisher Island, FL is 14)
+  into one solid shape. It is switched on for you when a shape needs it and can be switched off.
+- Street tiles come from OpenStreetMap and load only in the builder. The front end still makes no
+  third-party request.
+- A map built in 0.3.0 uses the default colors and its areas are not links yet. Style and links are the
+  next builder steps, in 0.4.0.
+- A map imported from a file opens in the builder read-only, because the file does not hold the
+  boundaries its areas came from.
+
 ### Finding boundaries
 
 **MapPulse, Sources** finds the real boundary of an area and draws its outline so you can confirm it.
@@ -69,16 +93,18 @@ The map builder will replace this step.
   layer is shown there as an example.
 - Each result has a "Show boundary" button and a link to check the same area on a street map.
 
-Your site contacts only the Census server and the layers you register, only from the admin, and saves
-each answer for 30 days. The same search is available as `wp mappulse find gulfport --state=FL`.
+Your site's server contacts only the Census server and the layers you register, only from the admin, and
+saves each answer for 30 days. (The builder also loads OpenStreetMap street tiles in the admin's browser.) The same search is available as `wp mappulse find gulfport --state=FL`.
 
 ### Known limits
 
-- There is no map builder yet. Maps come from a map file made by the script in `spike/`.
+- The builder has only its Areas step. Colors and links cannot be set in it yet (0.4.0), and an area
+  cannot be drawn by hand, uploaded or edited point by point.
+- Areas more than about 1.5 degrees apart get land, water and roads for the middle of the map only.
+  Maps of one metro area work best.
 - On a phone the map scales down with the screen, so the labels of a detailed map are too small to read.
   The area list stays readable and usable. Pan and zoom are planned for the Polish phase.
 - Hover cards, decoration, a compass and a legend are not built yet.
-- Found boundaries cannot be turned into a map inside WordPress yet. That is the builder, version 0.3.0.
 - This version is for testing. It is not meant for a live client site yet.
 
 ### From the command line
@@ -138,14 +164,16 @@ flowchart TD
 | Path | Holds |
 | --- | --- |
 | `mappulse/` | The WordPress plugin: map storage, renderer, Elementor widget, Gutenberg block, shortcode, import |
-| `mappulse/tests/` | PHPUnit tests and the end-to-end smoke script |
+| `mappulse/src/geometry/` | The geometry library (overlaps, clean outline, simplification, labels) and its Jest tests |
+| `mappulse/src/builder/` | The builder app (React). Compiled into `mappulse/build/`, which is not in the repository |
+| `mappulse/tests/` | PHPUnit tests, the end-to-end smoke script and the browser test of the builder (`e2e/`) |
 | `bin/build-zip.sh` | Builds the installable `mappulse.zip` |
 | `spike/` | Node scripts that download real boundary layers, render one full-context SVG and export the map file the plugin imports |
 | `spike/results/` | Output of the latest spike run on GitHub Actions: the SVG, a preview page, reports and logs |
 | `docs/development-plan.md` | Scope, architecture, data model, integrations, phases and testing |
 | `docs/data-sources.md` | Boundary sources, how exact each one is, usage limits and attribution |
 | `docs/superpowers/plans/` | Task-level implementation plans, one per stage |
-| `.github/workflows/plugin.yml` | Syntax check, coding standards, PHPUnit in WordPress, end-to-end smoke test, zip build |
+| `.github/workflows/plugin.yml` | Syntax check, coding standards, ESLint and Jest, PHPUnit in WordPress, end-to-end smoke test, the builder in a browser, zip build |
 | `.github/workflows/release.yml` | Publishes a release with the zip when a `v*` tag is pushed |
 | `.github/workflows/spike.yml` | Runs the spike on every push that touches it |
 
@@ -156,11 +184,12 @@ The plugin is tested inside a real WordPress with [`@wordpress/env`](https://www
 
 ```
 npm install
-cd mappulse && composer install && cd ..
+cd mappulse && composer install && npm install && npm run build && cd ..
 npx wp-env start
 npm run test:php                 # PHPUnit inside WordPress
 bash mappulse/tests/smoke.sh     # end-to-end: import, three placements, Elementor on and off, uninstall
 cd mappulse && composer lint     # WordPress coding standards
+cd mappulse && npm run lint:js && npm run test:js   # ESLint and Jest for the builder and geometry
 bash bin/build-zip.sh            # builds mappulse.zip
 ```
 
@@ -201,7 +230,7 @@ See [`spike/README.md`](spike/README.md) for the configuration file and what the
 | Phase | Delivers | Exit check |
 | --- | --- | --- |
 | 0 Spike | One real market rebuilt by script as a full-context SVG | No gaps, no overlaps, look approved |
-| 1 Core build | Plugin skeleton, map storage, renderer, shortcode, Elementor widget, Gutenberg block (0.1.0) and the boundary service (0.2.0) are done. Next: the builder steps for areas, base map, style, zones and links (0.3.0) | A map made in the builder is live through all three placements |
+| 1 Core build | Plugin skeleton, map storage, renderer, shortcode, Elementor widget, Gutenberg block (0.1.0) and the boundary service (0.2.x) and the builder's Areas step with the base map (0.3.0) are done. Next: the Style step and the Zones and links step (0.4.0) | A map made in the builder is live through all three placements |
 | 2 Decorate | Icon library, labels, compass, legend, clickable landmarks, SVG import | A decorated generated map and an imported hand-drawn map both render correctly |
 | 3 Polish | Phone pan and zoom, bottom sheet, keyboard access, crawlable list, performance budgets, compatibility matrix | Budgets met and the matrix passes |
 | 4 Release | Migration of existing maps, user guide, packaging, version 1.0.0 | 1.0 running on production sites |
