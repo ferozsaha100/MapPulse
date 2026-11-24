@@ -42,6 +42,7 @@ class Plugin {
 		add_action( 'enqueue_block_editor_assets', array( $this, 'block_editor_data' ) );
 
 		Integrations\Elementor::register();
+		Boundaries\Sources::register();
 
 		if ( is_admin() ) {
 			( new Importer() )->register();

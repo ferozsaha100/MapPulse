@@ -32,6 +32,8 @@ require_once MAPPULSE_DIR . 'includes/boundaries/class-cache.php';
 require_once MAPPULSE_DIR . 'includes/boundaries/class-arcgis.php';
 require_once MAPPULSE_DIR . 'includes/boundaries/interface-provider.php';
 require_once MAPPULSE_DIR . 'includes/boundaries/class-census-provider.php';
+require_once MAPPULSE_DIR . 'includes/boundaries/class-layer-provider.php';
+require_once MAPPULSE_DIR . 'includes/boundaries/class-sources.php';
 require_once MAPPULSE_DIR . 'includes/class-importer.php';
 require_once MAPPULSE_DIR . 'includes/class-shortcode.php';
 require_once MAPPULSE_DIR . 'includes/integrations/class-elementor.php';

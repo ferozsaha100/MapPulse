@@ -1,0 +1,21 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "OBJECTID": 41,
+    "NANAME": "HISTORIC KENWOOD NBRHD ASSN"
+   },
+   "geometry": null
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "OBJECTID": 77,
+    "NANAME": "KENWOOD GATEWAY BUSINESS ASSN"
+   },
+   "geometry": null
+  }
+ ]
+}
