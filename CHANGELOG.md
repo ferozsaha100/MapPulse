@@ -2,6 +2,11 @@
 
 All notable changes to MapPulse are recorded here. Versions follow semantic versioning.
 
+## 0.2.1
+
+- City search now also covers census designated places: communities that are not incorporated cities,
+  such as Fisher Island or Palm Harbor in Florida. They are listed and typed as cities.
+
 ## 0.2.0 (boundary service)
 
 - Added boundary sources behind one interface: the US Census Bureau (cities, ZIP areas, counties) and

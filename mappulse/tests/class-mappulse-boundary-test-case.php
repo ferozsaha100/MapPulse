@@ -13,6 +13,8 @@ abstract class MapPulse_Boundary_Test_Case extends MapPulse_Test_Case {
 	public function set_up() {
 		parent::set_up();
 		$this->http      = new MapPulse_Http_Mock();
+		// The unincorporated-places layer has nothing to say unless a test gives it a route.
+		$this->http->fallback( 'MapServer/30/query', 'empty.json' );
 		$this->cache_dir = get_temp_dir() . 'mappulse-test-cache-' . getmypid();
 		$dir             = $this->cache_dir;
 		add_filter(

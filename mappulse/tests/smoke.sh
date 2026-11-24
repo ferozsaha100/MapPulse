@@ -133,8 +133,12 @@ if [ "${MAPPULSE_LIVE:-}" = "1" ]; then
 	[ "$(echo "$BASE" | field status)" = "200" ] || fail "13 live base layers: $BASE"
 	[ "$(echo "$BASE" | field water)" -ge 1 ] && [ "$(echo "$BASE" | field roadsMajor)" -ge 1 ] || fail "13 live base layers are missing water or major roads: $BASE"
 	pass "13 live $BASE"
+
+	ISLAND=$(wp mappulse find fisher --state=FL --type=city --format=json)
+	echo "$ISLAND" | grep -q '"name":"Fisher Island"' && echo "$ISLAND" | grep -q '"record":"cdp:12' || fail "14 live search did not find Fisher Island, FL as an unincorporated place: $(echo "$ISLAND" | tail -n 2 | cut -c1-300)"
+	pass "14 live search found Fisher Island, FL ($(echo "$ISLAND" | grep -Eo '"record":"cdp:12[0-9]+"' | head -n 1 | cut -d'"' -f4))"
 else
-	skip "10 to 13 live boundary sources (set MAPPULSE_LIVE=1)"
+	skip "10 to 14 live boundary sources (set MAPPULSE_LIVE=1)"
 fi
 
 # 9

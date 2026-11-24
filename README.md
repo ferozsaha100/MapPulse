@@ -6,7 +6,7 @@ MapPulse is a WordPress plugin in development. It shows the areas an agent or br
 interactive map, where every neighborhood, city or ZIP area links to its area page or property search.
 The map is placed with an Elementor widget, a Gutenberg block or a shortcode.
 
-> **Status: version 0.2.0, early release.** The plugin installs, renders maps through all three
+> **Status: version 0.2.1, early release.** The plugin installs, renders maps through all three
 > placements, and finds real boundaries from inside WordPress. Maps are still added from a map file:
 > the visual map builder is the next version. A real sample map of St. Petersburg, Florida is included.
 
@@ -62,7 +62,7 @@ The map builder will replace this step.
 
 **MapPulse, Sources** finds the real boundary of an area and draws its outline so you can confirm it.
 
-- Cities, ZIP areas and counties anywhere in the US come from the US Census Bureau. Type a name or a
+- Cities, unincorporated communities, ZIP areas and counties anywhere in the US come from the US Census Bureau. Type a name or a
   ZIP code, and narrow by state if needed.
 - Neighborhoods come from map layers that cities publish. Under "Add a neighborhood layer", paste the
   address of the city's ArcGIS layer once; its neighborhoods are then found by name. The St. Petersburg

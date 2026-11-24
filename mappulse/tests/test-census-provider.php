@@ -64,6 +64,24 @@ class Test_Census_Provider extends MapPulse_Boundary_Test_Case {
 		$this->assertSame( 'Gulfport', $results[0]['name'] );
 	}
 
+	public function test_city_search_also_finds_unincorporated_places() {
+		$this->http->reset()->fixture( 'MapServer/30/query', 'census-cdp-fisher.json' )->fixture( '/28/query', 'empty.json' )->fixture( 'MapServer?f=json', 'layers.json' );
+		$results = $this->census->search( 'Fisher Island', array( 'type' => 'city', 'state' => 'FL' ) );
+		$this->assertCount( 1, $results );
+		$this->assertSame( 'Fisher Island', $results[0]['name'] );
+		$this->assertSame( 'city', $results[0]['type'] );
+		$this->assertSame( 'cdp:1222575', $results[0]['record'] );
+		$this->assertSame( 'Florida', $results[0]['parent'] );
+	}
+
+	public function test_an_unincorporated_place_can_be_fetched() {
+		$this->http->reset()->fixture( 'MapServer/30/query', 'census-cdp-shape.json' )->fixture( 'MapServer?f=json', 'layers.json' );
+		$feature = $this->census->fetch( 'cdp:1222575' );
+		$this->assertSame( 'city', $feature['properties']['type'] );
+		$this->assertSame( 'Fisher Island', $feature['properties']['name'] );
+		$this->assertSame( array( 'city', 'zip', 'county' ), $this->census->types() );
+	}
+
 	public function test_unknown_state_is_rejected() {
 		$this->assertSame( 'mappulse_bad_state', $this->census->search( 'gulfport', array( 'state' => 'ZZ' ) )->get_error_code() );
 	}

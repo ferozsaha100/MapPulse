@@ -19,10 +19,14 @@ class Census_Provider implements Provider {
 	const SERVICE = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer';
 
 	/**
-	 * Layers by area type: name pattern, fallback layer number, record prefix and ID field.
+	 * Layers by kind: name pattern, fallback layer number, record prefix and ID field.
+	 *
+	 * "cdp" holds census designated places: communities that are not incorporated cities, such as
+	 * Fisher Island or Palm Harbor. People think of them as cities, so they are searched and typed as "city".
 	 */
 	const LAYERS = array(
 		'city'   => array( '/^incorporated places$/i', 28, 'place', 'GEOID' ),
+		'cdp'    => array( '/^census designated places$/i', 30, 'cdp', 'GEOID' ),
 		'zip'    => array( '/zip code tabulation areas$/i', 2, 'zcta', 'ZCTA5' ),
 		'county' => array( '/^counties$/i', 82, 'county', 'GEOID' ),
 	);
@@ -52,7 +56,7 @@ class Census_Provider implements Provider {
 	 * Area types offered.
 	 */
 	public function types(): array {
-		return array_keys( self::LAYERS );
+		return array( 'city', 'zip', 'county' );
 	}
 
 	/**
@@ -92,10 +96,14 @@ class Census_Provider implements Provider {
 		$digits = (bool) preg_match( '/^\d{3,5}$/', $text );
 		if ( '' === $type ) {
 			$types = $digits ? array( 'zip' ) : array( 'city', 'county' );
-		} elseif ( isset( self::LAYERS[ $type ] ) && ( 'zip' !== $type || $digits ) ) {
+		} elseif ( in_array( $type, $this->types(), true ) && ( 'zip' !== $type || $digits ) ) {
 			$types = array( $type );
 		} else {
 			return array();
+		}
+
+		if ( in_array( 'city', $types, true ) ) {
+			$types[] = 'cdp';
 		}
 
 		$key    = 'census|search|' . implode( ',', $types ) . '|' . $state . '|' . $limit . '|' . $text;
@@ -124,7 +132,7 @@ class Census_Provider implements Provider {
 	 * @return array|\WP_Error
 	 */
 	public function fetch( string $record ) {
-		if ( ! preg_match( '/^(place|zcta|county):(\d{5,7})$/', $record, $match ) ) {
+		if ( ! preg_match( '/^(place|cdp|zcta|county):(\d{5,7})$/', $record, $match ) ) {
 			return new \WP_Error( 'mappulse_bad_record', __( 'That is not a valid Census record.', 'mappulse' ) );
 		}
 
@@ -167,7 +175,7 @@ class Census_Provider implements Provider {
 				'source' => $this->id(),
 				'record' => $record,
 				'name'   => $this->name_of( $type, $properties ),
-				'type'   => $type,
+				'type'   => 'cdp' === $type ? 'city' : $type,
 			),
 			'geometry'   => $data['features'][0]['geometry'],
 		);
@@ -240,7 +248,7 @@ class Census_Provider implements Provider {
 				'source' => $this->id(),
 				'record' => $prefix . ':' . $record_id,
 				'name'   => $this->name_of( $type, $properties ),
-				'type'   => $type,
+				'type'   => 'cdp' === $type ? 'city' : $type,
 				'parent' => 'zip' === $type ? __( 'ZIP area', 'mappulse' ) : ( $names[ $state ] ?? '' ),
 				'center' => $center,
 			);

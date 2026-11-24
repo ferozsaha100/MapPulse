@@ -3,7 +3,7 @@ Tags: map, real estate, neighborhoods, elementor, block
 Requires at least: 6.8
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.2.0
+Stable tag: 0.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -56,6 +56,9 @@ Administrators. The capability is `manage_mappulse_maps`.
 They are kept in the database.
 
 == Changelog ==
+
+= 0.2.1 =
+* City search now also finds communities that are not incorporated cities (census designated places), such as Fisher Island, FL.
 
 = 0.2.0 =
 * New Sources screen: find the real boundary of a US city, ZIP area, county or registered neighborhood and see its outline.

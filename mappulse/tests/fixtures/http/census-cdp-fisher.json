@@ -1,0 +1,17 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "BASENAME": "Fisher Island",
+    "NAME": "Fisher Island CDP",
+    "STATE": "12",
+    "GEOID": "1222575",
+    "CENTLON": "-080.1400000",
+    "CENTLAT": "+25.7600000"
+   },
+   "geometry": null
+  }
+ ]
+}

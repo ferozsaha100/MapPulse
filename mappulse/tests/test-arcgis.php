@@ -31,7 +31,7 @@ class Test_Arcgis extends MapPulse_Boundary_Test_Case {
 	}
 
 	public function test_group_layers_are_never_picked() {
-		$this->assertSame( 28, Arcgis::find_layer( self::SERVICE, '/places$/i', null ) );
+		$this->assertSame( 28, Arcgis::find_layer( self::SERVICE, '/^(incorporated )?places$/i', null ) );
 	}
 
 	public function test_layer_list_is_requested_once() {

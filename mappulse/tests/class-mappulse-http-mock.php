@@ -14,6 +14,9 @@ class MapPulse_Http_Mock {
 	/** @var array[] Each: fragment, body, status. First match wins. */
 	private $routes = array();
 
+	/** @var array[] Routes kept across reset(). */
+	private $defaults = array();
+
 	public function __construct() {
 		add_filter( 'pre_http_request', array( $this, 'answer' ), 10, 3 );
 		add_filter( 'mappulse_request_spacing_ms', '__return_zero' );
@@ -30,6 +33,12 @@ class MapPulse_Http_Mock {
 		return $this->on( $fragment, file_get_contents( __DIR__ . '/fixtures/http/' . $file ) );
 	}
 
+	/** Answer URLs containing $fragment with a fixture file, even after reset(), unless a route matches first. */
+	public function fallback( string $fragment, string $file ): self {
+		$this->defaults[] = array( $fragment, file_get_contents( __DIR__ . '/fixtures/http/' . $file ), 200 );
+		return $this;
+	}
+
 	/** Forget every route, keep the request log. */
 	public function reset(): self {
 		$this->routes = array();
@@ -39,7 +48,7 @@ class MapPulse_Http_Mock {
 	public function answer( $pre, $args, $url ) {
 		$this->requests[] = $url;
 		$this->args[]     = $args;
-		foreach ( $this->routes as $route ) {
+		foreach ( array_merge( $this->routes, $this->defaults ) as $route ) {
 			if ( false !== strpos( $url, $route[0] ) ) {
 				return array(
 					'headers'  => array(),

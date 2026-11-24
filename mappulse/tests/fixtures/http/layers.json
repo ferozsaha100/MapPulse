@@ -27,6 +27,11 @@
    "id": 82,
    "name": "Counties",
    "subLayerIds": null
+  },
+  {
+   "id": 30,
+   "name": "Census Designated Places",
+   "subLayerIds": null
   }
  ]
 }
