@@ -1,0 +1,71 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "NAME": "Tampa Bay"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -82.62,
+       27.72
+      ],
+      [
+       -82.57000000000001,
+       27.72
+      ],
+      [
+       -82.57000000000001,
+       27.77
+      ],
+      [
+       -82.62,
+       27.77
+      ],
+      [
+       -82.62,
+       27.72
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "NAME": "Boca Ciega Bay"
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -82.75,
+       27.72
+      ],
+      [
+       -82.7,
+       27.72
+      ],
+      [
+       -82.7,
+       27.77
+      ],
+      [
+       -82.75,
+       27.77
+      ],
+      [
+       -82.75,
+       27.72
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}

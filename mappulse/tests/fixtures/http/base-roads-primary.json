@@ -1,0 +1,24 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "NAME": "I- 275"
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -82.68,
+      27.74
+     ],
+     [
+      -82.63000000000001,
+      27.79
+     ]
+    ]
+   }
+  }
+ ]
+}
