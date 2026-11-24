@@ -99,4 +99,29 @@ class Test_Links_Controller extends MapPulse_Test_Case {
 		$data = $this->call( 'POST', '/links/match', array( 'names' => array( '<b>Aventura</b>', '', array( 'x' ) ) ) )->get_data();
 		$this->assertSame( array( 'Aventura' ), array_keys( $data ) );
 	}
+
+	public function test_match_handles_hyphens_apostrophes_and_many_similar_titles() {
+		$this->sign_in( 'administrator' );
+		$names = array( 'Winston-Salem', "Coeur d'Alene", 'Lauderdale-by-the-Sea', "O'Hare" );
+		$ids   = array();
+		foreach ( $names as $name ) {
+			$ids[ $name ] = self::factory()->post->create( array( 'post_type' => 'page', 'post_title' => $name ) );
+		}
+		// Many titles share the word "beach"; the page must still be found among them.
+		for ( $i = 0; $i < 60; $i++ ) {
+			self::factory()->post->create( array( 'post_title' => sprintf( 'A beach story %02d', $i ) ) );
+		}
+
+		$data = $this->call( 'POST', '/links/match', array( 'names' => array_merge( $names, array( 'St Pete Beach', 'Winston Salem' ) ) ) )->get_data();
+		foreach ( $names as $name ) {
+			$this->assertSame( array( $ids[ $name ] ), wp_list_pluck( $data[ $name ], 'id' ), $name );
+		}
+		$this->assertSame( array( $this->ids['stpete'] ), wp_list_pluck( $data['St Pete Beach'], 'id' ) );
+		// A hyphen and a space are the same thing in a place name.
+		$this->assertSame( array( $ids['Winston-Salem'] ), wp_list_pluck( $data['Winston Salem'], 'id' ) );
+
+		$found = wp_list_pluck( $this->call( 'GET', '/links/search', array( 'q' => 'beach' ) )->get_data(), 'id' );
+		$this->assertCount( 20, $found );
+		$this->assertSame( $this->ids['stpete'], $found[0], 'The page comes before the posts.' );
+	}
 }

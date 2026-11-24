@@ -12,6 +12,7 @@ import {
 import { __, sprintf, _n } from '@wordpress/i18n';
 import LinkField from './link-field';
 import { planMatches } from './auto-match';
+import { clampOffset } from './label-offset';
 import { matchLinks, messageOf } from '../api';
 import MapPreview from '../areas/map-preview';
 
@@ -32,7 +33,18 @@ export default function LinksStep( { state, dispatch, preview } ) {
 		set( zone.id, { label: { ...labelOf( zone ), ...patch } } );
 	const nudge = ( zone, dx, dy ) => {
 		const label = labelOf( zone );
-		setLabel( zone, { dx: label.dx + dx, dy: label.dy + dy } );
+		// Where the builder placed this label, and the frame it must stay in.
+		const shape =
+			state.doc &&
+			state.doc.topology &&
+			state.doc.topology.zones[ zone.id ];
+		setLabel(
+			zone,
+			clampOffset( shape && shape.label, state.doc && state.doc.frame, {
+				dx: label.dx + dx,
+				dy: label.dy + dy,
+			} )
+		);
 	};
 
 	const linked = zones.filter( ( zone ) => zone.link ).length;

@@ -198,6 +198,15 @@ test( 'a map is built, styled, linked, published, shown on a page and reopened',
 		cityPage.link
 	);
 
+	// A linked area is a real link in the preview. Clicking it must not leave the builder.
+	await page
+		.locator( '.mappulse-preview__map a.mappulse__zone' )
+		.click( { position: { x: 5, y: 5 }, force: true } );
+	await expect( page ).toHaveURL( /page=mappulse-builder/ );
+	await expect(
+		page.getByRole( 'heading', { name: '1 of 2 areas have a link' } )
+	).toBeVisible();
+
 	const islandRow = page.locator( '.mappulse-link-row', {
 		has: page.getByRole( 'heading', {
 			name: 'Fisher Island',

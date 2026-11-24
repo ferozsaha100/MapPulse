@@ -156,9 +156,54 @@ class Test_Style_And_Labels extends MapPulse_Test_Case {
 		$this->assertArrayNotHasKey( 'linkPost', $none['zones'][0] );
 	}
 
-	public function test_uninstall_removes_the_link_epoch() {
-		Map_Post_Type::bump_links();
-		$this->assertNotFalse( get_option( Map_Post_Type::LINK_EPOCH ) );
-		$this->assertStringContainsString( "delete_option( 'mappulse_link_epoch' )", file_get_contents( MAPPULSE_DIR . 'uninstall.php' ) );
+	public function test_a_link_follows_every_kind_of_address_change() {
+		$this->set_permalink_structure( '/%year%/%monthnum%/%postname%/' );
+		$post = self::factory()->post->create( array( 'post_title' => 'Downtown guide', 'post_name' => 'downtown-guide', 'post_date' => '2020-01-05 10:00:00' ) );
+		$page = self::factory()->post->create( array( 'post_type' => 'page', 'post_title' => 'Old Northeast', 'post_name' => 'old-northeast' ) );
+		$id   = Map_Post_Type::save(
+			$this->with(
+				static function ( &$raw ) use ( $post, $page ) {
+					$raw['zones'][0]['link']     = 'https://example.org/stored/';
+					$raw['zones'][0]['linkPost'] = $post;
+					$raw['zones'][1]['link']     = 'https://example.org/stored-2/';
+					$raw['zones'][1]['linkPost'] = $page;
+				}
+			)
+		);
+		$both = function ( int $linked ) use ( $id ) {
+			// Once in the cached drawing, once in the area list.
+			$this->assertSame( 2, substr_count( mappulse_render_map( $id ), 'href="' . esc_url( get_permalink( $linked ) ) . '"' ), get_permalink( $linked ) );
+		};
+		$both( $post );
+
+		wp_update_post( array( 'ID' => $post, 'post_date' => '2021-03-09 10:00:00', 'post_date_gmt' => '2021-03-09 10:00:00' ) );
+		$this->assertStringContainsString( '/2021/03/', get_permalink( $post ) );
+		$both( $post );
+
+		$this->set_permalink_structure( '/blog/%postname%/' );
+		$this->assertStringContainsString( '/blog/downtown-guide/', get_permalink( $post ) );
+		$both( $post );
+
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $page );
+		$this->assertSame( home_url( '/' ), get_permalink( $page ) );
+		$both( $page );
+		update_option( 'show_on_front', 'posts' );
+
+		update_option( 'home', 'http://moved.example' );
+		$this->assertStringContainsString( 'moved.example', get_permalink( $post ) );
+		$both( $post );
+	}
+
+	public function test_unrelated_post_changes_do_not_redraw_maps() {
+		$id = Map_Post_Type::save( $this->doc() );
+		Map_Post_Type::svg( $id );
+		$hash = get_post_meta( $id, Map_Post_Type::META_HASH, true );
+		$other = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+		wp_publish_post( $other );
+		wp_delete_post( $other, true );
+		Map_Post_Type::svg( $id );
+		$this->assertSame( $hash, get_post_meta( $id, Map_Post_Type::META_HASH, true ) );
+		$this->assertFalse( get_option( 'mappulse_link_epoch' ) );
 	}
 }

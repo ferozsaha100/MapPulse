@@ -12,8 +12,8 @@ All notable changes to MapPulse are recorded here. Versions follow semantic vers
   address), a custom label text, hide label, and label position by drag or arrow buttons. "Match areas
   to pages" applies clear matches and asks about unclear ones.
 - A link chosen from the site's pages stores the page ID and follows its permalink while the page is
-  published; otherwise the stored address is used. Stored drawings are refreshed when a post's slug,
-  parent or published status changes.
+  published; otherwise the stored address is used. Where each such link leads is part of the stored
+  drawing's signature, so the drawing is redone after any change of address.
 - New document keys, all optional: style `preset`, `zoneStrokeWidth`, `zoneStrokeStyle`, `hoverEffect`,
   `brand`; zone `label` (`text`, `dx`, `dy`, `hidden`) and `linkPost`. Still schema 1; older maps render
   byte-for-byte as before.

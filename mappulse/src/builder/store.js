@@ -24,6 +24,9 @@ export const initialState = ( settings = {} ) => ( {
 	legacyZones: [],
 	// Set when a saved map could not be opened. Nothing can be edited or saved then, so it is not overwritten.
 	blocked: false,
+	// Counts changes, so a save knows whether anything changed while it was on its way.
+	revision: 0,
+	savingRevision: 0,
 	maxZones: settings.maxZones || 200,
 	// The builder's steps: areas, style, links.
 	step: 'areas',
@@ -122,6 +125,25 @@ function uniqueId( name, zones ) {
 export const STEPS = [ 'areas', 'style', 'links' ];
 
 export function reduce( state, action ) {
+	const next = step( state, action );
+	// Every action that marks the map as changed also counts as a change.
+	return next !== state && next.dirty && CHANGES.includes( action.type )
+		? { ...next, revision: state.revision + 1 }
+		: next;
+}
+
+const CHANGES = [
+	'ADD_ZONE',
+	'REMOVE_ZONE',
+	'MOVE_ZONE',
+	'SET_ZONE',
+	'SET_TITLE',
+	'SET_PRIORITY',
+	'SET_STYLE',
+	'APPLY_PRESET',
+];
+
+function step( state, action ) {
 	switch ( action.type ) {
 		case 'ADD_ZONE': {
 			if (
@@ -255,12 +277,18 @@ export function reduce( state, action ) {
 			};
 		}
 		case 'SAVING':
-			return { ...state, saving: true, error: '' };
+			return {
+				...state,
+				saving: true,
+				error: '',
+				savingRevision: state.revision,
+			};
 		case 'SAVED':
 			return {
 				...state,
 				saving: false,
-				dirty: false,
+				// What was sent is saved. Anything changed since is not.
+				dirty: state.revision !== state.savingRevision,
 				mapId: action.mapId,
 				status: action.status,
 				error: '',

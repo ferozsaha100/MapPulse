@@ -284,6 +284,46 @@ describe( 'a map that fails to open', () => {
 	} );
 } );
 
+describe( 'saving while typing', () => {
+	it( 'keeps a change made during a save as unsaved', () => {
+		let state = add( initialState(), gulfportZone() );
+		state = reduce( state, { type: 'SAVING' } );
+		state = reduce( state, {
+			type: 'SET_ZONE',
+			id: 'gulfport',
+			patch: { link: 'https://example.com/late/' },
+		} );
+		state = reduce( state, { type: 'SAVED', mapId: 3, status: 'publish' } );
+		expect( state.dirty ).toBe( true );
+		expect( state.mapId ).toBe( 3 );
+
+		state = reduce( reduce( state, { type: 'SAVING' } ), {
+			type: 'SAVED',
+			mapId: 3,
+			status: 'publish',
+		} );
+		expect( state.dirty ).toBe( false );
+	} );
+
+	it( 'treats a title or style change during a save the same way', () => {
+		for ( const action of [
+			{ type: 'SET_TITLE', title: 'New' },
+			{ type: 'SET_STYLE', patch: { zone: '#000000' } },
+			{ type: 'MOVE_ZONE', from: 0, to: 1 },
+		] ) {
+			let state = add(
+				add( initialState(), gulfportZone() ),
+				fisherZone()
+			);
+			state = reduce(
+				reduce( reduce( state, { type: 'SAVING' } ), action ),
+				{ type: 'SAVED', mapId: 3, status: 'draft' }
+			);
+			expect( state.dirty ).toBe( true );
+		}
+	} );
+} );
+
 describe( 'saveActions', () => {
 	const ready = {
 		doc: { schema: 1 },

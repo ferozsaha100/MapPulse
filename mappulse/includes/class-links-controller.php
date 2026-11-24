@@ -76,13 +76,13 @@ class Links_Controller {
 	}
 
 	/**
-	 * A plain form of a title for comparing: lower case, punctuation removed, single spaces.
+	 * A plain form of a title for comparing: lower case, with punctuation and hyphens read as spaces.
 	 *
 	 * @param string $text Title or area name.
 	 */
 	public static function plain( string $text ): string {
 		$text = remove_accents( wp_strip_all_tags( html_entity_decode( $text, ENT_QUOTES, 'UTF-8' ) ) );
-		return trim( preg_replace( '/\s+/', ' ', preg_replace( '/[^a-z0-9 ]+/', '', strtolower( $text ) ) ) );
+		return trim( preg_replace( '/\s+/', ' ', preg_replace( '/[^a-z0-9]+/', ' ', strtolower( $text ) ) ) );
 	}
 
 	/**
@@ -105,29 +105,47 @@ class Links_Controller {
 	 *
 	 * @param string $text  Text to find.
 	 * @param int    $limit Most posts to return.
+	 * @param array  $types Post types to look in. All linkable types when empty.
 	 * @return \WP_Post[]
 	 */
-	private static function titled( string $text, int $limit ): array {
+	private static function titled( string $text, int $limit, array $types = array() ): array {
 		$only_titles = static function () {
 			return array( 'post_title' );
 		};
 		add_filter( 'post_search_columns', $only_titles );
-		$posts = get_posts(
-			array(
-				'post_type'              => self::types(),
-				'post_status'            => 'publish',
-				's'                      => $text,
-				'posts_per_page'         => $limit,
-				'orderby'                => 'title',
-				'order'                  => 'ASC',
-				'no_found_rows'          => true,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-				'suppress_filters'       => false,
-			)
-		);
-		remove_filter( 'post_search_columns', $only_titles );
+		try {
+			$posts = get_posts(
+				array(
+					'post_type'              => $types ? $types : self::types(),
+					'post_status'            => 'publish',
+					's'                      => $text,
+					'posts_per_page'         => $limit,
+					'orderby'                => 'title',
+					'order'                  => 'ASC',
+					'no_found_rows'          => true,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+					'suppress_filters'       => false,
+				)
+			);
+		} finally {
+			remove_filter( 'post_search_columns', $only_titles );
+		}
 		return $posts;
+	}
+
+	/**
+	 * Posts whose title contains the text: pages first, each kind looked up on its own, so a site with
+	 * many posts on one subject cannot crowd its pages out.
+	 *
+	 * @param string $text Text to find.
+	 * @return \WP_Post[]
+	 */
+	private static function candidates( string $text ): array {
+		$types = self::types();
+		$pages = in_array( 'page', $types, true ) ? self::titled( $text, 200, array( 'page' ) ) : array();
+		$other = array_values( array_diff( $types, array( 'page' ) ) );
+		return array_merge( $pages, $other ? self::titled( $text, 200, $other ) : array() );
 	}
 
 	/**
@@ -162,7 +180,8 @@ class Links_Controller {
 		if ( mb_strlen( $text ) < 2 || mb_strlen( $text ) > 60 ) {
 			return new \WP_Error( 'mappulse_bad_query', __( 'Type between 2 and 60 characters.', 'mappulse' ), array( 'status' => 400 ) );
 		}
-		$posts = self::ranked( self::titled( $text, 20 ), self::plain( $text ) );
+		// Rank a wide set, then cut: the best match must not be lost to an alphabetical cut-off.
+		$posts = array_slice( self::ranked( self::candidates( $text ), self::plain( $text ) ), 0, 20 );
 		return rest_ensure_response( array_map( array( self::class, 'choice' ), $posts ) );
 	}
 
@@ -194,7 +213,7 @@ class Links_Controller {
 						return strlen( $b ) <=> strlen( $a );
 					}
 				);
-				foreach ( self::titled( $words[0], 50 ) as $post ) {
+				foreach ( self::candidates( $words[0] ) as $post ) {
 					if ( self::plain( $post->post_title ) === $wanted ) {
 						$found[] = $post;
 					}

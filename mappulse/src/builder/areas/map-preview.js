@@ -37,6 +37,21 @@ export default function MapPreview( {
 		}
 	}, [ selected, svg ] );
 
+	// A linked area is a real link in the drawing. In the builder a click on it must not leave the page.
+	useEffect( () => {
+		const root = holder.current;
+		if ( ! root ) {
+			return;
+		}
+		const stay = ( event ) => {
+			if ( event.target.closest && event.target.closest( 'a' ) ) {
+				event.preventDefault();
+			}
+		};
+		root.addEventListener( 'click', stay );
+		return () => root.removeEventListener( 'click', stay );
+	}, [ svg ] );
+
 	// Drag the chosen area's label.
 	useEffect( () => {
 		const root = holder.current;
