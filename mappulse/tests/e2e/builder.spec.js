@@ -5,6 +5,8 @@ const USER = process.env.MAPPULSE_E2E_USER || 'admin';
 const PASS = process.env.MAPPULSE_E2E_PASS || 'password';
 // Real boundary sources can take a while; the base map is six requests.
 const SLOW = 180000;
+// The second area. It should be near Fisher Island, FL when real sources are used, so one base map covers both.
+const CITY = process.env.MAPPULSE_E2E_CITY || 'Gulfport';
 const BUILDER =
 	'/wp-admin/edit.php?post_type=mappulse_map&page=mappulse-builder';
 
@@ -34,7 +36,7 @@ async function addArea( page, name, { expectClean } ) {
 		await expect(
 			dialog.locator( '.leaflet-overlay-pane path' )
 		).toHaveCount( 2 );
-	} else {
+	} else if ( expectClean === false ) {
 		await expect( clean ).toHaveCount( 0 );
 	}
 	await dialog.getByRole( 'button', { name: 'Add to map' } ).click();
@@ -95,7 +97,9 @@ test( 'a map is built, published, shown on a page and reopened', async ( {
 
 	const title = `E2E map ${ Date.now() }`;
 	await page.getByLabel( 'Map name' ).fill( title );
-	await addArea( page, 'Gulfport', { expectClean: false } );
+	await addArea( page, CITY, {
+		expectClean: CITY === 'Gulfport' ? false : null,
+	} );
 	await addArea( page, 'Fisher Island', { expectClean: true } );
 
 	// The preview is the real renderer's output, with both zones and the map's own colors.
@@ -160,7 +164,7 @@ test( 'a map is built, published, shown on a page and reopened', async ( {
 	);
 	await expect( page.locator( '.mappulse__list li' ) ).toHaveText( [
 		'Fisher Island',
-		'Gulfport',
+		CITY,
 	] );
 	// No builder code reaches the front end.
 	expect(

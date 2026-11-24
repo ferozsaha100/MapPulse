@@ -289,11 +289,12 @@ describe( 'bboxForBase', () => {
 		expect( box[ 3 ] ).toBeCloseTo( 21.15 );
 	} );
 
-	it( 'caps each side at 1.5 degrees around the middle', () => {
+	it( 'caps each side just under 1.5 degrees around the middle', () => {
 		const box = bboxForBase( [
 			{ feature: feature( square( 10, 20, 4 ) ) },
 		] );
-		expect( box[ 2 ] - box[ 0 ] ).toBeCloseTo( 1.5 );
+		expect( box[ 2 ] - box[ 0 ] ).toBeCloseTo( 1.49 );
+		expect( box[ 2 ] - box[ 0 ] ).toBeLessThan( 1.5 );
 		expect( ( box[ 0 ] + box[ 2 ] ) / 2 ).toBeCloseTo( 12 );
 	} );
 

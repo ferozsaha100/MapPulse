@@ -38,7 +38,8 @@ const LABEL_SIZE_MIN = 9.5;
 const WATER_MIN = 30;
 const WATER_CLIP_MIN = 60;
 const TINY_ZONE = 60;
-const MAX_BASE_SIDE = 1.5;
+// The base-map route takes boxes up to 1.5 degrees a side. Staying just under avoids a rounding refusal.
+const MAX_BASE_SIDE = 1.49;
 
 const r1 = ( n ) => Math.round( n * 10 ) / 10;
 const features = ( layer ) =>
