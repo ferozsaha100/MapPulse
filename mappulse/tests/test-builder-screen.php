@@ -140,4 +140,54 @@ class Test_Builder_Screen extends MapPulse_Test_Case {
 			}
 		}
 	}
+
+	public function test_site_colors_and_fonts_are_offered() {
+		$this->sign_in( 'administrator' );
+		$theme = static function ( $data ) {
+			return $data->update_with(
+				array(
+					'version'  => 3,
+					'settings' => array(
+						'color'      => array(
+							'palette' => array(
+								array( 'slug' => 'brand', 'name' => 'Brand', 'color' => '#1f3a5f' ),
+								array( 'slug' => 'brand-again', 'name' => 'Brand again', 'color' => '#1F3A5F' ),
+								array( 'slug' => 'fancy', 'name' => 'Fancy', 'color' => 'var(--wp--preset--color--x)' ),
+								array( 'slug' => 'short', 'name' => 'Short', 'color' => '#abc' ),
+							),
+						),
+						'typography' => array(
+							'fontFamilies' => array(
+								array( 'slug' => 'heading', 'name' => 'Heading', 'fontFamily' => '"Playfair Display", serif' ),
+								array( 'slug' => 'tricky', 'name' => 'Tricky', 'fontFamily' => 'var(--wp--preset--font-family--x)' ),
+							),
+						),
+					),
+				)
+			);
+		};
+		add_filter( 'wp_theme_json_data_theme', $theme );
+		wp_clean_theme_json_cache();
+		$settings = Builder_Screen::settings();
+		remove_filter( 'wp_theme_json_data_theme', $theme );
+		wp_clean_theme_json_cache();
+
+		$colors = wp_list_pluck( $settings['siteColors'], 'color' );
+		$this->assertContains( '#1F3A5F', $colors );
+		$this->assertContains( '#AABBCC', $colors );
+		$this->assertSame( 1, count( array_keys( $colors, '#1F3A5F', true ) ) );
+		foreach ( $colors as $color ) {
+			$this->assertMatchesRegularExpression( '/^#[0-9A-F]{6}$/', $color );
+		}
+		$this->assertLessThanOrEqual( 24, count( $colors ) );
+
+		$families = wp_list_pluck( $settings['siteFonts'], 'family' );
+		$this->assertContains( 'Playfair Display, serif', $families );
+		$this->assertContains( 'Georgia, Times New Roman, serif', $families );
+		foreach ( $families as $family ) {
+			$this->assertMatchesRegularExpression( '/^[A-Za-z0-9 ,_\-]+$/', $family );
+		}
+		$this->assertSame( '#DCCFB6', $settings['styleDefaults']['zone'] );
+		$this->assertSame( 'atlas', $settings['styleDefaults']['preset'] );
+	}
 }

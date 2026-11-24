@@ -68,6 +68,13 @@ class Map_Document {
 	}
 
 	/**
+	 * The full built-in style block: the default colors, font and size, and the border and hover values.
+	 */
+	public static function style_defaults(): array {
+		return self::style( array() );
+	}
+
+	/**
 	 * Hash of a document, used to tell whether a cached SVG still matches it.
 	 *
 	 * @param array $doc A sanitized document.

@@ -45,6 +45,7 @@ class Plugin {
 		Boundaries\Sources::register();
 		Rest_Controller::register();
 		Maps_Controller::register();
+		Links_Controller::register();
 		// A map's Edit links open the builder wherever they appear, the admin bar included.
 		add_filter( 'get_edit_post_link', array( Builder_Screen::class, 'edit_link' ), 10, 2 );
 
