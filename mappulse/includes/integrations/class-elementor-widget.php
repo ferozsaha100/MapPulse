@@ -206,7 +206,7 @@ class Elementor_Widget extends Widget_Base {
 
 		if ( ! $map_id ) {
 			if ( \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
-				echo '<p class="mappulse-notice">' . esc_html__( 'Choose a map in the widget settings. Maps are added under MapPulse, Import.', 'mappulse' ) . '</p>';
+				echo wp_kses_post( \MapPulse\Importer::prompt_html() );
 			}
 			return;
 		}

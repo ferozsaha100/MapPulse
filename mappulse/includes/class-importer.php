@@ -25,6 +25,35 @@ class Importer {
 	}
 
 	/**
+	 * Admin URL of the Import screen.
+	 */
+	public static function page_url(): string {
+		return admin_url( 'edit.php?post_type=' . Map_Post_Type::POST_TYPE . '&page=' . self::PAGE );
+	}
+
+	/**
+	 * Prints an "Import a map" button at the top of the map list.
+	 *
+	 * @param array $views List table views, returned unchanged.
+	 */
+	public static function list_button( array $views ): array {
+		printf(
+			'<p><a class="page-title-action" href="%s">%s</a></p>',
+			esc_url( self::page_url() ),
+			esc_html__( 'Import a map', 'mappulse' )
+		);
+		return $views;
+	}
+
+	/**
+	 * The prompt shown in an editor when a placement has no map chosen yet.
+	 */
+	public static function prompt_html(): string {
+		return '<p class="mappulse-notice">' . esc_html__( 'Choose a map in the settings.', 'mappulse' )
+			. ' <a href="' . esc_url( self::page_url() ) . '" target="_blank" rel="noopener">' . esc_html__( 'No maps in the list? Import one first.', 'mappulse' ) . '</a></p>';
+	}
+
+	/**
 	 * Imports a map from a JSON string.
 	 *
 	 * @param string $json  Contents of a map file.
@@ -70,6 +99,7 @@ class Importer {
 		add_action( 'admin_menu', array( $this, 'add_menu' ) );
 		add_action( 'admin_post_' . self::ACTION, array( $this, 'handle_request' ) );
 		add_action( 'admin_notices', array( $this, 'notices' ) );
+		add_filter( 'views_edit-' . Map_Post_Type::POST_TYPE, array( self::class, 'list_button' ) );
 	}
 
 	/**
