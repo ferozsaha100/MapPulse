@@ -124,6 +124,19 @@ class Elementor_Widget extends Widget_Base {
 		);
 
 		$this->add_control(
+			'cards',
+			array(
+				'label'        => esc_html__( 'Hover cards', 'mappulse' ),
+				'description'  => esc_html__( 'Cards are set per area in the map builder.', 'mappulse' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => esc_html__( 'Show', 'mappulse' ),
+				'label_off'    => esc_html__( 'Hide', 'mappulse' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+			)
+		);
+
+		$this->add_control(
 			'heading',
 			array(
 				'label'       => esc_html__( 'Heading', 'mappulse' ),
@@ -194,6 +207,57 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
+		$this->add_control(
+			'card_radius',
+			array(
+				'label'      => esc_html__( 'Card radius', 'mappulse' ),
+				'type'       => Controls_Manager::SLIDER,
+				'size_units' => array( 'px' ),
+				'range'      => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 24,
+					),
+				),
+				'selectors'  => array(
+					'{{WRAPPER}} .mappulse' => '--mappulse-card-radius: {{SIZE}}{{UNIT}};',
+				),
+				'condition'  => array(
+					'cards' => 'yes',
+				),
+			)
+		);
+
+		// Elementor writes a shadow control's default values into the page. The switch keeps the card's own shadow
+		// until someone asks for another.
+		$this->add_control(
+			'card_shadow_custom',
+			array(
+				'label'        => esc_html__( 'Custom card shadow', 'mappulse' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'return_value' => 'yes',
+				'default'      => '',
+				'condition'    => array(
+					'cards' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'card_shadow',
+			array(
+				'label'     => esc_html__( 'Card shadow', 'mappulse' ),
+				'type'      => Controls_Manager::BOX_SHADOW,
+				'selectors' => array(
+					'{{WRAPPER}} .mappulse' => '--mappulse-card-shadow: {{HORIZONTAL}}px {{VERTICAL}}px {{BLUR}}px {{SPREAD}}px {{COLOR}};',
+				),
+				'condition' => array(
+					'cards'              => 'yes',
+					'card_shadow_custom' => 'yes',
+				),
+			)
+		);
+
 		$this->end_controls_section();
 	}
 
@@ -219,6 +283,7 @@ class Elementor_Widget extends Widget_Base {
 				'heading'   => isset( $settings['heading'] ) ? (string) $settings['heading'] : '',
 				'intro'     => isset( $settings['intro'] ) ? (string) $settings['intro'] : '',
 				'show_list' => ! isset( $settings['show_list'] ) || 'yes' === $settings['show_list'],
+				'cards'     => ! isset( $settings['cards'] ) || 'yes' === $settings['cards'],
 			)
 		);
 	}

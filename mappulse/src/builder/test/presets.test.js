@@ -27,7 +27,11 @@ const HEX = /^#[0-9A-F]{6}$/;
 
 describe( 'presets', () => {
 	it( 'lists Atlas and Brand Tint', () => {
-		expect( Object.keys( PRESETS ) ).toEqual( [ 'atlas', 'brand-tint' ] );
+		expect( Object.keys( PRESETS ) ).toEqual( [
+			'atlas',
+			'brand-tint',
+			'minimal-line',
+		] );
 		expect( COLOR_KEYS ).toHaveLength( 13 );
 	} );
 
@@ -104,6 +108,65 @@ describe( 'presets', () => {
 				contrastRatio( style.zone, style.context )
 			).toBeGreaterThan( 1.35 );
 		}
+	} );
+
+	it( 'keeps land, water and nearby areas apart from each other', () => {
+		for ( const brand of [
+			'#1F3A5F',
+			'#7A1F3D',
+			'#0B6E4F',
+			'#C8A24A',
+			'#FFFFFF',
+			'#000000',
+		] ) {
+			const style = applyPreset(
+				'brand-tint',
+				DEFAULTS,
+				brand,
+				DEFAULTS
+			);
+			expect( contrastRatio( style.land, style.water ) ).toBeGreaterThan(
+				1.12
+			);
+			expect(
+				contrastRatio( style.land, style.context )
+			).toBeGreaterThan( 1.12 );
+			expect( contrastRatio( style.water, style.coast ) ).toBeGreaterThan(
+				1.25
+			);
+		}
+	} );
+
+	it( 'Minimal Line outlines the areas on white', () => {
+		const style = applyPreset( 'minimal-line', DEFAULTS, '', DEFAULTS );
+		for ( const key of COLOR_KEYS ) {
+			expect( style[ key ] ).toMatch( HEX );
+		}
+		expect( style ).toMatchObject( {
+			preset: 'minimal-line',
+			land: '#FFFFFF',
+			zone: '#FFFFFF',
+			brand: '',
+		} );
+		// The areas show by their border, which must stand out from their own fill.
+		expect( contrastRatio( style.zoneStroke, style.zone ) ).toBeGreaterThan(
+			3
+		);
+		expect( readable( style ).ok ).toBe( true );
+	} );
+
+	it( 'keeps colors set by hand when the brand color changes, unless told to reset', () => {
+		let style = applyPreset( 'brand-tint', DEFAULTS, '#1F3A5F', DEFAULTS );
+		style = { ...style, water: '#88AACC' };
+		const next = applyPreset( 'brand-tint', style, '#7A1F3D', DEFAULTS, {
+			keepHandSet: true,
+		} );
+		expect( next.water ).toBe( '#88AACC' );
+		expect( next.zoneHover ).toBe( '#7A1F3D' );
+		expect( next.brand ).toBe( '#7A1F3D' );
+		expect(
+			applyPreset( 'brand-tint', style, '#7A1F3D', DEFAULTS ).water
+		).not.toBe( '#88AACC' );
 	} );
 
 	it( 'falls back to Atlas for an unknown preset or a bad brand color', () => {

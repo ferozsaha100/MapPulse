@@ -37,3 +37,25 @@ export function clampOffset( placed, frame, offset ) {
 		dy: round( within( placed.y + dy, halfH, frame.height ) - placed.y ),
 	};
 }
+
+/**
+ * A hand-set label as it should be drawn at the map's current scale. An offset is a distance on the
+ * ground, so when areas are added and the map is drawn smaller, the offset shrinks with it.
+ *
+ * @param label A zone's label override, or null.
+ * @param scale Frame units per projected unit of the map being drawn.
+ * @return The label with dx and dy at that scale, or what was given when there is nothing to convert.
+ */
+export function atScale( label, scale ) {
+	if ( ! label || ! ( scale > 0 ) ) {
+		return label;
+	}
+	const round = ( n ) => Math.round( n * 10 ) / 10 || 0;
+	const factor = label.scale > 0 ? scale / label.scale : 1;
+	return {
+		...label,
+		dx: round( ( label.dx || 0 ) * factor ),
+		dy: round( ( label.dy || 0 ) * factor ),
+		scale,
+	};
+}

@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
  * The shortcode, the block and the Elementor widget all call this.
  *
  * @param int   $map_id ID of a published map.
- * @param array $args   Optional. layout (list-left, list-right, list-below, map-only), heading, intro, show_list.
+ * @param array $args   Optional. layout (list-left, list-right, list-below, map-only), heading, intro, show_list, cards (false to leave the hover cards out).
  */
 function mappulse_render_map( int $map_id, array $args = array() ): string {
 	$post = $map_id > 0 ? get_post( $map_id ) : null;

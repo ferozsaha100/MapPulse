@@ -17,6 +17,13 @@ defined( 'ABSPATH' ) || exit;
  */
 class Renderer {
 
+	/**
+	 * How many map sections have been printed in this request. Makes card ids unique on a page.
+	 *
+	 * @var int
+	 */
+	private static $instances = 0;
+
 	const LAYOUTS = array( 'list-left', 'list-right', 'list-below', 'map-only' );
 
 	/**
@@ -130,16 +137,91 @@ class Renderer {
 	 * @param array $zone A sanitized zone.
 	 */
 	public static function link( array $zone ): string {
-		if ( ! empty( $zone['linkPost'] ) ) {
-			$post = get_post( (int) $zone['linkPost'] );
+		return self::resolve( (string) $zone['link'], (int) ( $zone['linkPost'] ?? 0 ) );
+	}
+
+	/**
+	 * An address that follows a page of this site while that page is published, and otherwise the stored one.
+	 *
+	 * @param string $url     The stored address.
+	 * @param int    $post_id The page or post it was chosen from, or 0.
+	 */
+	public static function resolve( string $url, int $post_id ): string {
+		if ( $post_id > 0 ) {
+			$post = get_post( $post_id );
 			if ( $post && 'publish' === $post->post_status && is_post_type_viewable( $post->post_type ) ) {
-				$url = get_permalink( $post );
-				if ( $url ) {
-					return $url;
+				$link = get_permalink( $post );
+				if ( $link ) {
+					return $link;
 				}
 			}
 		}
-		return (string) $zone['link'];
+		return $url;
+	}
+
+	/**
+	 * One area's hover card: real markup, hidden until the view script shows it.
+	 * An empty string when the area has nothing to show in a card.
+	 *
+	 * @param array  $zone A sanitized zone.
+	 * @param string $id   The id attribute for the card, unique on the page.
+	 */
+	public static function card( array $zone, string $id ): string {
+		if ( empty( $zone['card'] ) || ! empty( $zone['hidden'] ) ) {
+			return '';
+		}
+		$card = $zone['card'];
+		$body = '';
+
+		if ( $card['image'] > 0 && wp_attachment_is_image( $card['image'] ) ) {
+			$image = wp_get_attachment_image(
+				$card['image'],
+				'medium_large',
+				false,
+				array(
+					'class'   => 'mappulse__card-image',
+					'loading' => 'lazy',
+					'alt'     => '',
+				)
+			);
+			if ( $image ) {
+				$body .= '<div class="mappulse__card-photo">' . $image . '</div>';
+			}
+		}
+		if ( '' !== $card['tagline'] ) {
+			$body .= '<p class="mappulse__card-tagline">' . esc_html( $card['tagline'] ) . '</p>';
+		}
+		if ( $card['stats'] ) {
+			$body .= '<dl class="mappulse__card-stats">';
+			foreach ( $card['stats'] as $stat ) {
+				$body .= '<div><dt>' . esc_html( $stat['label'] ) . '</dt><dd>' . esc_html( $stat['value'] ) . '</dd></div>';
+			}
+			$body .= '</dl>';
+		}
+
+		$buttons = array();
+		foreach ( $card['buttons'] as $button ) {
+			$buttons[] = array( self::resolve( $button['url'], (int) $button['post'] ), $button['label'] );
+		}
+		// A card with no buttons of its own leads to the area's link.
+		$link = self::link( $zone );
+		if ( ! $buttons && '' !== $link ) {
+			$buttons[] = array( $link, __( 'View area', 'mappulse' ) );
+		}
+		// A card that would hold only a button to where the area already leads says nothing new.
+		if ( '' === $body && ! $card['buttons'] ) {
+			return '';
+		}
+		if ( $buttons ) {
+			$body .= '<p class="mappulse__card-actions">';
+			foreach ( $buttons as $button ) {
+				$body .= '<a class="mappulse__card-button" href="' . esc_url( $button[0] ) . '">' . esc_html( $button[1] ) . '</a>';
+			}
+			$body .= '</p>';
+		}
+
+		return '<div class="mappulse__card" id="' . esc_attr( $id ) . '" data-zone="' . esc_attr( $zone['id'] ) . '" hidden>'
+			. '<h3 class="mappulse__card-title">' . esc_html( $zone['name'] ) . '</h3>' . $body . '</div>';
 	}
 
 	/**
@@ -234,8 +316,37 @@ class Renderer {
 			$variables[] = '--mappulse-doc-zone-dash:' . Map_Document::STROKE_STYLES[ $style['zoneStrokeStyle'] ];
 		}
 		$hover = 'outline' === $style['hoverEffect'] ? ' mappulse--hover-outline' : '';
+		foreach ( Map_Document::CARD_COLORS as $key => $fallback ) {
+			if ( strtoupper( (string) $style[ $key ] ) !== $fallback ) {
+				$variables[] = '--mappulse-doc-' . strtolower( preg_replace( '/([A-Z])/', '-$1', $key ) ) . ':' . $style[ $key ];
+			}
+		}
 
-		$html = '<section class="mappulse mappulse--' . esc_attr( $layout ) . $hover . '" data-mappulse style="' . esc_attr( implode( ';', $variables ) ) . '">';
+		// Hover cards, unless this placement switches them off. Each gets an id that is unique on the page.
+		$cards = array();
+		if ( ! isset( $args['cards'] ) || $args['cards'] ) {
+			$uid = 'mappulse-' . ( ++self::$instances );
+			foreach ( $doc['zones'] as $zone ) {
+				$card_id = $uid . '-card-' . $zone['id'];
+				$card    = self::card( $zone, $card_id );
+				if ( '' !== $card ) {
+					$cards[ $zone['id'] ] = array( $card_id, $card );
+				}
+			}
+		}
+		// The drawing is stored without knowing where it will be placed, so each area is tied to its card here.
+		foreach ( $cards as $zone_id => $card ) {
+			$needle = ' data-zone="' . esc_attr( $zone_id ) . '" aria-label=';
+			$at     = strpos( $svg, $needle );
+			if ( false !== $at ) {
+				$svg = substr_replace( $svg, ' data-zone="' . esc_attr( $zone_id ) . '" aria-describedby="' . esc_attr( $card[0] ) . '" aria-label=', $at, strlen( $needle ) );
+			}
+		}
+
+		// The view script adds a Close button to a card shown as a sheet. Its label is given here so it can be translated.
+		$close = $cards ? ' data-close-label="' . esc_attr__( 'Close', 'mappulse' ) . '"' : '';
+
+		$html = '<section class="mappulse mappulse--' . esc_attr( $layout ) . $hover . '" data-mappulse' . $close . ' style="' . esc_attr( implode( ';', $variables ) ) . '">';
 		if ( '' !== $heading ) {
 			$html .= '<h2 class="mappulse__heading">' . esc_html( $heading ) . '</h2>';
 		}
@@ -248,14 +359,19 @@ class Renderer {
 				if ( ! empty( $zone['hidden'] ) ) {
 					continue;
 				}
-				$link  = self::link( $zone );
-				$html .= '' !== $link
-					? '<li><a href="' . esc_url( $link ) . '" data-zone="' . esc_attr( $zone['id'] ) . '">' . esc_html( $zone['name'] ) . '</a></li>'
+				$link      = self::link( $zone );
+				$described = isset( $cards[ $zone['id'] ] ) ? ' aria-describedby="' . esc_attr( $cards[ $zone['id'] ][0] ) . '"' : '';
+				$html     .= '' !== $link
+					? '<li><a href="' . esc_url( $link ) . '" data-zone="' . esc_attr( $zone['id'] ) . '"' . $described . '>' . esc_html( $zone['name'] ) . '</a></li>'
 					: '<li><span data-zone="' . esc_attr( $zone['id'] ) . '">' . esc_html( $zone['name'] ) . '</span></li>';
 			}
 			$html .= '</ul>';
 		}
-		$html .= '<div class="mappulse__map">' . $svg . '</div></section>';
+		$html .= '<div class="mappulse__map">' . $svg . '</div>';
+		if ( $cards ) {
+			$html .= '<div class="mappulse__cards">' . implode( '', array_column( $cards, 1 ) ) . '</div>';
+		}
+		$html .= '</section>';
 
 		return $html;
 	}

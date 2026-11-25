@@ -129,10 +129,10 @@ if [ "${MAPPULSE_LIVE:-}" = "1" ]; then
 	echo "$HOODS" | grep -qi 'kenwood' || fail "12 live neighborhood search found no Kenwood: $(echo "$HOODS" | tail -n 2 | cut -c1-300)"
 	pass "12 registered a city layer and found $(echo "$HOODS" | grep -Eo '"name":"[^"]*"' | wc -l | tr -d ' ') Kenwood neighborhoods"
 
-	BASE=$(wp eval-file "$SETUP" base "-82.75,27.72,-82.60,27.82" | grep -Eo 'base .*')
-	[ "$(echo "$BASE" | field status)" = "200" ] || fail "13 live base layers: $BASE"
-	[ "$(echo "$BASE" | field water)" -ge 1 ] && [ "$(echo "$BASE" | field roadsMajor)" -ge 1 ] || fail "13 live base layers are missing water or major roads: $BASE"
-	pass "13 live $BASE"
+	LAYERS=$(wp eval-file "$SETUP" base "-82.75,27.72,-82.60,27.82" | grep -Eo 'base .*')
+	[ "$(echo "$LAYERS" | field status)" = "200" ] || fail "13 live base layers: $LAYERS"
+	[ "$(echo "$LAYERS" | field water)" -ge 1 ] && [ "$(echo "$LAYERS" | field roadsMajor)" -ge 1 ] || fail "13 live base layers are missing water or major roads: $LAYERS"
+	pass "13 live $LAYERS"
 
 	ISLAND=$(wp mappulse find fisher --state=FL --type=city --format=json)
 	echo "$ISLAND" | grep -q '"name":"Fisher Island"' && echo "$ISLAND" | grep -q '"record":"cdp:12' || fail "14 live search did not find Fisher Island, FL as an unincorporated place: $(echo "$ISLAND" | tail -n 2 | cut -c1-300)"
@@ -146,6 +146,19 @@ BUILT=$(wp eval 'echo ( is_readable( MAPPULSE_DIR . "build/builder.js" ) && is_r
 [ "$(echo "$BUILT" | field built)" = "yes" ] || fail "15 the compiled builder is missing from the plugin folder (run npm run build in mappulse/)"
 [ "$(echo "$BUILT" | field routes)" = "4" ] || fail "15 the builder routes are not registered: $BUILT"
 pass "15 builder is compiled and its routes are registered"
+
+# 16 A hover card is printed once for its area, and not at all where the placement turns cards off.
+CARD=$(wp eval-file "$SETUP" card "$MAP_ID")
+[ "$(echo "$CARD" | field saved)" = "1" ] || fail "16 could not add a hover card to map $MAP_ID: $CARD"
+curl -sL -o "$TMP/card.html" "$BASE/?page_id=$(echo "$CARD" | field with)"
+curl -sL -o "$TMP/nocard.html" "$BASE/?page_id=$(echo "$CARD" | field without)"
+WITH=$(grep -Eo 'class="mappulse__card"' "$TMP/card.html" | wc -l | tr -d ' ')
+WITHOUT=$(grep -Eo 'class="mappulse__card"' "$TMP/nocard.html" | wc -l | tr -d ' ')
+[ "$WITH" = "1" ] || fail "16 page with a hover card holds $WITH cards, expected 1"
+grep -q 'Smoke check tagline' "$TMP/card.html" || fail "16 the hover card's text is not in the page"
+grep -q 'data-mappulse' "$TMP/nocard.html" || fail "16 the page with cards off has no map section"
+[ "$WITHOUT" = "0" ] || fail "16 page with cards=\"no\" holds $WITHOUT cards, expected 0"
+pass "16 hover card printed once, and left out with cards=\"no\""
 
 # 9
 $WP plugin deactivate mappulse >/dev/null 2>&1 || fail "9 could not deactivate MapPulse"

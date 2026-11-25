@@ -36,6 +36,7 @@ class Shortcode {
 				'heading' => '',
 				'intro'   => '',
 				'list'    => 'yes',
+				'cards'   => 'yes',
 			),
 			$atts,
 			self::TAG
@@ -48,6 +49,7 @@ class Shortcode {
 				'heading'   => (string) $atts['heading'],
 				'intro'     => (string) $atts['intro'],
 				'show_list' => 'no' !== strtolower( trim( (string) $atts['list'] ) ),
+				'cards'     => 'no' !== strtolower( trim( (string) $atts['cards'] ) ),
 			)
 		);
 	}

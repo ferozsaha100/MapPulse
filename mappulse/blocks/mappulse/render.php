@@ -16,6 +16,7 @@ $mappulse_html = mappulse_render_map(
 		'heading'   => isset( $attributes['heading'] ) ? (string) $attributes['heading'] : '',
 		'intro'     => isset( $attributes['intro'] ) ? (string) $attributes['intro'] : '',
 		'show_list' => ! isset( $attributes['showList'] ) || $attributes['showList'],
+		'cards'     => ! isset( $attributes['cards'] ) || $attributes['cards'],
 	)
 );
 

@@ -61,6 +61,15 @@
 						__next40pxDefaultSize: true
 					} ),
 					el( components.ToggleControl, {
+						label: __( 'Hover cards', 'mappulse' ),
+						help: __( 'Cards are set per area in the map builder.', 'mappulse' ),
+						checked: attributes.cards !== false,
+						onChange: function ( value ) {
+							setAttributes( { cards: value } );
+						},
+						__nextHasNoMarginBottom: true
+					} ),
+					el( components.ToggleControl, {
 						label: __( 'Show the area list', 'mappulse' ),
 						checked: attributes.showList,
 						onChange: function ( value ) {

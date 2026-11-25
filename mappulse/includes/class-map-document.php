@@ -31,7 +31,7 @@ class Map_Document {
 	const MAX_ZONE_BYTES = 400000;
 	const MAX_BYTES      = 4000000;
 
-	const PRESETS       = array( 'atlas', 'brand-tint' );
+	const PRESETS       = array( 'atlas', 'brand-tint', 'minimal-line' );
 	const HOVER_EFFECTS = array( 'fill', 'outline' );
 
 	// Border styles and the dash pattern each one draws with.
@@ -39,6 +39,13 @@ class Map_Document {
 		'solid'  => 'none',
 		'dashed' => '6 4',
 		'dotted' => '1.5 3.5',
+	);
+
+	const CARD_COLORS = array(
+		'cardBackground' => '#FFFFFF',
+		'cardText'       => '#1D2327',
+		'cardButton'     => '',
+		'cardButtonText' => '#FFFFFF',
 	);
 
 	const FRAME_MIN = 100;
@@ -178,6 +185,10 @@ class Map_Document {
 			if ( $link_post > 0 ) {
 				$zone['linkPost'] = $link_post;
 			}
+			$card = self::card( $raw_zone['card'] ?? null );
+			if ( null !== $card ) {
+				$zone['card'] = $card;
+			}
 			if ( $built ) {
 				if ( null !== $geometry ) {
 					$zone['geometry'] = $geometry;
@@ -215,13 +226,20 @@ class Map_Document {
 			);
 		}
 
+		$frame = array(
+			'width'  => $width,
+			'height' => $height,
+		);
+		// Frame units per projected unit, written by the builder. It lets hand-set label offsets be rescaled.
+		$scale = self::number( $raw['frame']['scale'] ?? null );
+		if ( null !== $scale && $scale > 0 ) {
+			$frame['scale'] = (float) $scale;
+		}
+
 		$doc = array(
 			'schema'   => self::SCHEMA,
 			'title'    => self::text( $raw['title'] ?? '' ),
-			'frame'    => array(
-				'width'  => $width,
-				'height' => $height,
-			),
+			'frame'    => $frame,
 			'style'    => self::style( isset( $raw['style'] ) && is_array( $raw['style'] ) ? $raw['style'] : array() ),
 			'zones'    => $zones,
 			'topology' => array(
@@ -343,7 +361,69 @@ class Map_Document {
 		$style['hoverEffect']     = in_array( $hover, self::HOVER_EFFECTS, true ) ? $hover : self::HOVER_EFFECTS[0];
 		$brand                    = isset( $raw['brand'] ) && is_string( $raw['brand'] ) ? sanitize_hex_color( $raw['brand'] ) : '';
 		$style['brand']           = $brand ? $brand : '';
+		// Hover card colors. An empty button color means "use the hover color".
+		foreach ( self::CARD_COLORS as $key => $fallback ) {
+			$color         = isset( $raw[ $key ] ) && is_string( $raw[ $key ] ) ? sanitize_hex_color( $raw[ $key ] ) : '';
+			$style[ $key ] = $color ? $color : $fallback;
+		}
 		return $style;
+	}
+
+	/**
+	 * Cleans a hover card: a photo, a tagline, up to two facts and up to two buttons.
+	 * Returns null when it holds nothing, so an area without a card stores no card key.
+	 *
+	 * @param mixed $raw Raw card.
+	 */
+	private static function card( $raw ): ?array {
+		if ( ! is_array( $raw ) ) {
+			return null;
+		}
+		$image   = isset( $raw['image'] ) && is_numeric( $raw['image'] ) ? max( 0, (int) $raw['image'] ) : 0;
+		$tagline = self::text( $raw['tagline'] ?? '', 120 );
+
+		$stats = array();
+		foreach ( isset( $raw['stats'] ) && is_array( $raw['stats'] ) ? $raw['stats'] : array() as $stat ) {
+			if ( ! is_array( $stat ) || count( $stats ) >= 2 ) {
+				continue;
+			}
+			$label = self::text( $stat['label'] ?? '', 24 );
+			$value = self::text( $stat['value'] ?? '', 24 );
+			// A fact needs its value. A name alone would print an empty row.
+			if ( '' !== $value ) {
+				$stats[] = array(
+					'label' => $label,
+					'value' => $value,
+				);
+			}
+		}
+
+		$buttons = array();
+		foreach ( isset( $raw['buttons'] ) && is_array( $raw['buttons'] ) ? $raw['buttons'] : array() as $button ) {
+			if ( ! is_array( $button ) || count( $buttons ) >= 2 ) {
+				continue;
+			}
+			$label = self::text( $button['label'] ?? '', 24 );
+			$url   = self::link( $button['url'] ?? '' );
+			if ( '' === $label || '' === $url ) {
+				continue;
+			}
+			$buttons[] = array(
+				'label' => $label,
+				'url'   => $url,
+				'post'  => isset( $button['post'] ) && is_numeric( $button['post'] ) ? max( 0, (int) $button['post'] ) : 0,
+			);
+		}
+
+		if ( 0 === $image && '' === $tagline && ! $stats && ! $buttons ) {
+			return null;
+		}
+		return array(
+			'image'   => $image,
+			'tagline' => $tagline,
+			'stats'   => $stats,
+			'buttons' => $buttons,
+		);
 	}
 
 	/**
@@ -366,12 +446,18 @@ class Map_Document {
 		if ( '' === $text && 0.0 === $dx && 0.0 === $dy && ! $hidden ) {
 			return null;
 		}
-		return array(
+		$label = array(
 			'text'   => $text,
 			'dx'     => $dx,
 			'dy'     => $dy,
 			'hidden' => $hidden,
 		);
+		// The frame scale the offset was set at, so the builder can keep its distance on the ground.
+		$scale = self::number( $raw['scale'] ?? null );
+		if ( null !== $scale && $scale > 0 ) {
+			$label['scale'] = (float) $scale;
+		}
+		return $label;
 	}
 
 	/**

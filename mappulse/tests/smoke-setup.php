@@ -9,6 +9,7 @@
  *   errors          Print the number of PHP errors in debug.log that mention MapPulse, plus fatals.
  *   cap             Print whether administrators hold manage_mappulse_maps.
  *   base <bbox>     Ask the REST route for base-map layers as an administrator. Prints the feature counts.
+ *   card <map id>   Give the map's first area a hover card and create two pages: one as is, one with cards="no".
  */
 
 $mode = $args[0] ?? '';
@@ -126,6 +127,41 @@ if ( 'base' === $mode ) {
 		fwrite( STDERR, wp_json_encode( $data ) . "\n" );
 	}
 	echo $line . "\n";
+	return;
+}
+
+if ( 'card' === $mode ) {
+	$map_id = (int) ( $args[1] ?? 0 );
+	$doc    = \MapPulse\Map_Post_Type::get_full( $map_id );
+	$saved  = 0;
+	if ( $doc && ! empty( $doc['zones'] ) ) {
+		$doc['zones'][0]['card'] = array(
+			'tagline' => 'Smoke check tagline',
+			'stats'   => array(
+				array(
+					'label' => 'Median price',
+					'value' => '$500,000',
+				),
+			),
+		);
+		$result                  = \MapPulse\Map_Post_Type::save( $doc, $map_id );
+		$saved                   = is_wp_error( $result ) ? 0 : 1;
+	}
+	$make = static function ( string $title, string $content ) {
+		return (int) wp_insert_post(
+			wp_slash(
+				array(
+					'post_type'    => 'page',
+					'post_status'  => 'publish',
+					'post_title'   => $title,
+					'post_content' => $content,
+				)
+			)
+		);
+	};
+	$with    = $make( 'MapPulse card', '[mappulse id="' . $map_id . '"]' );
+	$without = $make( 'MapPulse no card', '[mappulse id="' . $map_id . '" cards="no"]' );
+	echo "saved=$saved with=$with without=$without\n";
 	return;
 }
 

@@ -11,7 +11,7 @@ import {
 import { __, sprintf } from '@wordpress/i18n';
 import ColorField from './color-field';
 import { PRESETS, applyPreset } from './presets';
-import { readable } from './contrast';
+import { readable, contrastRatio } from './contrast';
 import MapPreview from '../areas/map-preview';
 
 const GROUPS = [
@@ -131,6 +131,8 @@ export default function StyleStep( { settings, state, dispatch, preview } ) {
 									type: 'APPLY_PRESET',
 									name: 'brand-tint',
 									brand,
+									// Colors already changed by hand stay as they are.
+									keep: true,
 								} )
 							}
 						/>
@@ -188,6 +190,63 @@ export default function StyleStep( { settings, state, dispatch, preview } ) {
 						) }
 					</section>
 				) ) }
+
+				<section
+					className="mappulse-panel"
+					aria-labelledby="mappulse-cardstyle-title"
+				>
+					<h2 id="mappulse-cardstyle-title">
+						{ __( 'Hover card', 'mappulse' ) }
+					</h2>
+					<div className="mappulse-colors">
+						<ColorField
+							label={ __( 'Card', 'mappulse' ) }
+							value={ style.cardBackground }
+							colors={ colors }
+							onChange={ ( color ) =>
+								set( { cardBackground: color } )
+							}
+						/>
+						<ColorField
+							label={ __( 'Card text', 'mappulse' ) }
+							value={ style.cardText }
+							colors={ colors }
+							onChange={ ( color ) => set( { cardText: color } ) }
+						/>
+						<ColorField
+							label={
+								style.cardButton
+									? __( 'Button', 'mappulse' )
+									: __(
+											'Button (same as the hover color)',
+											'mappulse'
+									  )
+							}
+							value={ style.cardButton || style.zoneHover }
+							colors={ colors }
+							onChange={ ( color ) =>
+								set( { cardButton: color } )
+							}
+						/>
+						<ColorField
+							label={ __( 'Button text', 'mappulse' ) }
+							value={ style.cardButtonText }
+							colors={ colors }
+							onChange={ ( color ) =>
+								set( { cardButtonText: color } )
+							}
+						/>
+					</div>
+					{ contrastRatio( style.cardText, style.cardBackground ) <
+						4.5 && (
+						<Notice status="warning" isDismissible={ false }>
+							{ __(
+								'The card text is hard to read on the card color.',
+								'mappulse'
+							) }
+						</Notice>
+					) }
+				</section>
 
 				<section
 					className="mappulse-panel"

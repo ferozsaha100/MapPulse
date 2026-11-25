@@ -11,8 +11,10 @@ import {
 } from '@wordpress/components';
 import { __, sprintf, _n } from '@wordpress/i18n';
 import LinkField from './link-field';
+import CardFields from './card-fields';
+import { hasCard, copyLayout } from './card';
 import { planMatches } from './auto-match';
-import { clampOffset } from './label-offset';
+import { clampOffset, atScale } from './label-offset';
 import { matchLinks, messageOf } from '../api';
 import MapPreview from '../areas/map-preview';
 
@@ -26,24 +28,30 @@ export default function LinksStep( { state, dispatch, preview } ) {
 	const [ matching, setMatching ] = useState( false );
 	// What the last "Match areas to pages" run found: the unclear cases still to choose, and a summary.
 	const [ report, setReport ] = useState( null );
+	// The area whose card fields are open.
+	const [ cardOpen, setCardOpen ] = useState( '' );
+	const withCard = zones.filter( hasCard ).length;
 
 	const set = ( id, patch ) => dispatch( { type: 'SET_ZONE', id, patch } );
 	const labelOf = ( zone ) => ( { ...EMPTY_LABEL, ...( zone.label || {} ) } );
 	const setLabel = ( zone, patch ) =>
 		set( zone.id, { label: { ...labelOf( zone ), ...patch } } );
 	const nudge = ( zone, dx, dy ) => {
-		const label = labelOf( zone );
+		const frame = state.doc && state.doc.frame;
+		// The offset as it is drawn now: it may have been set when the map was drawn at another scale.
+		const label = atScale( labelOf( zone ), frame && frame.scale );
 		// Where the builder placed this label, and the frame it must stay in.
 		const shape =
 			state.doc &&
 			state.doc.topology &&
 			state.doc.topology.zones[ zone.id ];
+		const moved = clampOffset( shape && shape.label, frame, {
+			dx: label.dx + dx,
+			dy: label.dy + dy,
+		} );
 		setLabel(
 			zone,
-			clampOffset( shape && shape.label, state.doc && state.doc.frame, {
-				dx: label.dx + dx,
-				dy: label.dy + dy,
-			} )
+			frame && frame.scale > 0 ? { ...moved, scale: frame.scale } : moved
 		);
 	};
 
@@ -118,6 +126,17 @@ export default function LinksStep( { state, dispatch, preview } ) {
 						{ __(
 							'An area with a link is clickable on the map and in the area list. Link each one to its page, or to an IDX search for that area.',
 							'mappulse'
+						) }
+					</p>
+					<p className="mappulse-panel__hint">
+						{ sprintf(
+							/* translators: 1: areas with a hover card, 2: all areas. */
+							__(
+								'%1$d of %2$d areas have a hover card.',
+								'mappulse'
+							),
+							withCard,
+							zones.length
 						) }
 					</p>
 					<div className="mappulse-links__tools">
@@ -372,6 +391,58 @@ export default function LinksStep( { state, dispatch, preview } ) {
 											) }
 										</div>
 									) }
+									<div className="mappulse-link-row__card">
+										<Button
+											variant="tertiary"
+											size="small"
+											aria-expanded={
+												cardOpen === zone.id
+											}
+											onClick={ () =>
+												setCardOpen(
+													cardOpen === zone.id
+														? ''
+														: zone.id
+												)
+											}
+										>
+											{ hasCard( zone )
+												? __(
+														'Hover card: set',
+														'mappulse'
+												  )
+												: __(
+														'Hover card: none',
+														'mappulse'
+												  ) }
+										</Button>
+										{ cardOpen === zone.id && (
+											<CardFields
+												zone={ zone }
+												onChange={ ( card ) =>
+													set( zone.id, { card } )
+												}
+												canCopy={
+													hasCard( zone ) &&
+													zones.some(
+														( other ) =>
+															other.id !==
+																zone.id &&
+															! hasCard( other )
+													)
+												}
+												onCopyLayout={ () =>
+													copyLayout(
+														zones,
+														zone.id
+													).forEach(
+														( { id, card } ) =>
+															set( id, { card } )
+													)
+												}
+											/>
+										) }
+									</div>
 								</li>
 							);
 						} ) }
@@ -382,6 +453,7 @@ export default function LinksStep( { state, dispatch, preview } ) {
 				preview={ preview }
 				empty={ false }
 				selected={ selected }
+				showCard
 				onMoveLabel={ ( id, dx, dy ) => {
 					const zone = zones.find( ( z ) => z.id === id );
 					if ( zone ) {

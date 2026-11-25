@@ -1,3 +1,5 @@
+import { cleanCard } from '../links/card';
+
 /**
  * Decides what the builder must redo after a change. Kept free of React so it is tested in Node.
  */
@@ -37,6 +39,8 @@ export const drawSignature = ( input ) =>
 						!! z.label.hidden,
 				  ]
 				: 0,
+			// Only what would be stored counts: a half-typed row changes nothing yet.
+			cleanCard( z.card ) || 0,
 		] ),
 	] );
 

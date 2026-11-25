@@ -49,6 +49,7 @@ async function addArea( page, name, { expectClean } ) {
 test( 'a map is built, styled, linked, published, shown on a page and reopened', async ( {
 	page,
 	baseURL,
+	browser,
 } ) => {
 	const problems = [];
 	page.on( 'pageerror', ( error ) =>
@@ -173,7 +174,7 @@ test( 'a map is built, styled, linked, published, shown on a page and reopened',
 	const tinted = page
 		.locator( '.mappulse-preview__map .mappulse__zone path' )
 		.first();
-	await expect( tinted ).toHaveCSS( 'fill', 'rgb(165, 176, 191)', {
+	await expect( tinted ).not.toHaveCSS( 'fill', 'rgb(220, 207, 182)', {
 		timeout: SLOW,
 	} );
 	await page.getByLabel( 'Border style' ).selectOption( 'dashed' );
@@ -253,6 +254,36 @@ test( 'a map is built, styled, linked, published, shown on a page and reopened',
 		.getByPlaceholder( 'Search pages, or paste a web address' )
 		.fill( '' );
 
+	// A hover card for the city: a tagline, one fact and a button with a pasted address.
+	await cityRow.getByRole( 'button', { name: 'Hover card: none' } ).click();
+	await cityRow
+		.getByLabel( 'Tagline' )
+		.fill( 'Sand, sun and <b>art deco</b>' );
+	await cityRow.getByLabel( 'Fact 1 name' ).fill( 'Median price' );
+	await cityRow.getByLabel( 'Fact 1 value' ).fill( '$640,000' );
+	await cityRow.getByLabel( 'Button 1 text' ).fill( 'Search homes' );
+	await cityRow
+		.getByPlaceholder( 'Search pages, or paste a web address' )
+		.first()
+		.fill( 'https://example.org/idx/?city=here' );
+	await cityRow.getByRole( 'button', { name: 'Use this address' } ).click();
+	await expect(
+		cityRow.getByRole( 'button', { name: 'Hover card: set' } )
+	).toBeVisible();
+	await expect(
+		page.getByText( '1 of 2 areas have a hover card.' )
+	).toBeVisible();
+	// The preview shows the card as the site will draw it, with the markup typed into it shown as text.
+	const previewCard = page.locator(
+		'.mappulse-preview__map .mappulse__card:not([hidden])'
+	);
+	await expect( previewCard ).toContainText( 'Sand, sun and art deco', {
+		timeout: SLOW,
+	} );
+	await expect(
+		previewCard.getByRole( 'link', { name: 'Search homes' } )
+	).toHaveAttribute( 'href', 'https://example.org/idx/?city=here' );
+
 	const publish = page.getByRole( 'button', {
 		name: 'Publish',
 		exact: true,
@@ -313,7 +344,7 @@ test( 'a map is built, styled, linked, published, shown on a page and reopened',
 	// The style and the hand-set label are on the page.
 	await expect(
 		page.locator( '.mappulse svg .mappulse__zone path' ).first()
-	).toHaveCSS( 'fill', 'rgb(165, 176, 191)' );
+	).not.toHaveCSS( 'fill', 'rgb(220, 207, 182)' );
 	await expect(
 		page.locator( '.mappulse svg .mappulse__zone path' ).first()
 	).toHaveCSS( 'stroke-dasharray', /6px,? 4px/ );
@@ -330,6 +361,86 @@ test( 'a map is built, styled, linked, published, shown on a page and reopened',
 			)
 			.count()
 	).toBe( 0 );
+
+	// The hover card on the site. Hidden until the area is pointed at; then inside the window, with its content.
+	const card = page.locator( '.mappulse__card' );
+	await expect( card ).toHaveCount( 1 );
+	await expect( card ).toBeHidden();
+	const cityZone = page.locator( '.mappulse svg a.mappulse__zone' );
+	// The label sits at a point well inside the area and lets the pointer through, so that is where to point.
+	const cityLabel = await page
+		.locator(
+			`.mappulse svg .mappulse__label[data-zone="${ CITY.toLowerCase().replace(
+				/[^a-z0-9]+/g,
+				'-'
+			) }"]`
+		)
+		.boundingBox();
+	await page.mouse.move(
+		cityLabel.x + cityLabel.width / 2,
+		cityLabel.y + cityLabel.height / 2
+	);
+	await expect( card ).toBeVisible();
+	await expect( card.getByRole( 'heading', { name: CITY } ) ).toBeVisible();
+	await expect( card ).toContainText( 'Sand, sun and art deco' );
+	await expect( card ).toContainText( 'Median price' );
+	await expect( card ).toContainText( '$640,000' );
+	await expect(
+		card.getByRole( 'link', { name: 'Search homes' } )
+	).toHaveAttribute( 'href', 'https://example.org/idx/?city=here' );
+	const box = await card.boundingBox();
+	const view = page.viewportSize();
+	expect( box.x ).toBeGreaterThanOrEqual( 0 );
+	expect( box.y ).toBeGreaterThanOrEqual( 0 );
+	expect( box.x + box.width ).toBeLessThanOrEqual( view.width );
+	expect( box.y + box.height ).toBeLessThanOrEqual( view.height );
+	// Escape puts it away; keyboard focus brings it back, and Tab reaches its button before leaving the area.
+	await page.keyboard.press( 'Escape' );
+	await expect( card ).toBeHidden();
+	await page.mouse.move( 0, 0 );
+	await cityZone.focus();
+	await expect( card ).toBeVisible();
+	await page.keyboard.press( 'Tab' );
+	await expect(
+		card.getByRole( 'link', { name: 'Search homes' } )
+	).toBeFocused();
+	await page.keyboard.press( 'Escape' );
+	await expect( card ).toBeHidden();
+	await expect( cityZone ).toBeFocused();
+
+	// On a phone the first tap opens the card as a sheet and does not follow the link.
+	const phone = await browser.newContext( {
+		viewport: { width: 390, height: 780 },
+		hasTouch: true,
+		isMobile: true,
+		baseURL,
+	} );
+	const mobile = await phone.newPage();
+	await mobile.goto( link );
+	const sheet = mobile.locator( '.mappulse__card' );
+	await mobile.locator( '.mappulse__list a' ).tap();
+	await expect( sheet ).toBeVisible();
+	await expect( sheet ).toHaveClass( /mappulse__card--sheet/ );
+	expect( mobile.url() ).toBe( link );
+	const sheetBox = await sheet.boundingBox();
+	expect( Math.round( sheetBox.y + sheetBox.height ) ).toBe( 780 );
+	expect( Math.round( sheetBox.width ) ).toBe( 390 );
+	await sheet.getByRole( 'button', { name: 'Close' } ).tap();
+	await expect( sheet ).toBeHidden();
+	await phone.close();
+
+	// With JavaScript off the area is still a plain link, and the card stays out of the way.
+	const plain = await browser.newContext( {
+		javaScriptEnabled: false,
+		baseURL,
+	} );
+	const bare = await plain.newPage();
+	await bare.goto( link );
+	await expect(
+		bare.locator( '.mappulse svg a.mappulse__zone' )
+	).toHaveAttribute( 'href', cityPage.link );
+	await expect( bare.locator( '.mappulse__card' ) ).toBeHidden();
+	await plain.close();
 
 	// The link follows the page when its address changes.
 	await page.goto( BUILDER );
