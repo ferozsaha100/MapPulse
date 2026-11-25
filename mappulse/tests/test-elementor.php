@@ -91,12 +91,45 @@ class Test_Elementor extends MapPulse_Test_Case {
 		$this->assertStringNotContainsString( 'mappulse__card', $this->render_widget( $map_id, array( 'cards' => '' ) ) );
 	}
 
-	public function test_widget_has_card_radius_and_shadow_controls_that_set_the_card_variables() {
-		$widget   = \Elementor\Plugin::$instance->widgets_manager->get_widget_types( 'mappulse' );
-		$controls = $widget->get_controls();
-		$this->assertArrayHasKey( 'cards', $controls );
-		$this->assertSame( 'yes', $controls['cards']['default'] );
-		$this->assertSame( array( '{{WRAPPER}} .mappulse' => '--mappulse-card-radius: {{SIZE}}{{UNIT}};' ), $controls['card_radius']['selectors'] );
-		$this->assertStringContainsString( '--mappulse-card-shadow:', implode( '', $controls['card_shadow']['selectors'] ) );
+	public function test_card_radius_and_shadow_controls_reach_the_page_as_card_variables() {
+		$map_id  = Map_Post_Type::save( $this->fixture() );
+		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$data    = array(
+			array(
+				'id'       => 'a1b2c3d',
+				'elType'   => 'container',
+				'settings' => array(),
+				'elements' => array(
+					array(
+						'id'         => 'c3d4e5f',
+						'elType'     => 'widget',
+						'widgetType' => 'mappulse',
+						'settings'   => array(
+							'map_id'      => (string) $map_id,
+							'cards'       => 'yes',
+							'card_radius' => array(
+								'unit' => 'px',
+								'size' => 12,
+							),
+							'card_shadow' => array(
+								'horizontal' => 0,
+								'vertical'   => 4,
+								'blur'       => 9,
+								'spread'     => 0,
+								'color'      => '#123456',
+							),
+						),
+						'elements'   => array(),
+					),
+				),
+			),
+		);
+		update_post_meta( $post_id, '_elementor_edit_mode', 'builder' );
+		update_post_meta( $post_id, '_elementor_data', wp_slash( wp_json_encode( $data ) ) );
+
+		$css = \Elementor\Core\Files\CSS\Post::create( $post_id )->get_content();
+
+		$this->assertMatchesRegularExpression( '/--mappulse-card-radius:\s*12px/', $css );
+		$this->assertMatchesRegularExpression( '/--mappulse-card-shadow:\s*0px 4px 9px 0px #123456/i', $css );
 	}
 }
