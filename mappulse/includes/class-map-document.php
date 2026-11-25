@@ -389,7 +389,8 @@ class Map_Document {
 			}
 			$label = self::text( $stat['label'] ?? '', 24 );
 			$value = self::text( $stat['value'] ?? '', 24 );
-			if ( '' !== $label || '' !== $value ) {
+			// A fact needs its value. A name alone would print an empty row.
+			if ( '' !== $value ) {
 				$stats[] = array(
 					'label' => $label,
 					'value' => $value,

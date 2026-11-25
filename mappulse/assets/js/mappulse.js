@@ -13,6 +13,9 @@
 
 	var EDGE = 8;
 	var CLOSE_DELAY = 150;
+	// How long the pointer must rest on another area before its card replaces the open one. Long enough to cross a
+	// neighbouring area on the way to the open card.
+	var SWITCH_DELAY = 200;
 	// Custom properties a card needs once it is lifted out of its map section.
 	var CARD_VARS = [ 'background', 'text', 'button', 'button-text', 'radius', 'shadow' ];
 
@@ -68,6 +71,9 @@
 	// The open card, if any: { card, home, root, zone, anchor, sheet, focusBack }.
 	var open = null;
 	var closeTimer = 0;
+	var switchTimer = 0;
+	var waiting = null;
+	var backdrop = null;
 	var quiet = false;
 	var lastPointer = 'mouse';
 
@@ -131,6 +137,8 @@
 
 	function close( restoreFocus ) {
 		clearTimeout( closeTimer );
+		clearTimeout( switchTimer );
+		waiting = null;
 		if ( ! open ) {
 			return;
 		}
@@ -144,6 +152,9 @@
 		mark( was.root, was.zone, false );
 		if ( was.sheet ) {
 			document.documentElement.style.overflow = was.overflow;
+		}
+		if ( backdrop && backdrop.parentNode ) {
+			backdrop.parentNode.removeChild( backdrop );
 		}
 		if ( restoreFocus && was.anchor && 'function' === typeof was.anchor.focus ) {
 			// Putting focus back must not bring the card straight back.
@@ -160,13 +171,13 @@
 			close( false );
 			return false;
 		}
-		if ( open && open.card === card ) {
+		var sheet = !! options.sheet;
+		if ( open && open.card === card && open.sheet === sheet ) {
 			open.anchor = anchor;
 			return true;
 		}
 		close( false );
 
-		var sheet = !! options.sheet;
 		open = { card: card, home: card.parentNode, root: root, zone: zone, anchor: anchor, sheet: sheet, point: options.point || null, overflow: '' };
 
 		// Lifted out of the section, the card would lose the section's colors. Carry them along.
@@ -190,6 +201,12 @@
 		}
 
 		card.classList.toggle( 'mappulse__card--sheet', sheet );
+		if ( sheet ) {
+			// Something to tap beside the sheet. Some phones send no click for a tap on plain page content.
+			backdrop = backdrop || document.createElement( 'div' );
+			backdrop.className = 'mappulse__backdrop';
+			document.body.appendChild( backdrop );
+		}
 		document.body.appendChild( card );
 		card.hidden = false;
 		mark( root, zone, true );
@@ -241,6 +258,8 @@
 			if ( open && ! open.sheet ) {
 				if ( entering ) {
 					clearTimeout( closeTimer );
+					clearTimeout( switchTimer );
+					waiting = null;
 				} else if ( 'pointerleave' === event.type && target === open.card ) {
 					closeSoon();
 				} else if ( 'focusout' === event.type && ! closest( event.relatedTarget, '.mappulse__card' ) && event.relatedTarget !== open.anchor ) {
@@ -264,7 +283,29 @@
 			mark( root, zone, true );
 			if ( ! quiet && ! touch && ! ( open && open.sheet ) ) {
 				var byPointer = 'pointerenter' === event.type;
-				show( root, zone, item, { point: byPointer ? { left: event.clientX, top: event.clientY, width: 1, height: 1 } : null } );
+				var options = { point: byPointer ? { left: event.clientX, top: event.clientY, width: 1, height: 1 } : null };
+				if ( byPointer && open && ! ( open.root === root && open.zone === zone ) ) {
+					// Another card is open. The pointer may only be passing over this area on its way to that card.
+					clearTimeout( closeTimer );
+					clearTimeout( switchTimer );
+					waiting = item;
+					switchTimer = setTimeout( function () {
+						waiting = null;
+						show( root, zone, item, options );
+					}, SWITCH_DELAY );
+				} else {
+					show( root, zone, item, options );
+				}
+			}
+			return;
+		}
+
+		if ( waiting === item && 'pointerleave' === event.type ) {
+			clearTimeout( switchTimer );
+			waiting = null;
+			mark( root, zone, false );
+			if ( open && ! open.sheet ) {
+				closeSoon();
 			}
 			return;
 		}
@@ -293,7 +334,8 @@
 		}
 		var item = closest( target, '[data-zone]' );
 		var root = closest( item, '[data-mappulse]' );
-		var coarse = 'touch' === lastPointer || ( window.matchMedia && window.matchMedia( '(hover: none)' ).matches );
+		// A click made with a key or a mouse follows the link, also on a device whose main pointer is a finger.
+		var coarse = 'touch' === ( event.pointerType || lastPointer );
 
 		if ( root && coarse ) {
 			var zone = item.getAttribute( 'data-zone' );

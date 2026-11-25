@@ -91,8 +91,15 @@ class Test_Elementor extends MapPulse_Test_Case {
 		$this->assertStringNotContainsString( 'mappulse__card', $this->render_widget( $map_id, array( 'cards' => '' ) ) );
 	}
 
-	public function test_card_radius_and_shadow_controls_reach_the_page_as_card_variables() {
+	/**
+	 * The stylesheet Elementor writes for a page that holds one MapPulse widget with these settings.
+	 */
+	private function page_css( array $settings ): string {
 		$map_id  = Map_Post_Type::save( $this->fixture() );
+		// Each test starts from the same post IDs, and Elementor remembers a page's stylesheet by ID for the whole run.
+		// Spare posts give every call a page ID no earlier call had.
+		static $calls = 0;
+		self::factory()->post->create_many( $calls++ );
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		$data    = array(
 			array(
@@ -104,21 +111,7 @@ class Test_Elementor extends MapPulse_Test_Case {
 						'id'         => 'c3d4e5f',
 						'elType'     => 'widget',
 						'widgetType' => 'mappulse',
-						'settings'   => array(
-							'map_id'      => (string) $map_id,
-							'cards'       => 'yes',
-							'card_radius' => array(
-								'unit' => 'px',
-								'size' => 12,
-							),
-							'card_shadow' => array(
-								'horizontal' => 0,
-								'vertical'   => 4,
-								'blur'       => 9,
-								'spread'     => 0,
-								'color'      => '#123456',
-							),
-						),
+						'settings'   => array( 'map_id' => (string) $map_id ) + $settings,
 						'elements'   => array(),
 					),
 				),
@@ -129,9 +122,36 @@ class Test_Elementor extends MapPulse_Test_Case {
 		update_post_meta( $post_id, '_elementor_edit_mode', 'builder' );
 		update_post_meta( $post_id, '_elementor_data', wp_slash( wp_json_encode( $data ) ) );
 
-		$css = \Elementor\Core\Files\CSS\Post::create( $post_id )->get_content();
+		return (string) \Elementor\Core\Files\CSS\Post::create( $post_id )->get_content();
+	}
+
+	public function test_card_radius_and_shadow_controls_reach_the_page_as_card_variables() {
+		$css = $this->page_css(
+			array(
+				'cards'              => 'yes',
+				'card_radius'        => array(
+					'unit' => 'px',
+					'size' => 12,
+				),
+				'card_shadow_custom' => 'yes',
+				'card_shadow'        => array(
+					'horizontal' => 0,
+					'vertical'   => 4,
+					'blur'       => 9,
+					'spread'     => 0,
+					'color'      => '#123456',
+				),
+			)
+		);
 
 		$this->assertMatchesRegularExpression( '/--mappulse-card-radius:\s*12px/', $css );
 		$this->assertMatchesRegularExpression( '/--mappulse-card-shadow:\s*0px 4px 9px 0px #123456/i', $css );
+	}
+
+	public function test_a_widget_left_alone_keeps_the_cards_own_radius_and_shadow() {
+		$css = $this->page_css( array() );
+
+		$this->assertStringNotContainsString( '--mappulse-card-shadow', $css );
+		$this->assertStringNotContainsString( '--mappulse-card-radius', $css );
 	}
 }

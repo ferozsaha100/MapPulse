@@ -228,6 +228,21 @@ class Elementor_Widget extends Widget_Base {
 			)
 		);
 
+		// Elementor writes a shadow control's default values into the page. The switch keeps the card's own shadow
+		// until someone asks for another.
+		$this->add_control(
+			'card_shadow_custom',
+			array(
+				'label'        => esc_html__( 'Custom card shadow', 'mappulse' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'return_value' => 'yes',
+				'default'      => '',
+				'condition'    => array(
+					'cards' => 'yes',
+				),
+			)
+		);
+
 		$this->add_control(
 			'card_shadow',
 			array(
@@ -237,7 +252,8 @@ class Elementor_Widget extends Widget_Base {
 					'{{WRAPPER}} .mappulse' => '--mappulse-card-shadow: {{HORIZONTAL}}px {{VERTICAL}}px {{BLUR}}px {{SPREAD}}px {{COLOR}};',
 				),
 				'condition' => array(
-					'cards' => 'yes',
+					'cards'              => 'yes',
+					'card_shadow_custom' => 'yes',
 				),
 			)
 		);

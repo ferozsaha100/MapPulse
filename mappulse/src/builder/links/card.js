@@ -64,7 +64,8 @@ export function cleanCard( card ) {
 			label: text( row && row.label, MAX.label ),
 			value: text( row && row.value, MAX.value ),
 		} ) )
-		.filter( ( row ) => row.label || row.value )
+		// A fact needs its value. A name alone is a draft, as a button without an address is.
+		.filter( ( row ) => row.value )
 		.slice( 0, MAX.rows );
 	const buttons = ( Array.isArray( card.buttons ) ? card.buttons : [] )
 		.map( ( row ) => ( {

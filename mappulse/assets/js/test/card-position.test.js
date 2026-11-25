@@ -3,9 +3,22 @@ const { place } = require( '../mappulse' );
 const viewport = { width: 1200, height: 800 };
 const card = { width: 280, height: 300 };
 const rect = ( left, top, width, height ) => ( { left, top, width, height } );
-const overlaps = ( a, b ) => a.left < b.left + b.width && a.left + a.width > b.left && a.top < b.top + b.height && a.top + a.height > b.top;
-const inside = ( box ) => box.left >= 8 && box.top >= 8 && box.left + card.width <= viewport.width - 8 && box.top + card.height <= viewport.height - 8;
-const boxOf = ( spot ) => ( { left: spot.left, top: spot.top, width: card.width, height: card.height } );
+const overlaps = ( a, b ) =>
+	a.left < b.left + b.width &&
+	a.left + a.width > b.left &&
+	a.top < b.top + b.height &&
+	a.top + a.height > b.top;
+const inside = ( box ) =>
+	box.left >= 8 &&
+	box.top >= 8 &&
+	box.left + card.width <= viewport.width - 8 &&
+	box.top + card.height <= viewport.height - 8;
+const boxOf = ( spot ) => ( {
+	left: spot.left,
+	top: spot.top,
+	width: card.width,
+	height: card.height,
+} );
 
 describe( 'place', () => {
 	it( 'puts the card to the right of an area on the left', () => {

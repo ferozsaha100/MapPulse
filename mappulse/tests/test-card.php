@@ -68,11 +68,55 @@ class Test_Card extends MapPulse_Test_Case {
 
 		$long = $this->with(
 			static function ( &$raw ) {
-				$raw['zones'][0]['card'] = array( 'tagline' => str_repeat( 'a', 300 ), 'stats' => array( array( 'label' => str_repeat( 'b', 80 ), 'value' => '' ) ) );
+				$raw['zones'][0]['card'] = array( 'tagline' => str_repeat( 'a', 300 ), 'stats' => array( array( 'label' => str_repeat( 'b', 80 ), 'value' => str_repeat( 'c', 80 ) ) ) );
 			}
 		);
 		$this->assertSame( 120, strlen( $long['zones'][0]['card']['tagline'] ) );
 		$this->assertSame( 24, strlen( $long['zones'][0]['card']['stats'][0]['label'] ) );
+		$this->assertSame( 24, strlen( $long['zones'][0]['card']['stats'][0]['value'] ) );
+	}
+
+	public function test_a_fact_without_a_value_is_not_stored() {
+		$doc = $this->with(
+			static function ( &$raw ) {
+				$raw['zones'][0]['card'] = array(
+					'tagline' => 'Kept',
+					'stats'   => array(
+						array(
+							'label' => 'Median price',
+							'value' => '',
+						),
+						array(
+							'label' => '',
+							'value' => '112',
+						),
+					),
+				);
+			}
+		);
+		$this->assertSame(
+			array(
+				array(
+					'label' => '',
+					'value' => '112',
+				),
+			),
+			$doc['zones'][0]['card']['stats']
+		);
+
+		$only_names = $this->with(
+			static function ( &$raw ) {
+				$raw['zones'][0]['card'] = array(
+					'stats' => array(
+						array(
+							'label' => 'Median price',
+							'value' => '',
+						),
+					),
+				);
+			}
+		);
+		$this->assertArrayNotHasKey( 'card', $only_names['zones'][0] );
 	}
 
 	public function test_an_empty_card_is_not_stored() {

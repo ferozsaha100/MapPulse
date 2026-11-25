@@ -50,18 +50,22 @@ describe( 'cleanCard', () => {
 		} );
 	} );
 
-	it( 'keeps a fact that has only a label or only a value', () => {
+	it( 'keeps a fact that has a value, with or without a name, and drops a name without a value', () => {
 		expect(
 			cleanCard( {
+				tagline: 'Kept',
 				stats: [
 					{ label: 'Schools', value: '' },
 					{ label: '', value: 'A+' },
 				],
 			} ).stats
-		).toEqual( [
-			{ label: 'Schools', value: '' },
-			{ label: '', value: 'A+' },
-		] );
+		).toEqual( [ { label: '', value: 'A+' } ] );
+	} );
+
+	it( 'does not count an area as having a card when only names were copied onto it', () => {
+		const zones = [ zone( 'a', { card: full() } ), zone( 'b' ) ];
+		const [ change ] = copyLayout( zones, 'a' );
+		expect( hasCard( { ...zones[ 1 ], card: change.card } ) ).toBe( false );
 	} );
 
 	it( 'caps counts and lengths', () => {

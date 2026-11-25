@@ -9,13 +9,17 @@ All notable changes to MapPulse are recorded here. Versions follow semantic vers
   card and a link and no button of its own gets a "View area" button.
 - Front end: the card opens beside the area on pointer hover and keyboard focus, stays inside the
   window, closes on Escape, and Tab moves from the area into its buttons. On touch the first tap opens
-  the card as a bottom sheet and the second follows the link. Reduced motion is respected. The script
-  stays free of dependencies: 3.7 KB gzipped, stylesheet 2.3 KB (budgets 15 and 5, held by a test).
+  the card as a bottom sheet over a dimmed page and the second follows the link; a tap on the dimmed
+  page closes it. A key press or mouse click always follows the link. When a card is open, another
+  area's card waits 200 ms, so the pointer can cross a neighbouring area on its way to the card. Reduced motion is respected. The script
+  stays free of dependencies: 4.2 KB gzipped, stylesheet 2.4 KB (budgets 15 and 5, held by a test).
 - Builder: card fields under each area in Zones and links with "copy layout to all areas", a count of
   areas with a card, the selected area's card shown under the preview; a "Hover card" color group in
   Style.
 - Placement: `cards` argument (shortcode `cards="no"`, block "Hover cards" toggle, Elementor switcher),
-  and Elementor controls for card corner radius and shadow.
+  and Elementor controls for card corner radius and, behind a "Custom card shadow" switch, shadow.
+- A fact is stored only with a value and a button only with an address, so names copied to other areas
+  stay drafts until they are filled in.
 - New document keys, all optional: zone `card` (`image`, `tagline`, `stats`, `buttons`), style
   `cardBg`, `cardText`, `cardAccent`, label `scale`, frame `scale`. Still schema 1; a map without cards
   renders byte-for-byte as before.
