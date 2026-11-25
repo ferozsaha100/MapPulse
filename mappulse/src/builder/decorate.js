@@ -11,6 +11,8 @@
  * @param input.zones The builder's zones, with link, linkPost, text and label.
  * @return A new document; the one given is left as it was.
  */
+import { atScale } from './links/label-offset';
+
 export function decorate( doc, { style = {}, zones = [] } ) {
 	if ( ! doc ) {
 		return null;
@@ -24,7 +26,7 @@ export function decorate( doc, { style = {}, zones = [] } ) {
 			if ( ! zone ) {
 				return stored;
 			}
-			const { linkPost, label, ...rest } = stored;
+			const { linkPost, label: oldLabel, ...rest } = stored;
 			const next = {
 				...rest,
 				link: zone.link || '',
@@ -40,12 +42,19 @@ export function decorate( doc, { style = {}, zones = [] } ) {
 					zone.label.dy ||
 					zone.label.hidden )
 			) {
+				const label = atScale(
+					zone.label,
+					doc.frame && doc.frame.scale
+				);
 				next.label = {
-					text: zone.label.text || '',
-					dx: zone.label.dx || 0,
-					dy: zone.label.dy || 0,
-					hidden: !! zone.label.hidden,
+					text: label.text || '',
+					dx: label.dx || 0,
+					dy: label.dy || 0,
+					hidden: !! label.hidden,
 				};
+				if ( label.scale > 0 ) {
+					next.label.scale = label.scale;
+				}
 			}
 			return next;
 		} ),

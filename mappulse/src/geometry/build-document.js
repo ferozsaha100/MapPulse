@@ -458,7 +458,12 @@ export function buildDocument( {
 	const doc = {
 		schema: 1,
 		title: String( title ),
-		frame: { width: W, height: H },
+		// The scale lets a hand-set label offset keep its distance on the ground when the map is redrawn.
+		frame: {
+			width: W,
+			height: H,
+			scale: Math.round( frame.scale * 1000 ) / 1000,
+		},
 		style: { ...style },
 		priority: order,
 		zones: listed.map( ( { zone, backdrop, hidden } ) => ( {

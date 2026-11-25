@@ -77,6 +77,7 @@ describe( 'buildDocument', () => {
 		expect( doc.schema ).toBe( 1 );
 		expect( doc.title ).toBe( 'Gulfport area' );
 		expect( doc.frame.width ).toBe( 1000 );
+		expect( doc.frame.scale ).toBeGreaterThan( 0 );
 		expect( doc.frame.height ).toBeGreaterThanOrEqual( 625 );
 		expect( doc.zones.map( ( z ) => z.id ).sort() ).toEqual( [
 			'33707',

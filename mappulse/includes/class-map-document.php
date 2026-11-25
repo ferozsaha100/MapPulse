@@ -31,7 +31,7 @@ class Map_Document {
 	const MAX_ZONE_BYTES = 400000;
 	const MAX_BYTES      = 4000000;
 
-	const PRESETS       = array( 'atlas', 'brand-tint' );
+	const PRESETS       = array( 'atlas', 'brand-tint', 'minimal-line' );
 	const HOVER_EFFECTS = array( 'fill', 'outline' );
 
 	// Border styles and the dash pattern each one draws with.
@@ -215,13 +215,20 @@ class Map_Document {
 			);
 		}
 
+		$frame = array(
+			'width'  => $width,
+			'height' => $height,
+		);
+		// Frame units per projected unit, written by the builder. It lets hand-set label offsets be rescaled.
+		$scale = self::number( $raw['frame']['scale'] ?? null );
+		if ( null !== $scale && $scale > 0 ) {
+			$frame['scale'] = (float) $scale;
+		}
+
 		$doc = array(
 			'schema'   => self::SCHEMA,
 			'title'    => self::text( $raw['title'] ?? '' ),
-			'frame'    => array(
-				'width'  => $width,
-				'height' => $height,
-			),
+			'frame'    => $frame,
 			'style'    => self::style( isset( $raw['style'] ) && is_array( $raw['style'] ) ? $raw['style'] : array() ),
 			'zones'    => $zones,
 			'topology' => array(
@@ -366,12 +373,18 @@ class Map_Document {
 		if ( '' === $text && 0.0 === $dx && 0.0 === $dy && ! $hidden ) {
 			return null;
 		}
-		return array(
+		$label = array(
 			'text'   => $text,
 			'dx'     => $dx,
 			'dy'     => $dy,
 			'hidden' => $hidden,
 		);
+		// The frame scale the offset was set at, so the builder can keep its distance on the ground.
+		$scale = self::number( $raw['scale'] ?? null );
+		if ( null !== $scale && $scale > 0 ) {
+			$label['scale'] = (float) $scale;
+		}
+		return $label;
 	}
 
 	/**

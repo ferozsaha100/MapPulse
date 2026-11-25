@@ -131,6 +131,8 @@ export default function StyleStep( { settings, state, dispatch, preview } ) {
 									type: 'APPLY_PRESET',
 									name: 'brand-tint',
 									brand,
+									// Colors already changed by hand stay as they are.
+									keep: true,
 								} )
 							}
 						/>

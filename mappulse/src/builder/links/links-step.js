@@ -12,7 +12,7 @@ import {
 import { __, sprintf, _n } from '@wordpress/i18n';
 import LinkField from './link-field';
 import { planMatches } from './auto-match';
-import { clampOffset } from './label-offset';
+import { clampOffset, atScale } from './label-offset';
 import { matchLinks, messageOf } from '../api';
 import MapPreview from '../areas/map-preview';
 
@@ -32,18 +32,21 @@ export default function LinksStep( { state, dispatch, preview } ) {
 	const setLabel = ( zone, patch ) =>
 		set( zone.id, { label: { ...labelOf( zone ), ...patch } } );
 	const nudge = ( zone, dx, dy ) => {
-		const label = labelOf( zone );
+		const frame = state.doc && state.doc.frame;
+		// The offset as it is drawn now: it may have been set when the map was drawn at another scale.
+		const label = atScale( labelOf( zone ), frame && frame.scale );
 		// Where the builder placed this label, and the frame it must stay in.
 		const shape =
 			state.doc &&
 			state.doc.topology &&
 			state.doc.topology.zones[ zone.id ];
+		const moved = clampOffset( shape && shape.label, frame, {
+			dx: label.dx + dx,
+			dy: label.dy + dy,
+		} );
 		setLabel(
 			zone,
-			clampOffset( shape && shape.label, state.doc && state.doc.frame, {
-				dx: label.dx + dx,
-				dy: label.dy + dy,
-			} )
+			frame && frame.scale > 0 ? { ...moved, scale: frame.scale } : moved
 		);
 	};
 

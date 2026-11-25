@@ -211,4 +211,32 @@ class Test_Style_And_Labels extends MapPulse_Test_Case {
 		$this->assertSame( $hash, get_post_meta( $id, Map_Post_Type::META_HASH, true ) );
 		$this->assertFalse( get_option( 'mappulse_link_epoch' ) );
 	}
+
+	public function test_the_frame_scale_and_a_labels_scale_are_kept_when_given() {
+		$plain = $this->doc();
+		$this->assertArrayNotHasKey( 'scale', $plain['frame'] );
+		$doc = $this->with(
+			static function ( &$raw ) {
+				$raw['frame']['scale']    = '5231.5';
+				$raw['zones'][0]['label'] = array( 'dx' => 8, 'scale' => 5231.5 );
+				$raw['zones'][1]['label'] = array( 'dx' => 8, 'scale' => -3 );
+			}
+		);
+		$this->assertSame( 5231.5, $doc['frame']['scale'] );
+		$this->assertSame( 5231.5, $doc['zones'][0]['label']['scale'] );
+		$this->assertArrayNotHasKey( 'scale', $doc['zones'][1]['label'] );
+		$this->assertSame( 'minimal-line', $this->with( static function ( &$raw ) { $raw['style']['preset'] = 'minimal-line'; } )['style']['preset'] );
+	}
+
+	public function test_an_imported_file_loses_page_ids_from_another_site() {
+		$page = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$raw  = $this->fixture();
+		$raw['zones'][0]['link']     = 'https://example.org/stored/';
+		$raw['zones'][0]['linkPost'] = $page;
+		$id = \MapPulse\Importer::from_json( wp_json_encode( $raw ) );
+		$this->assertIsInt( $id );
+		$zone = Map_Post_Type::get( $id )['zones'][0];
+		$this->assertArrayNotHasKey( 'linkPost', $zone );
+		$this->assertSame( 'https://example.org/stored/', $zone['link'] );
+	}
 }

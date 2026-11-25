@@ -71,6 +71,24 @@ class Importer {
 		if ( '' !== trim( $title ) ) {
 			$raw['title'] = $title;
 		}
+		// A file may come from another site, where a page, post or image ID means something else here.
+		// The addresses stored beside them are kept.
+		if ( isset( $raw['zones'] ) && is_array( $raw['zones'] ) ) {
+			foreach ( $raw['zones'] as $i => $zone ) {
+				if ( ! is_array( $zone ) ) {
+					continue;
+				}
+				unset( $raw['zones'][ $i ]['linkPost'] );
+				if ( isset( $zone['card'] ) && is_array( $zone['card'] ) ) {
+					unset( $raw['zones'][ $i ]['card']['image'] );
+					foreach ( isset( $zone['card']['buttons'] ) && is_array( $zone['card']['buttons'] ) ? $zone['card']['buttons'] : array() as $b => $button ) {
+						if ( is_array( $button ) ) {
+							unset( $raw['zones'][ $i ]['card']['buttons'][ $b ]['post'] );
+						}
+					}
+				}
+			}
+		}
 		return Map_Post_Type::save( $raw );
 	}
 

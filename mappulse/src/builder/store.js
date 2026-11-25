@@ -204,7 +204,8 @@ function step( state, action ) {
 					action.name,
 					state.style,
 					action.brand,
-					state.styleDefaults
+					state.styleDefaults,
+					{ keepHandSet: !! action.keep }
 				),
 				dirty: true,
 			};

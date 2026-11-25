@@ -36,6 +36,13 @@ export const PRESETS = {
 			'mappulse'
 		),
 	},
+	'minimal-line': {
+		label: __( 'Minimal Line', 'mappulse' ),
+		description: __(
+			'White land with the areas drawn as outlines.',
+			'mappulse'
+		),
+	},
 };
 
 const DEFAULT_BRAND = '#1F3A5F';
@@ -58,8 +65,8 @@ function brandTint( brand ) {
 		hover = mix( hover, INK, 0.15 );
 	}
 	// The areas are a mid tint: clearly darker than the land and water around them, light enough for dark labels.
-	let zone = mix( brand, WHITE, 0.6 );
-	for ( let step = 0; step < 12 && luminance( zone ) > 0.5; step++ ) {
+	let zone = mix( brand, WHITE, 0.55 );
+	for ( let step = 0; step < 12 && luminance( zone ) > 0.4; step++ ) {
 		zone = mix( zone, INK, 0.08 );
 	}
 	// Ink with a little of the brand in it; darkened further until it reads on the area color.
@@ -67,43 +74,91 @@ function brandTint( brand ) {
 	if ( contrastRatio( label, zone ) < AA ) {
 		label = INK;
 	}
+	// The surroundings are tints of the highlight color, which is never too light to tint with.
+	// Land is near white, nearby areas a step darker, water a clear cool tone with a firmer shoreline.
+	// Each is far enough from the others to tell apart at a glance.
 	return {
 		zone,
 		zoneStroke: WHITE,
 		zoneHover: hover,
 		label,
 		labelHover: textOn( hover ),
-		land: mix( brand, WHITE, 0.96 ),
-		context: mix( brand, WHITE, 0.9 ),
+		land: mix( hover, WHITE, 0.97 ),
+		context: mix( hover, WHITE, 0.8 ),
 		contextStroke: WHITE,
-		water: mix( mix( brand, '#8FB3BD', 0.7 ), WHITE, 0.86 ),
-		coast: mix( mix( brand, '#8FB3BD', 0.7 ), WHITE, 0.55 ),
-		waterLabel: mix( mix( brand, '#8FB3BD', 0.5 ), INK, 0.45 ),
+		water: mix( mix( hover, '#7FA9B8', 0.75 ), WHITE, 0.68 ),
+		coast: mix( mix( hover, '#7FA9B8', 0.75 ), WHITE, 0.2 ),
+		waterLabel: mix( mix( brand, '#7FA9B8', 0.5 ), INK, 0.5 ),
 		road: WHITE,
-		roadCasing: mix( brand, WHITE, 0.62 ),
+		roadCasing: mix( hover, WHITE, 0.55 ),
 	};
 }
 
+// White land with the areas drawn as outlines in one ink color.
+const MINIMAL_LINE = {
+	zone: '#FFFFFF',
+	zoneStroke: '#2B2F36',
+	zoneHover: '#2B2F36',
+	label: '#2B2F36',
+	labelHover: '#FFFFFF',
+	land: '#FFFFFF',
+	context: '#FFFFFF',
+	contextStroke: '#D5D8DC',
+	water: '#EEF3F5',
+	coast: '#B7C4CA',
+	waterLabel: '#5F6F78',
+	road: '#FFFFFF',
+	roadCasing: '#D5D8DC',
+};
+
+const colorsOf = ( name, brand, defaults ) => {
+	if ( name === 'brand-tint' ) {
+		return brandTint( brand );
+	}
+	if ( name === 'minimal-line' ) {
+		return MINIMAL_LINE;
+	}
+	return Object.fromEntries(
+		COLOR_KEYS.map( ( key ) => [ key, defaults[ key ] ] )
+	);
+};
+
 /**
- * @param name     'atlas' or 'brand-tint'. Anything else is treated as Atlas.
- * @param style    The current style block.
- * @param brand    The brand color, for Brand Tint.
- * @param defaults The built-in style block, as the server gives it.
+ * @param name                'atlas', 'brand-tint' or 'minimal-line'. Anything else is treated as Atlas.
+ * @param style               The current style block.
+ * @param brand               The brand color, for Brand Tint.
+ * @param defaults            The built-in style block, as the server gives it.
+ * @param options
+ * @param options.keepHandSet Keep each color the person changed away from the current preset's own.
  * @return A full style block.
  */
-export function applyPreset( name, style, brand, defaults ) {
+export function applyPreset(
+	name,
+	style,
+	brand,
+	defaults,
+	{ keepHandSet = false } = {}
+) {
 	const kept = { ...defaults, ...style };
-	if ( name !== 'brand-tint' ) {
-		const colors = Object.fromEntries(
-			COLOR_KEYS.map( ( key ) => [ key, defaults[ key ] ] )
+	const preset = PRESETS[ name ] ? name : 'atlas';
+	const color =
+		preset === 'brand-tint'
+			? normalHex( brand, normalHex( style.brand, DEFAULT_BRAND ) )
+			: '';
+	const colors = { ...colorsOf( preset, color, defaults ) };
+	if ( keepHandSet ) {
+		// A color that differs from what the preset in use would give was set by hand.
+		const current = PRESETS[ kept.preset ] ? kept.preset : 'atlas';
+		const before = colorsOf(
+			current,
+			normalHex( kept.brand, DEFAULT_BRAND ),
+			defaults
 		);
-		return { ...kept, ...colors, preset: 'atlas', brand: '' };
+		for ( const key of COLOR_KEYS ) {
+			if ( normalHex( kept[ key ] ) !== normalHex( before[ key ] ) ) {
+				colors[ key ] = kept[ key ];
+			}
+		}
 	}
-	const color = normalHex( brand, normalHex( style.brand, DEFAULT_BRAND ) );
-	return {
-		...kept,
-		...brandTint( color ),
-		preset: 'brand-tint',
-		brand: color,
-	};
+	return { ...kept, ...colors, preset, brand: color };
 }

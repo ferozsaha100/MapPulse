@@ -88,6 +88,35 @@ describe( 'decorate', () => {
 		expect( second.zones[ 0 ] ).not.toHaveProperty( 'label' );
 	} );
 
+	it( "redraws a hand-placed label at the map's current scale", () => {
+		const doc = {
+			...built(),
+			frame: { width: 1000, height: 800, scale: 4 },
+		};
+		const out = decorate( doc, {
+			style: {},
+			zones: [
+				zone( 'a', {
+					label: {
+						text: '',
+						dx: 10,
+						dy: -4,
+						hidden: false,
+						scale: 2,
+					},
+				} ),
+				zone( 'b' ),
+			],
+		} );
+		expect( out.zones[ 0 ].label ).toEqual( {
+			text: '',
+			dx: 20,
+			dy: -8,
+			hidden: false,
+			scale: 4,
+		} );
+	} );
+
 	it( 'leaves the document it was given untouched and passes null through', () => {
 		const doc = built();
 		decorate( doc, {
