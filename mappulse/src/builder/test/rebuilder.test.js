@@ -105,9 +105,9 @@ describe( 'rebuilder', () => {
 		const { deps, update, run } = setup();
 		update( [ zone( 'a' ) ] );
 		await run();
-		expect( deps.renderDocument.mock.calls[ 0 ][ 0 ].zones[ 0 ] ).toEqual( {
-			id: 'a',
-		} );
+		const sent = deps.renderDocument.mock.calls[ 0 ][ 0 ].zones[ 0 ];
+		expect( sent.id ).toBe( 'a' );
+		expect( sent ).not.toHaveProperty( 'geometry' );
 	} );
 
 	it( 'stops being busy when a change is undone before the drawing starts', async () => {
@@ -261,5 +261,89 @@ describe( 'rebuilder', () => {
 		await run();
 		expect( rebuilder.get() ).toMatchObject( { busy: false, html: '' } );
 		expect( docs[ 1 ] ).toBeNull();
+	} );
+
+	it( 'redraws for a style or link change without rebuilding or fetching', async () => {
+		const { rebuilder, deps, docs, run } = setup();
+		const zones = [ zone( 'a' ) ];
+		const style = { zone: '#DCCFB6', labelSize: 11.5 };
+		rebuilder.update( { zones, priority: PRIORITY, title: 't', style } );
+		await run();
+		deps.build.mockClear();
+		deps.fetchBaseLayer.mockClear();
+		deps.renderDocument.mockClear();
+
+		const tinted = { ...style, zone: '#112233' };
+		rebuilder.update( {
+			zones,
+			priority: PRIORITY,
+			title: 't',
+			style: tinted,
+		} );
+		expect(
+			rebuilder.isCurrent( { zones, priority: PRIORITY, style: tinted } )
+		).toBe( false );
+		await run();
+		expect( deps.build ).not.toHaveBeenCalled();
+		expect( deps.fetchBaseLayer ).not.toHaveBeenCalled();
+		expect( deps.renderDocument ).toHaveBeenCalledTimes( 1 );
+		expect( deps.renderDocument.mock.calls[ 0 ][ 0 ].style.zone ).toBe(
+			'#112233'
+		);
+		expect( docs[ docs.length - 1 ].style.zone ).toBe( '#112233' );
+		expect(
+			rebuilder.isCurrent( { zones, priority: PRIORITY, style: tinted } )
+		).toBe( true );
+
+		const linked = [
+			zone( 'a', { link: 'https://example.com/a/', linkPost: 5 } ),
+		];
+		rebuilder.update( {
+			zones: linked,
+			priority: PRIORITY,
+			title: 't',
+			style: tinted,
+		} );
+		await run();
+		expect( deps.build ).not.toHaveBeenCalled();
+		expect( docs[ docs.length - 1 ].zones[ 0 ] ).toMatchObject( {
+			link: 'https://example.com/a/',
+			linkPost: 5,
+		} );
+	} );
+
+	it( 'rebuilds when the label size changes', async () => {
+		const { rebuilder, deps, run } = setup();
+		const zones = [ zone( 'a' ) ];
+		rebuilder.update( {
+			zones,
+			priority: PRIORITY,
+			title: 't',
+			style: { labelSize: 11.5 },
+		} );
+		await run();
+		deps.build.mockClear();
+		rebuilder.update( {
+			zones,
+			priority: PRIORITY,
+			title: 't',
+			style: { labelSize: 14 },
+		} );
+		await run();
+		expect( deps.build ).toHaveBeenCalledTimes( 1 );
+		expect( deps.build.mock.calls[ 0 ][ 0 ].style.labelSize ).toBe( 14 );
+	} );
+
+	it( 'applies links and style to a full build as well', async () => {
+		const { docs, rebuilder, run } = setup();
+		rebuilder.update( {
+			zones: [ zone( 'a', { link: 'https://example.com/a/' } ) ],
+			priority: PRIORITY,
+			title: 't',
+			style: { zone: '#112233' },
+		} );
+		await run();
+		expect( docs[ 0 ].zones[ 0 ].link ).toBe( 'https://example.com/a/' );
+		expect( docs[ 0 ].style.zone ).toBe( '#112233' );
 	} );
 } );

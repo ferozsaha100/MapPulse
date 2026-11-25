@@ -2,6 +2,28 @@
 
 All notable changes to MapPulse are recorded here. Versions follow semantic versioning.
 
+## 0.4.0 (builder, part 2: Style, Zones and links)
+
+- Style step: presets Atlas and Brand Tint (a full palette derived from one brand color), all thirteen
+  colors editable with the theme palette and Elementor global colors offered first, label font and
+  size, border width (0 to 4) and style (solid, dashed, dotted), hover effect (fill or outline), and a
+  warning when label contrast falls under 4.5 to 1.
+- Zones and links step: per area a link (search pages and posts by title, or paste any http/https
+  address), a custom label text, hide label, and label position by drag or arrow buttons. "Match areas
+  to pages" applies clear matches and asks about unclear ones.
+- A link chosen from the site's pages stores the page ID and follows its permalink while the page is
+  published; otherwise the stored address is used. Where each such link leads is part of the stored
+  drawing's signature, so the drawing is redone after any change of address.
+- New document keys, all optional: style `preset`, `zoneStrokeWidth`, `zoneStrokeStyle`, `hoverEffect`,
+  `brand`; zone `label` (`text`, `dx`, `dy`, `hidden`) and `linkPost`. Still schema 1; older maps render
+  byte-for-byte as before.
+- New REST routes: `/links/search`, `/links/match`.
+- A color, link or label change is redrawn by the server without rebuilding the map's shapes.
+- Carry-overs: the smaller of two overlapping cleaned areas keeps its shape; warnings are translatable
+  and gain `under_water` and `too_small`; a map that fails to open blocks the builder; a save the
+  database does not keep returns an error.
+- Not yet: hover card, Decorate step, Minimal Line preset, drawing or uploading an area.
+
 ## 0.3.0 (builder, part 1: Areas)
 
 - Map builder screen in wp-admin (MapPulse → Add New Map; a map's Edit link opens it).

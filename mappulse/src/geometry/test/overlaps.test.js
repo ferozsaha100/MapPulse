@@ -97,4 +97,17 @@ describe( 'resolveOverlaps', () => {
 		expect( mpArea( byId.solid.mp ) ).toBeCloseTo( 4 - 0.25 );
 		expect( mpArea( byId.hood.mp ) ).toBeCloseTo( 0.25 );
 	} );
+
+	it( 'cuts the smaller of two zones marked first before the larger, whatever their order', () => {
+		const out = resolveOverlaps(
+			[
+				zone( 'big', 'city', square( 0, 0, 4 ), { first: true } ),
+				zone( 'small', 'city', square( 1, 1, 1 ), { first: true } ),
+			],
+			DEFAULT_PRIORITY
+		);
+		const byId = Object.fromEntries( out.map( ( z ) => [ z.id, z ] ) );
+		expect( mpArea( byId.small.mp ) ).toBeCloseTo( 1 );
+		expect( mpArea( byId.big.mp ) ).toBeCloseTo( 15 );
+	} );
 } );

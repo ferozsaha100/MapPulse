@@ -165,7 +165,12 @@ class Map_Post_Type {
 			}
 		}
 
-		update_post_meta( $post_id, self::META_DOC, wp_slash( wp_json_encode( $doc, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) ) );
+		$json = wp_json_encode( $doc, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+		update_post_meta( $post_id, self::META_DOC, wp_slash( $json ) );
+		// A large document can be refused by the database without an error reaching PHP. Read it back.
+		if ( get_post_meta( $post_id, self::META_DOC, true ) !== $json ) {
+			return new \WP_Error( 'mappulse_not_stored', __( 'The map could not be stored. It may be too large for this site\'s database; remove an area and try again.', 'mappulse' ) );
+		}
 		if ( $sources ) {
 			update_post_meta( $post_id, self::META_SOURCES, wp_slash( wp_json_encode( $sources ) ) );
 		} else {
@@ -293,6 +298,14 @@ class Map_Post_Type {
 	 * @param string $svg The SVG rendered from it.
 	 */
 	private static function signature( array $doc, string $svg ): string {
-		return wp_hash( Map_Document::hash( $doc ) . '|' . md5( $svg ), 'nonce' );
+		// A link to one of the site's pages is resolved when the map is shown. Where those links lead is part
+		// of the signature, so a stored drawing is never used after an address changes, whatever changed it.
+		$links = '';
+		foreach ( $doc['zones'] as $zone ) {
+			if ( ! empty( $zone['linkPost'] ) ) {
+				$links .= $zone['id'] . '=' . Renderer::link( $zone ) . ';';
+			}
+		}
+		return wp_hash( Map_Document::hash( $doc ) . '|' . md5( $svg ) . '|' . md5( $links ), 'nonce' );
 	}
 }

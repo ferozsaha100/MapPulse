@@ -31,6 +31,16 @@ class Map_Document {
 	const MAX_ZONE_BYTES = 400000;
 	const MAX_BYTES      = 4000000;
 
+	const PRESETS       = array( 'atlas', 'brand-tint' );
+	const HOVER_EFFECTS = array( 'fill', 'outline' );
+
+	// Border styles and the dash pattern each one draws with.
+	const STROKE_STYLES = array(
+		'solid'  => 'none',
+		'dashed' => '6 4',
+		'dotted' => '1.5 3.5',
+	);
+
 	const FRAME_MIN = 100;
 	const FRAME_MAX = 4000;
 
@@ -55,6 +65,13 @@ class Map_Document {
 			'labelFont'     => 'Inter, Helvetica, Arial, sans-serif',
 			'labelSize'     => 11.5,
 		);
+	}
+
+	/**
+	 * The full built-in style block: the default colors, font and size, and the border and hover values.
+	 */
+	public static function style_defaults(): array {
+		return self::style( array() );
 	}
 
 	/**
@@ -141,7 +158,7 @@ class Map_Document {
 				return self::bad_path();
 			}
 
-			$zone = array(
+			$zone     = array(
 				'id'     => $id,
 				'name'   => $name,
 				'type'   => sanitize_key( $raw_zone['type'] ?? '' ),
@@ -152,6 +169,15 @@ class Map_Document {
 				'link'   => self::link( $raw_zone['link'] ?? '' ),
 				'text'   => self::text( $raw_zone['text'] ?? '' ),
 			);
+			$override = self::label_override( $raw_zone['label'] ?? null, max( $width, $height ) );
+			if ( null !== $override ) {
+				$zone['label'] = $override;
+			}
+			// A link chosen from the site's pages keeps the page's ID, so the map follows the page if it moves.
+			$link_post = isset( $raw_zone['linkPost'] ) && is_numeric( $raw_zone['linkPost'] ) ? (int) $raw_zone['linkPost'] : 0;
+			if ( $link_post > 0 ) {
+				$zone['linkPost'] = $link_post;
+			}
 			if ( $built ) {
 				if ( null !== $geometry ) {
 					$zone['geometry'] = $geometry;
@@ -307,7 +333,45 @@ class Map_Document {
 				$style[ $key ] = $color ? $color : $fallback;
 			}
 		}
+		$preset                   = isset( $raw['preset'] ) && is_string( $raw['preset'] ) ? $raw['preset'] : '';
+		$style['preset']          = in_array( $preset, self::PRESETS, true ) ? $preset : self::PRESETS[0];
+		$width                    = self::number( $raw['zoneStrokeWidth'] ?? null );
+		$style['zoneStrokeWidth'] = null === $width ? 1.6 : (float) min( 4, max( 0, $width ) );
+		$line                     = isset( $raw['zoneStrokeStyle'] ) && is_string( $raw['zoneStrokeStyle'] ) ? $raw['zoneStrokeStyle'] : '';
+		$style['zoneStrokeStyle'] = isset( self::STROKE_STYLES[ $line ] ) ? $line : 'solid';
+		$hover                    = isset( $raw['hoverEffect'] ) && is_string( $raw['hoverEffect'] ) ? $raw['hoverEffect'] : '';
+		$style['hoverEffect']     = in_array( $hover, self::HOVER_EFFECTS, true ) ? $hover : self::HOVER_EFFECTS[0];
+		$brand                    = isset( $raw['brand'] ) && is_string( $raw['brand'] ) ? sanitize_hex_color( $raw['brand'] ) : '';
+		$style['brand']           = $brand ? $brand : '';
 		return $style;
+	}
+
+	/**
+	 * Cleans a hand-set label: its own text, an offset from where the builder placed it, or hidden.
+	 * Returns null when nothing is set, so an untouched zone stores no label key.
+	 *
+	 * @param mixed $raw   Raw label override.
+	 * @param float $limit The frame's larger side; an offset never exceeds it.
+	 */
+	private static function label_override( $raw, float $limit ): ?array {
+		if ( ! is_array( $raw ) ) {
+			return null;
+		}
+		$text   = self::text( $raw['text'] ?? '', 60 );
+		$dx     = self::number( $raw['dx'] ?? null );
+		$dy     = self::number( $raw['dy'] ?? null );
+		$dx     = null === $dx ? 0.0 : (float) min( $limit, max( -$limit, $dx ) );
+		$dy     = null === $dy ? 0.0 : (float) min( $limit, max( -$limit, $dy ) );
+		$hidden = ! empty( $raw['hidden'] );
+		if ( '' === $text && 0.0 === $dx && 0.0 === $dy && ! $hidden ) {
+			return null;
+		}
+		return array(
+			'text'   => $text,
+			'dx'     => $dx,
+			'dy'     => $dy,
+			'hidden' => $hidden,
+		);
 	}
 
 	/**

@@ -310,3 +310,297 @@
 		transition: none;
 	}
 }
+
+/* Steps as tabs. */
+.mappulse-builder__step {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 8px;
+	border: 0;
+	border-radius: 2px;
+	background: none;
+	color: #1d2327;
+	font: inherit;
+	cursor: pointer;
+
+	&:hover:not(:disabled) {
+		background: #f0f0f1;
+	}
+
+	&:focus-visible {
+		outline: 2px solid #3858e9;
+		outline-offset: 1px;
+	}
+
+	&:disabled {
+		color: #a7aaad;
+		cursor: not-allowed;
+
+		.mappulse-builder__step-number {
+			background: #dcdcde;
+			color: #646970;
+		}
+	}
+
+	.mappulse-builder__steps li:not(.is-current) & .mappulse-builder__step-number {
+		background: #dcdcde;
+		color: #2c3338;
+	}
+
+	.is-current & {
+		font-weight: 600;
+		box-shadow: inset 0 -2px 0 #1f3a5f;
+	}
+}
+
+.mappulse-builder__steps li {
+	font-weight: 400;
+}
+
+/* Style and links panels. */
+.mappulse-panel {
+	display: grid;
+	gap: 12px;
+	padding: 16px;
+	background: #fff;
+	border: 1px solid #dcdcde;
+
+	h2 {
+		margin: 0;
+	}
+
+	&__hint {
+		margin: 0;
+		color: #50575e;
+	}
+
+	.components-notice {
+		margin: 0;
+	}
+}
+
+.mappulse-presets {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+}
+
+.mappulse-preset {
+	display: grid;
+	gap: 6px;
+	padding: 10px;
+	border: 1px solid #c3c4c7;
+	border-radius: 2px;
+	background: #fff;
+	text-align: left;
+	cursor: pointer;
+
+	&.is-chosen {
+		border-color: #1f3a5f;
+		box-shadow: 0 0 0 1px #1f3a5f;
+	}
+
+	&:focus-visible {
+		outline: 2px solid #3858e9;
+		outline-offset: 1px;
+	}
+
+	span {
+		color: #50575e;
+		font-size: 12px;
+	}
+
+	&__swatches {
+		display: flex;
+		height: 18px;
+		border: 1px solid #dcdcde;
+
+		span {
+			flex: 1;
+		}
+	}
+}
+
+.mappulse-colors {
+	display: grid;
+	gap: 2px;
+}
+
+.mappulse-color {
+	display: block;
+
+	&__toggle.components-button {
+		display: flex;
+		width: 100%;
+		height: auto;
+		gap: 10px;
+		padding: 6px 8px;
+		justify-content: flex-start;
+	}
+
+	&__swatch {
+		flex: none;
+		width: 22px;
+		height: 22px;
+		border: 1px solid rgba(0, 0, 0, 0.25);
+		border-radius: 50%;
+	}
+
+	&__label {
+		flex: 1;
+		text-align: left;
+	}
+
+	&__value {
+		color: #646970;
+		font-family: Menlo, Consolas, monospace;
+		font-size: 12px;
+	}
+
+	&__picker {
+		width: 248px;
+		padding: 8px;
+	}
+}
+
+.mappulse-links {
+	&__tools {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 12px;
+	}
+
+	&__ask {
+		margin: 0;
+
+		li {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: 6px;
+			margin: 0 0 8px;
+		}
+	}
+}
+
+.mappulse-link-row {
+	display: grid;
+	gap: 8px;
+	padding: 12px 8px;
+
+	&.is-selected {
+		background: #f6f7f7;
+		box-shadow: inset 3px 0 0 #1f3a5f;
+	}
+
+	&:first-child {
+		border-top: 0;
+	}
+
+	&__name {
+		margin: 0;
+		font-size: 13px;
+	}
+
+	&__label {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		gap: 12px;
+		align-items: end;
+	}
+
+	&__move {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 4px;
+		color: #50575e;
+		font-size: 12px;
+	}
+}
+
+.mappulse-link {
+	&.is-set {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+	}
+
+	&__current {
+		display: grid;
+		gap: 2px;
+		min-width: 0;
+
+		a {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			font-size: 12px;
+		}
+	}
+
+	&__entry {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+
+		> :first-child {
+			flex: 1;
+		}
+	}
+
+	&__results {
+		margin: 6px 0 0;
+		max-height: 200px;
+		overflow: auto;
+		border: 1px solid #dcdcde;
+
+		li {
+			margin: 0;
+			border-bottom: 1px solid #f0f0f1;
+		}
+
+		.components-button {
+			display: flex;
+			width: 100%;
+			height: auto;
+			padding: 6px 10px;
+			justify-content: space-between;
+			gap: 12px;
+			text-align: left;
+		}
+	}
+
+	&__type {
+		color: #646970;
+		font-size: 12px;
+	}
+
+	&__note {
+		margin: 6px 0 0;
+		color: #b32d2e;
+	}
+
+	&__none {
+		margin: 6px 0 0;
+		color: #50575e;
+	}
+}
+
+/* The chosen area's label can be dragged. Labels ignore the pointer everywhere else. */
+.mappulse-preview__map.can-move .mappulse__labels {
+	pointer-events: auto;
+}
+
+.mappulse-preview__map.can-move .mappulse__label {
+	pointer-events: none;
+}
+
+.mappulse-preview__map.can-move .mappulse__label.is-active {
+	pointer-events: auto;
+	cursor: grab;
+	touch-action: none;
+}

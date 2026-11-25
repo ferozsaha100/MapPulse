@@ -85,4 +85,16 @@ class Test_Map_Store extends MapPulse_Test_Case {
 		$this->assertTrue( get_role( 'administrator' )->has_cap( 'manage_mappulse_maps' ) );
 		$this->assertFalse( get_role( 'editor' )->has_cap( 'manage_mappulse_maps' ) );
 	}
+
+	public function test_a_document_that_does_not_reach_the_database_is_reported() {
+		$block = static function ( $check, $object_id, $meta_key ) {
+			return \MapPulse\Map_Post_Type::META_DOC === $meta_key ? false : $check;
+		};
+		add_filter( 'update_post_metadata', $block, 10, 3 );
+		$result = \MapPulse\Map_Post_Type::save( $this->doc() );
+		remove_filter( 'update_post_metadata', $block, 10 );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'mappulse_not_stored', $result->get_error_code() );
+	}
 }

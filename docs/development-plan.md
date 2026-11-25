@@ -241,7 +241,8 @@ One capability, `manage_mappulse_maps`, guards every builder route.
 
 Each phase gets its own task-level plan, written at its start against this repository. Phase 1 is
 delivered in four releases: 0.1.0 (plugin foundation), 0.2.x (boundary service), 0.3.0 (builder: Areas
-and base map) and 0.4.0 (builder: Style, and Zones and links).
+and base map) and 0.4.0 (builder: Style, and Zones and links). The hover card from the Zones and links list moves to
+Phase 2 with the Decorate step.
 
 ## 13. Testing
 

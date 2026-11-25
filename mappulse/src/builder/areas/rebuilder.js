@@ -11,7 +11,8 @@ import {
 	baseIsPartial,
 	BASE_LAYERS,
 } from '../../geometry/build-document';
-import { planRebuild, signature } from './plan';
+import { planRebuild, signature, drawSignature } from './plan';
+import { decorate } from '../decorate';
 import { messageOf } from '../message';
 
 // The server draws from the document's paths. The source boundaries are large and it does not need them.
@@ -25,7 +26,7 @@ const forPreview = ( doc ) => ( {
  * @param deps.fetchBaseLayer ( bbox, layer ) => Promise of { [ layer ]: FeatureCollection }.
  * @param deps.renderDocument ( doc ) => Promise of { html }.
  * @param deps.build          buildDocument, replaceable in tests.
- * @param deps.onDoc          Called with ( doc, warnings ) after each build.
+ * @param deps.onDoc          Called with ( doc, warnings ) whenever the document changes.
  * @param deps.onChange       Called with the view state whenever it changes.
  * @param deps.delay          Milliseconds to wait after a change before drawing.
  */
@@ -38,14 +39,16 @@ export function createRebuilder( {
 	delay = 300,
 } ) {
 	let view = { busy: false, html: '', error: '', baseNote: '' };
-	// What the last drawing was made from, and the base map held for it.
+	// What the shapes were last built from, the base map held for them, and the document that came out.
 	let last = {
 		signature: signature( { zones: [], priority: [] } ),
 		fetched: null,
 		base: {},
+		doc: null,
+		warnings: [],
 	};
-	// The signature of the area list the current document was built from. Saving is allowed only while it matches.
-	let built = last.signature;
+	// The signature of everything the document on hand was made from. Saving is allowed only while it matches.
+	let built = drawSignature( { zones: [], priority: [] } );
 	let run = 0;
 	let timer = null;
 	// True from a change that needs a new drawing until that drawing is done.
@@ -56,7 +59,35 @@ export function createRebuilder( {
 		onChange( view );
 	};
 
-	async function draw( id, input, next, plan ) {
+	// Hands the document over and asks the server to draw it.
+	async function show( id, doc, warnings, baseNote ) {
+		onDoc( doc, warnings );
+		if ( ! doc ) {
+			set( { busy: false, html: '', error: '', baseNote: '' } );
+			return;
+		}
+		try {
+			const answer = await renderDocument( forPreview( doc ) );
+			if ( id === run ) {
+				set( { busy: false, html: answer.html, error: '', baseNote } );
+			}
+		} catch ( e ) {
+			if ( id === run ) {
+				// The last good drawing stays on screen.
+				set( {
+					busy: false,
+					baseNote,
+					error: messageOf(
+						e,
+						__( 'The map could not be drawn.', 'mappulse' )
+					),
+				} );
+			}
+		}
+	}
+
+	// A change to the areas: fetch a wider base map if needed, build the shapes, then show.
+	async function rebuild( id, input, next, plan ) {
 		const stale = () => id !== run;
 		let { base, fetched } = last;
 		let baseNote = view.baseNote;
@@ -102,6 +133,7 @@ export function createRebuilder( {
 				zones: input.zones,
 				base,
 				priority: input.priority,
+				style: input.style || {},
 			} );
 		} catch ( e ) {
 			// The document on hand no longer matches the list, so it must not be saved as if it did.
@@ -116,83 +148,86 @@ export function createRebuilder( {
 			return;
 		}
 
-		last = { signature: next.signature, fetched, base };
-		built = next.signature;
-		onDoc( result.doc, result.warnings );
-		if ( ! result.doc ) {
-			set( { busy: false, html: '', error: '', baseNote: '' } );
-			return;
-		}
-		try {
-			const answer = await renderDocument( forPreview( result.doc ) );
-			if ( stale() ) {
-				return;
-			}
-			set( { busy: false, html: answer.html, error: '', baseNote } );
-		} catch ( e ) {
-			if ( stale() ) {
-				return;
-			}
-			// The last good drawing stays on screen.
-			set( {
-				busy: false,
-				baseNote,
-				error: messageOf(
-					e,
-					__( 'The map could not be drawn.', 'mappulse' )
-				),
-			} );
-		}
+		last = {
+			signature: next.signature,
+			fetched,
+			base,
+			doc: result.doc,
+			warnings: result.warnings,
+		};
+		built = next.draw;
+		await show(
+			id,
+			decorate( result.doc, input ),
+			result.warnings,
+			baseNote
+		);
 	}
 
 	return {
 		get: () => view,
 
-		// True when the document on hand was built from exactly this area list.
-		isCurrent: ( { zones, priority } ) =>
-			built === signature( { zones, priority } ),
+		// True when the document on hand was made from exactly these areas, style, links and labels.
+		isCurrent: ( input ) => built === drawSignature( input ),
 
-		// Call after every change to the area list.
+		// Call after every change to the areas, the style, a link or a label.
 		update( input ) {
 			const next = {
 				signature: signature( input ),
+				draw: drawSignature( input ),
 				wanted: bboxForBase( input.zones ),
 				fetched: last.fetched,
 			};
 			const plan = planRebuild( last, next );
-			if ( ! plan.rebuild ) {
-				// The list is back to what is drawn. A drawing of some other list still on its way is dropped.
+			if ( ! plan.rebuild && next.draw === built ) {
+				// Everything is back to what is drawn. A drawing of something else still on its way is dropped.
 				if ( pending ) {
 					run++;
 					clearTimeout( timer );
 					pending = false;
 				}
 				// A failed build of some other list no longer matters either.
-				set( {
-					busy: false,
-					error: built === next.signature ? '' : view.error,
-				} );
+				set( { busy: false, error: '' } );
 				return;
 			}
 			const id = ++run;
 			clearTimeout( timer );
 			pending = true;
 			set( { busy: true } );
-			timer = setTimeout( async () => {
-				await draw( id, input, next, plan );
-				if ( id === run ) {
-					pending = false;
-				}
-			}, delay );
+			timer = setTimeout(
+				async () => {
+					if ( plan.rebuild ) {
+						await rebuild( id, input, next, plan );
+					} else {
+						// Only colors, links or labels changed: the shapes stand, and the server just draws again.
+						built = next.draw;
+						await show(
+							id,
+							decorate( last.doc, input ),
+							last.warnings,
+							view.baseNote
+						);
+					}
+					if ( id === run ) {
+						pending = false;
+					}
+				},
+				plan.rebuild ? delay : Math.min( delay, 150 )
+			);
 		},
 
 		// A saved map is shown as stored when it opens, without building it again.
-		adopt( { doc, zones, priority } ) {
+		adopt( { doc, zones, priority, style } ) {
 			const id = ++run;
 			clearTimeout( timer );
 			pending = false;
-			last = { ...last, signature: signature( { zones, priority } ) };
-			built = last.signature;
+			last = {
+				...last,
+				signature: signature( { zones, priority, style } ),
+				doc,
+				warnings: [],
+			};
+			built = drawSignature( { zones, priority, style } );
 			renderDocument( forPreview( doc ) )
 				.then(
 					( answer ) =>

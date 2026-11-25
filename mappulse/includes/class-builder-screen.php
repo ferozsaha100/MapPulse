@@ -102,10 +102,10 @@ class Builder_Screen {
 		$map_id = isset( $_GET['map'] ) ? absint( wp_unslash( $_GET['map'] ) ) : 0;
 
 		return array(
-			'mapId'    => $map_id,
-			'listUrl'  => admin_url( 'edit.php?post_type=' . Map_Post_Type::POST_TYPE ),
-			'editUrl'  => self::url(),
-			'tiles'    => array(
+			'mapId'         => $map_id,
+			'listUrl'       => admin_url( 'edit.php?post_type=' . Map_Post_Type::POST_TYPE ),
+			'editUrl'       => self::url(),
+			'tiles'         => array(
 				/**
 				 * Filters the street tiles the builder shows a boundary on. Used in the admin only.
 				 *
@@ -119,8 +119,8 @@ class Builder_Screen {
 				 */
 				'attribution' => (string) apply_filters( 'mappulse_tile_attribution', '© OpenStreetMap contributors' ),
 			),
-			'states'   => $states,
-			'types'    => array(
+			'states'        => $states,
+			'types'         => array(
 				array(
 					'value' => 'city',
 					'label' => __( 'City', 'mappulse' ),
@@ -138,8 +138,112 @@ class Builder_Screen {
 					'label' => __( 'Neighborhood', 'mappulse' ),
 				),
 			),
-			'maxZones' => MAPPULSE_MAX_ZONES,
+			'maxZones'      => MAPPULSE_MAX_ZONES,
+			'siteColors'    => self::site_colors(),
+			'siteFonts'     => self::site_fonts(),
+			'styleDefaults' => Map_Document::style_defaults(),
 		);
+	}
+
+	/**
+	 * The site's own colors, offered first in the builder's color pickers: the theme's palette and,
+	 * with Elementor, its global colors. Hex values only.
+	 *
+	 * @return array[] Each: name, color (#RRGGBB).
+	 */
+	public static function site_colors(): array {
+		$found   = array();
+		$palette = wp_get_global_settings( array( 'color', 'palette' ) );
+		foreach ( array( 'theme', 'custom' ) as $origin ) {
+			foreach ( isset( $palette[ $origin ] ) && is_array( $palette[ $origin ] ) ? $palette[ $origin ] : array() as $entry ) {
+				$found[] = array( $entry['name'] ?? ( $entry['slug'] ?? '' ), $entry['color'] ?? '' );
+			}
+		}
+		foreach ( array( 'system_colors', 'custom_colors' ) as $setting ) {
+			foreach ( self::elementor_kit( $setting ) as $entry ) {
+				$found[] = array( $entry['title'] ?? '', $entry['color'] ?? '' );
+			}
+		}
+
+		$colors = array();
+		foreach ( $found as list( $name, $color ) ) {
+			$hex = is_string( $color ) ? sanitize_hex_color( $color ) : '';
+			if ( ! $hex ) {
+				continue;
+			}
+			if ( 4 === strlen( $hex ) ) {
+				$hex = '#' . $hex[1] . $hex[1] . $hex[2] . $hex[2] . $hex[3] . $hex[3];
+			}
+			$hex = strtoupper( $hex );
+			if ( ! isset( $colors[ $hex ] ) && count( $colors ) < 24 ) {
+				$colors[ $hex ] = array(
+					'name'  => sanitize_text_field( (string) $name ),
+					'color' => $hex,
+				);
+			}
+		}
+		return array_values( $colors );
+	}
+
+	/**
+	 * Fonts offered for labels: the site's own families, then four system stacks. A font is used by
+	 * name only; MapPulse loads no font file.
+	 *
+	 * @return array[] Each: name, family.
+	 */
+	public static function site_fonts(): array {
+		$found    = array();
+		$families = wp_get_global_settings( array( 'typography', 'fontFamilies' ) );
+		foreach ( array( 'theme', 'custom' ) as $origin ) {
+			foreach ( isset( $families[ $origin ] ) && is_array( $families[ $origin ] ) ? $families[ $origin ] : array() as $entry ) {
+				$found[] = array( $entry['name'] ?? ( $entry['slug'] ?? '' ), $entry['fontFamily'] ?? '' );
+			}
+		}
+		foreach ( self::elementor_kit( 'system_typography' ) as $entry ) {
+			$family = $entry['typography_font_family'] ?? '';
+			if ( is_string( $family ) && '' !== $family ) {
+				$found[] = array( ( $entry['title'] ?? '' ) . ': ' . $family, $family . ', sans-serif' );
+			}
+		}
+		$found[] = array( __( 'Sans-serif (Inter, Helvetica, Arial)', 'mappulse' ), 'Inter, Helvetica, Arial, sans-serif' );
+		$found[] = array( __( 'System sans-serif', 'mappulse' ), 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif' );
+		$found[] = array( __( 'Serif (Georgia)', 'mappulse' ), 'Georgia, Times New Roman, serif' );
+		$found[] = array( __( 'Monospace', 'mappulse' ), 'ui-monospace, Menlo, Consolas, monospace' );
+
+		$fonts = array();
+		foreach ( $found as list( $name, $family ) ) {
+			// A family given as a CSS variable cannot be stored as a name.
+			if ( ! is_string( $family ) || false !== strpos( $family, '(' ) ) {
+				continue;
+			}
+			// The same characters the map document accepts for a font.
+			$family = trim( preg_replace( '/\s+/', ' ', preg_replace( '/[^A-Za-z0-9 ,_\-]/', '', $family ) ) );
+			if ( '' !== $family && ! isset( $fonts[ $family ] ) && count( $fonts ) < 30 ) {
+				$fonts[ $family ] = array(
+					'name'   => sanitize_text_field( (string) $name ),
+					'family' => $family,
+				);
+			}
+		}
+		return array_values( $fonts );
+	}
+
+	/**
+	 * One list setting of the active Elementor kit, or an empty list without Elementor.
+	 *
+	 * @param string $setting Kit setting name.
+	 */
+	private static function elementor_kit( string $setting ): array {
+		if ( ! class_exists( '\\Elementor\\Plugin' ) || empty( \Elementor\Plugin::$instance->kits_manager ) ) {
+			return array();
+		}
+		try {
+			$kit  = \Elementor\Plugin::$instance->kits_manager->get_active_kit_for_frontend();
+			$list = $kit ? $kit->get_settings( $setting ) : array();
+		} catch ( \Throwable $e ) {
+			return array();
+		}
+		return is_array( $list ) ? array_values( array_filter( $list, 'is_array' ) ) : array();
 	}
 
 	/**

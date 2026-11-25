@@ -46,7 +46,7 @@ async function addArea( page, name, { expectClean } ) {
 	).toBeVisible();
 }
 
-test( 'a map is built, published, shown on a page and reopened', async ( {
+test( 'a map is built, styled, linked, published, shown on a page and reopened', async ( {
 	page,
 	baseURL,
 } ) => {
@@ -94,8 +94,42 @@ test( 'a map is built, published, shown on a page and reopened', async ( {
 	await expect(
 		page.getByRole( 'button', { name: 'Publish', exact: true } )
 	).toBeDisabled();
+	// The later steps wait for the first area.
+	await expect(
+		page.getByRole( 'button', { name: '2 Style' } )
+	).toBeDisabled();
 
-	const title = `E2E map ${ Date.now() }`;
+	// A page named like the city, for auto-match to find. The stamp keeps reruns apart.
+	const stamp = Date.now();
+	// Pages left by an earlier run would make the match unclear, so they go to the trash first.
+	await page.evaluate( async ( name ) => {
+		const old = await window.wp.apiFetch( {
+			path: `/wp/v2/pages?per_page=100&search=${ encodeURIComponent(
+				name
+			) }`,
+		} );
+		for ( const post of old ) {
+			if ( post.title.rendered === name ) {
+				await window.wp.apiFetch( {
+					path: `/wp/v2/pages/${ post.id }`,
+					method: 'DELETE',
+				} );
+			}
+		}
+	}, CITY );
+	const cityPage = await page.evaluate(
+		( title ) =>
+			window.wp
+				.apiFetch( {
+					path: '/wp/v2/pages',
+					method: 'POST',
+					data: { title, status: 'publish', content: 'Area page.' },
+				} )
+				.then( ( p ) => ( { id: p.id, link: p.link } ) ),
+		CITY
+	);
+
+	const title = `E2E map ${ stamp }`;
 	await page.getByLabel( 'Map name' ).fill( title );
 	await addArea( page, CITY, {
 		expectClean: CITY === 'Gulfport' ? false : null,
@@ -117,41 +151,6 @@ test( 'a map is built, published, shown on a page and reopened', async ( {
 		.locator( '.mappulse__zone[data-zone="fisher-island"] path' )
 		.getAttribute( 'd' );
 	const rings = fisher.split( 'M' ).length - 1;
-	if ( rings > 4 ) {
-		// Say what the builder held, so a failure here can be understood from the log.
-		const rows = await page
-			.locator( '.mappulse-zone-row' )
-			.evaluateAll( ( list ) =>
-				list.map(
-					( row ) =>
-						`${
-							row.querySelector( 'input[type=text]' ).value
-						}: ${ [
-							...row.querySelectorAll( 'input[type=checkbox]' ),
-						]
-							.map(
-								( box ) =>
-									`${ box
-										.closest( '.components-toggle-control' )
-										.textContent.slice( 0, 14 ) }=${
-										box.checked
-									}`
-							)
-							.join( ', ' ) } | ${
-							(
-								row.querySelector(
-									'.mappulse-zone-row__warning'
-								) || {}
-							).textContent || ''
-						}`
-				)
-			);
-		throw new Error(
-			`Fisher Island is drawn with ${ rings } rings. Rows: ${ JSON.stringify(
-				rows
-			) }`
-		);
-	}
 	expect( rings ).toBeGreaterThanOrEqual( 1 );
 	expect( rings ).toBeLessThanOrEqual( CITY === 'Gulfport' ? 1 : 4 );
 
@@ -164,6 +163,95 @@ test( 'a map is built, published, shown on a page and reopened', async ( {
 			.getByLabel( 'Name on the map' )
 	).toHaveValue( 'Fisher Island' );
 	await expect( preview.locator( '.mappulse__zone' ) ).toHaveCount( 2 );
+
+	// Style: Brand Tint recolors the areas; a dashed border and the outline effect reach the drawing.
+	await page.getByRole( 'button', { name: '2 Style' } ).click();
+	await page.getByRole( 'button', { name: /^Brand Tint/ } ).click();
+	await expect(
+		page.getByRole( 'button', { name: /^Brand Tint/ } )
+	).toHaveAttribute( 'aria-pressed', 'true' );
+	const tinted = page
+		.locator( '.mappulse-preview__map .mappulse__zone path' )
+		.first();
+	await expect( tinted ).toHaveCSS( 'fill', 'rgb(165, 176, 191)', {
+		timeout: SLOW,
+	} );
+	await page.getByLabel( 'Border style' ).selectOption( 'dashed' );
+	await expect( tinted ).toHaveCSS( 'stroke-dasharray', /6px,? 4px/, {
+		timeout: SLOW,
+	} );
+
+	// Zones and links: auto-match links the city to its page; Fisher Island gets its own label, moved right.
+	await page.getByRole( 'button', { name: '3 Zones and links' } ).click();
+	await expect(
+		page.getByRole( 'heading', { name: '0 of 2 areas have a link' } )
+	).toBeVisible();
+	await page.getByRole( 'button', { name: 'Match areas to pages' } ).click();
+	await expect(
+		page.getByRole( 'heading', { name: '1 of 2 areas have a link' } )
+	).toBeVisible( { timeout: SLOW } );
+	const cityRow = page.locator( '.mappulse-link-row', {
+		has: page.getByRole( 'heading', { name: CITY, exact: true } ),
+	} );
+	await expect( cityRow.getByRole( 'link' ) ).toHaveAttribute(
+		'href',
+		cityPage.link
+	);
+
+	// A linked area is a real link in the preview. Clicking it must not leave the builder.
+	await page
+		.locator( '.mappulse-preview__map a.mappulse__zone' )
+		.click( { position: { x: 5, y: 5 }, force: true } );
+	await expect( page ).toHaveURL( /page=mappulse-builder/ );
+	await expect(
+		page.getByRole( 'heading', { name: '1 of 2 areas have a link' } )
+	).toBeVisible();
+
+	const islandRow = page.locator( '.mappulse-link-row', {
+		has: page.getByRole( 'heading', {
+			name: 'Fisher Island',
+			exact: true,
+		} ),
+	} );
+	await islandRow.getByLabel( 'Label on the map' ).fill( 'Fisher I.' );
+	const islandLabel = page.locator(
+		'.mappulse-preview__map .mappulse__label[data-zone="fisher-island"]'
+	);
+	await expect( islandLabel ).toHaveText( 'FISHER I.', { timeout: SLOW } );
+	const before = Number(
+		await islandLabel.locator( 'tspan' ).first().getAttribute( 'x' )
+	);
+	const right = islandRow.getByRole( 'button', {
+		name: /Move the label of Fisher Island right/,
+	} );
+	await right.click();
+	await right.click();
+	await expect
+		.poll(
+			async () =>
+				Number(
+					await islandLabel
+						.locator( 'tspan' )
+						.first()
+						.getAttribute( 'x' )
+				),
+			{ timeout: SLOW }
+		)
+		.toBeGreaterThan( before + 10 );
+	await expect(
+		islandRow.getByRole( 'button', { name: 'Reset position' } )
+	).toBeVisible();
+	// A pasted address that is not a web address is refused.
+	await islandRow
+		.getByPlaceholder( 'Search pages, or paste a web address' )
+		.fill( 'https://' );
+	await islandRow.getByRole( 'button', { name: 'Use this address' } ).click();
+	await expect(
+		islandRow.getByText( 'That is not a full web address' )
+	).toBeVisible();
+	await islandRow
+		.getByPlaceholder( 'Search pages, or paste a web address' )
+		.fill( '' );
 
 	const publish = page.getByRole( 'button', {
 		name: 'Publish',
@@ -195,7 +283,7 @@ test( 'a map is built, published, shown on a page and reopened', async ( {
 					path: '/wp/v2/pages',
 					method: 'POST',
 					data: {
-						title: 'E2E builder page',
+						title: 'E2E map holder',
 						status: 'publish',
 						content: `[mappulse id="${ id }"]`,
 					},
@@ -211,6 +299,29 @@ test( 'a map is built, published, shown on a page and reopened', async ( {
 		'Fisher Island',
 		CITY,
 	] );
+	// The city is a link to its page, on the map and in the list; the island is not a link.
+	await expect(
+		page.locator( '.mappulse svg a.mappulse__zone' )
+	).toHaveCount( 1 );
+	await expect(
+		page.locator( '.mappulse svg a.mappulse__zone' )
+	).toHaveAttribute( 'href', cityPage.link );
+	await expect( page.locator( '.mappulse__list a' ) ).toHaveAttribute(
+		'href',
+		cityPage.link
+	);
+	// The style and the hand-set label are on the page.
+	await expect(
+		page.locator( '.mappulse svg .mappulse__zone path' ).first()
+	).toHaveCSS( 'fill', 'rgb(165, 176, 191)' );
+	await expect(
+		page.locator( '.mappulse svg .mappulse__zone path' ).first()
+	).toHaveCSS( 'stroke-dasharray', /6px,? 4px/ );
+	await expect(
+		page.locator(
+			'.mappulse svg .mappulse__label[data-zone="fisher-island"]'
+		)
+	).toHaveText( 'FISHER I.' );
 	// No builder code reaches the front end.
 	expect(
 		await page
@@ -220,13 +331,57 @@ test( 'a map is built, published, shown on a page and reopened', async ( {
 			.count()
 	).toBe( 0 );
 
-	// Reopen: the areas come back from the saved map without searching again.
+	// The link follows the page when its address changes.
+	await page.goto( BUILDER );
+	await expect(
+		page.getByRole( 'heading', { name: 'Find an area' } )
+	).toBeVisible();
+	const moved = await page.evaluate(
+		( id ) =>
+			window.wp
+				.apiFetch( {
+					path: `/wp/v2/pages/${ id }`,
+					method: 'POST',
+					data: { slug: `moved-${ id }` },
+				} )
+				.then( ( p ) => p.link ),
+		cityPage.id
+	);
+	await page.goto( link );
+	await expect(
+		page.locator( '.mappulse svg a.mappulse__zone' )
+	).toHaveAttribute( 'href', moved );
+
+	// Reopen: the areas, style, link and label come back from the saved map without searching again.
 	await page.goto( `${ BUILDER }&map=${ mapId }` );
 	await expect( page.getByLabel( 'Map name' ) ).toHaveValue( title );
 	await expect( page.locator( '.mappulse-zone-row' ) ).toHaveCount( 2 );
 	await expect(
 		page.locator( '.mappulse-preview__map .mappulse__zone' )
 	).toHaveCount( 2 );
+	await expect( page.locator( '.mappulse-builder__status' ) ).toHaveText(
+		'Published'
+	);
+	await page.getByRole( 'button', { name: '2 Style' } ).click();
+	await expect(
+		page.getByRole( 'button', { name: /^Brand Tint/ } )
+	).toHaveAttribute( 'aria-pressed', 'true' );
+	await expect( page.getByLabel( 'Border style' ) ).toHaveValue( 'dashed' );
+	await page.getByRole( 'button', { name: '3 Zones and links' } ).click();
+	await expect(
+		page.getByRole( 'heading', { name: '1 of 2 areas have a link' } )
+	).toBeVisible();
+	await expect(
+		page
+			.locator( '.mappulse-link-row', {
+				has: page.getByRole( 'heading', {
+					name: 'Fisher Island',
+					exact: true,
+				} ),
+			} )
+			.getByLabel( 'Label on the map' )
+	).toHaveValue( 'Fisher I.' );
+	// Nothing was changed by looking, so there is nothing to save.
 	await expect( page.locator( '.mappulse-builder__status' ) ).toHaveText(
 		'Published'
 	);
@@ -267,15 +422,7 @@ test( 'a map is built, published, shown on a page and reopened', async ( {
 					.join( ' ' )
 			);
 		// eslint-disable-next-line no-console
-		console.log(
-			`LAYERS ${ layers } fisher-rings=${ rings } notes=${ JSON.stringify(
-				await page
-					.locator(
-						'.mappulse-preview__note, .mappulse-zone-row__warning'
-					)
-					.allTextContents()
-			) }`
-		);
+		console.log( `LAYERS ${ layers } fisher-rings=${ rings }` );
 		const shot = await both.screenshot( { type: 'jpeg', quality: 50 } );
 		// eslint-disable-next-line no-console
 		console.log( `SHOT ${ shot.toString( 'base64' ) }` );

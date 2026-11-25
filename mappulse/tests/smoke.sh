@@ -142,9 +142,9 @@ else
 fi
 
 # 15 The builder is compiled and its routes answer.
-BUILT=$(wp eval 'echo ( is_readable( MAPPULSE_DIR . "build/builder.js" ) && is_readable( MAPPULSE_DIR . "build/builder.asset.php" ) ) ? "built=yes" : "built=no"; echo " routes=" . count( array_filter( array_keys( rest_get_server()->get_routes() ), static function ( $r ) { return in_array( $r, array( "/mappulse/v1/maps", "/mappulse/v1/render" ), true ); } ) );')
+BUILT=$(wp eval 'echo ( is_readable( MAPPULSE_DIR . "build/builder.js" ) && is_readable( MAPPULSE_DIR . "build/builder.asset.php" ) ) ? "built=yes" : "built=no"; echo " routes=" . count( array_filter( array_keys( rest_get_server()->get_routes() ), static function ( $r ) { return in_array( $r, array( "/mappulse/v1/maps", "/mappulse/v1/render", "/mappulse/v1/links/search", "/mappulse/v1/links/match" ), true ); } ) );')
 [ "$(echo "$BUILT" | field built)" = "yes" ] || fail "15 the compiled builder is missing from the plugin folder (run npm run build in mappulse/)"
-[ "$(echo "$BUILT" | field routes)" = "2" ] || fail "15 the builder routes are not registered: $BUILT"
+[ "$(echo "$BUILT" | field routes)" = "4" ] || fail "15 the builder routes are not registered: $BUILT"
 pass "15 builder is compiled and its routes are registered"
 
 # 9

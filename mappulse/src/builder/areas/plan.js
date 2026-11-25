@@ -2,10 +2,12 @@
  * Decides what the builder must redo after a change. Kept free of React so it is tested in Node.
  */
 
-// Everything about the zones that changes the drawing. The title does not.
-export const signature = ( { zones, priority } ) =>
+// Everything that changes the shapes and where labels sit. The title does not, nor do colors or links.
+// The label size does: label boxes are sized from it.
+export const signature = ( { zones, priority, style } ) =>
 	JSON.stringify( [
 		priority,
+		Number( ( style && style.labelSize ) || 0 ),
 		zones.map( ( z ) => [
 			z.id,
 			z.source,
@@ -14,6 +16,27 @@ export const signature = ( { zones, priority } ) =>
 			z.type,
 			!! z.backdrop,
 			!! z.clean,
+		] ),
+	] );
+
+// Everything that changes what is drawn or stored: the above, plus the style and each area's link,
+// description and hand-set label.
+export const drawSignature = ( input ) =>
+	JSON.stringify( [
+		signature( input ),
+		input.style || {},
+		input.zones.map( ( z ) => [
+			z.link || '',
+			z.linkPost || 0,
+			z.text || '',
+			z.label
+				? [
+						z.label.text || '',
+						z.label.dx || 0,
+						z.label.dy || 0,
+						!! z.label.hidden,
+				  ]
+				: 0,
 		] ),
 	] );
 

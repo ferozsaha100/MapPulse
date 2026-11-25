@@ -292,6 +292,88 @@ describe( 'buildDocument', () => {
 		] );
 	} );
 
+	it( 'keeps a cleaned island solid inside a larger cleaned neighbour listed first', () => {
+		const around = zone(
+			'around',
+			'city',
+			feature( [
+				[
+					square( -80.16, 25.75, 0.03 )[ 0 ][ 0 ],
+					[
+						...square( -80.139, 25.7615, 0.0005 )[ 0 ][ 0 ],
+					].reverse(),
+				],
+			] ),
+			{ name: 'Around', clean: true }
+		);
+		const island = zone( 'fisher-island', 'city', fisher.features[ 0 ], {
+			name: 'Fisher Island',
+			clean: true,
+		} );
+		const { doc, warnings } = buildDocument( {
+			title: 't',
+			zones: [ around, island ],
+		} );
+		expect( count( doc.topology.zones[ 'fisher-island' ].d, 'M' ) ).toBe(
+			1
+		);
+		expect(
+			warnings.filter( ( w ) => w.zone === 'fisher-island' )
+		).toEqual( [] );
+	} );
+
+	it( 'gives each warning a code and no text of its own', () => {
+		const covered = zone(
+			'inner',
+			'zip',
+			feature( square( -82.719, 27.741, 0.006 ) )
+		);
+		const { warnings } = buildDocument( {
+			title: 't',
+			zones: [ hood(), covered ],
+			base: base(),
+		} );
+		expect( warnings[ 0 ] ).toEqual( {
+			zone: 'inner',
+			code: 'mostly_cut',
+		} );
+	} );
+
+	it( 'says when an area lies under mapped water', () => {
+		const pier = zone(
+			'pier',
+			'neighborhood',
+			feature( square( -82.85, 27.65, 0.01 ) )
+		);
+		const { doc, warnings } = buildDocument( {
+			title: 't',
+			zones: [ gulfportZone(), pier ],
+			base: base(),
+		} );
+		expect( warnings.find( ( w ) => w.zone === 'pier' ).code ).toBe(
+			'under_water'
+		);
+		expect( doc.topology.zones.pier.d ).not.toBe( '' );
+	} );
+
+	it( 'says when an area is too small to draw', () => {
+		const speck = zone(
+			'speck',
+			'neighborhood',
+			feature( square( -82.7, 27.74, 0.000002 ) )
+		);
+		const { doc, warnings } = buildDocument( {
+			title: 't',
+			zones: [ gulfportZone(), speck ],
+		} );
+		expect( warnings.find( ( w ) => w.zone === 'speck' ).code ).toBe(
+			'too_small'
+		);
+		expect( doc.zones.find( ( z ) => z.id === 'speck' ).hidden ).toBe(
+			true
+		);
+	} );
+
 	it( 'works without a base map and with no zones', () => {
 		expect(
 			buildDocument( { title: 't', zones: [], base: base() } )

@@ -8,12 +8,14 @@ import { reduce, initialState, toDocument, saveActions } from './store';
 import { loadMap, saveMap, messageOf } from './api';
 import { useDocument } from './areas/use-document';
 import AreasStep from './areas/areas-step';
+import StyleStep from './style/style-step';
+import LinksStep from './links/links-step';
 
 const STEPS = [
 	{ id: 'areas', label: __( 'Areas', 'mappulse' ), ready: true },
-	{ id: 'style', label: __( 'Style', 'mappulse' ) },
+	{ id: 'style', label: __( 'Style', 'mappulse' ), ready: true },
+	{ id: 'links', label: __( 'Zones and links', 'mappulse' ), ready: true },
 	{ id: 'decorate', label: __( 'Decorate', 'mappulse' ) },
-	{ id: 'links', label: __( 'Zones and links', 'mappulse' ) },
 	{ id: 'publish', label: __( 'Publish', 'mappulse' ) },
 ];
 
@@ -154,23 +156,60 @@ export default function App( { settings } ) {
 				aria-label={ __( 'Builder steps', 'mappulse' ) }
 			>
 				<ol>
-					{ STEPS.map( ( step, i ) => (
-						<li
-							key={ step.id }
-							className={ step.ready ? 'is-current' : 'is-later' }
-							aria-current={ step.ready ? 'step' : undefined }
-						>
-							<span className="mappulse-builder__step-number">
-								{ i + 1 }
-							</span>
-							{ step.label }
-							{ ! step.ready && (
-								<span className="mappulse-builder__soon">
-									{ __( 'Coming in 0.4', 'mappulse' ) }
-								</span>
-							) }
-						</li>
-					) ) }
+					{ STEPS.map( ( step, i ) => {
+						const current = state.step === step.id;
+						// The steps after Areas work on the map's areas, so they wait for the first one.
+						const open =
+							step.ready &&
+							( step.id === 'areas' || state.zones.length > 0 );
+						if ( ! step.ready ) {
+							return (
+								<li key={ step.id } className="is-later">
+									<span className="mappulse-builder__step-number">
+										{ i + 1 }
+									</span>
+									{ step.label }
+									<span className="mappulse-builder__soon">
+										{ __( 'Coming later', 'mappulse' ) }
+									</span>
+								</li>
+							);
+						}
+						return (
+							<li
+								key={ step.id }
+								className={ current ? 'is-current' : '' }
+							>
+								<button
+									type="button"
+									className="mappulse-builder__step"
+									aria-current={
+										current ? 'step' : undefined
+									}
+									disabled={ ! open }
+									title={
+										open
+											? undefined
+											: __(
+													'Add an area first',
+													'mappulse'
+											  )
+									}
+									onClick={ () =>
+										dispatch( {
+											type: 'SET_STEP',
+											step: step.id,
+										} )
+									}
+								>
+									<span className="mappulse-builder__step-number">
+										{ i + 1 }
+									</span>
+									{ step.label }
+								</button>
+							</li>
+						);
+					} ) }
 				</ol>
 			</nav>
 
@@ -197,13 +236,37 @@ export default function App( { settings } ) {
 				</p>
 			) }
 
-			{ state.loading ? (
+			{ state.blocked && (
+				<p className="mappulse-builder__loading">
+					{ __(
+						'Go back to the list of maps and open it again. Nothing was changed.',
+						'mappulse'
+					) }
+				</p>
+			) }
+			{ ! state.blocked && state.loading && (
 				<p className="mappulse-builder__loading">
 					<Spinner /> { __( 'Opening the map…', 'mappulse' ) }
 				</p>
-			) : (
+			) }
+			{ ! state.blocked && ! state.loading && state.step === 'areas' && (
 				<AreasStep
 					settings={ settings }
+					state={ state }
+					dispatch={ dispatch }
+					preview={ preview }
+				/>
+			) }
+			{ ! state.blocked && ! state.loading && state.step === 'style' && (
+				<StyleStep
+					settings={ settings }
+					state={ state }
+					dispatch={ dispatch }
+					preview={ preview }
+				/>
+			) }
+			{ ! state.blocked && ! state.loading && state.step === 'links' && (
+				<LinksStep
 					state={ state }
 					dispatch={ dispatch }
 					preview={ preview }

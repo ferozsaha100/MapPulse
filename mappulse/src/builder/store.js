@@ -5,6 +5,7 @@ import { toMP } from '../geometry/shapes';
 import { cleanAdvice, needsCleaning } from '../geometry/clean';
 import { slug } from '../geometry/labels';
 import { DEFAULT_PRIORITY } from '../geometry/overlaps';
+import { applyPreset } from './style/presets';
 
 export const initialState = ( settings = {} ) => ( {
 	mapId: settings.mapId || 0,
@@ -21,7 +22,16 @@ export const initialState = ( settings = {} ) => ( {
 	// A map made before the builder has no source boundaries, so its areas cannot be edited here.
 	legacy: false,
 	legacyZones: [],
+	// Set when a saved map could not be opened. Nothing can be edited or saved then, so it is not overwritten.
+	blocked: false,
+	// Counts changes, so a save knows whether anything changed while it was on its way.
+	revision: 0,
+	savingRevision: 0,
 	maxZones: settings.maxZones || 200,
+	// The builder's steps: areas, style, links.
+	step: 'areas',
+	styleDefaults: settings.styleDefaults || {},
+	style: { ...( settings.styleDefaults || {} ) },
 } );
 
 /**
@@ -44,6 +54,10 @@ export function zoneFromResult( result, feature ) {
 			properties: {},
 			geometry: feature.geometry,
 		},
+		link: '',
+		linkPost: 0,
+		text: '',
+		label: null,
 		backdrop: false,
 		clean: advice.recommended,
 		needsClean: advice.available,
@@ -63,7 +77,9 @@ export function zonesFromDocument( doc ) {
 		record: ( z.source && z.source.record ) || '',
 		parent: '',
 		link: z.link || '',
+		linkPost: z.linkPost || 0,
 		text: z.text || '',
+		label: z.label || null,
 		feature: { type: 'Feature', properties: {}, geometry: z.geometry },
 		backdrop: !! z.backdrop,
 		clean: !! z.clean,
@@ -89,7 +105,7 @@ export function saveActions( state, preview ) {
 		state.legacy ||
 		( state.zones.length > 0 && preview.current && ! preview.busy );
 	return {
-		canSave: !! state.doc && ! state.saving && drawn,
+		canSave: !! state.doc && ! state.saving && ! state.blocked && drawn,
 		// Saving a published map as a draft would take it off every page it is placed on.
 		showDraft: ! published,
 		primary: published ? 'update' : 'publish',
@@ -106,7 +122,28 @@ function uniqueId( name, zones ) {
 	return id;
 }
 
+export const STEPS = [ 'areas', 'style', 'links' ];
+
 export function reduce( state, action ) {
+	const next = step( state, action );
+	// Every action that marks the map as changed also counts as a change.
+	return next !== state && next.dirty && CHANGES.includes( action.type )
+		? { ...next, revision: state.revision + 1 }
+		: next;
+}
+
+const CHANGES = [
+	'ADD_ZONE',
+	'REMOVE_ZONE',
+	'MOVE_ZONE',
+	'SET_ZONE',
+	'SET_TITLE',
+	'SET_PRIORITY',
+	'SET_STYLE',
+	'APPLY_PRESET',
+];
+
+function step( state, action ) {
 	switch ( action.type ) {
 		case 'ADD_ZONE': {
 			if (
@@ -136,10 +173,39 @@ export function reduce( state, action ) {
 				error: '',
 			};
 		}
-		case 'REMOVE_ZONE':
+		case 'REMOVE_ZONE': {
+			const zones = state.zones.filter( ( z ) => z.id !== action.id );
+			// The other steps need an area to work on.
 			return {
 				...state,
-				zones: state.zones.filter( ( z ) => z.id !== action.id ),
+				zones,
+				dirty: true,
+				step: zones.length ? state.step : 'areas',
+			};
+		}
+		case 'SET_STEP':
+			if (
+				! STEPS.includes( action.step ) ||
+				( action.step !== 'areas' && ! state.zones.length )
+			) {
+				return state;
+			}
+			return { ...state, step: action.step };
+		case 'SET_STYLE':
+			return {
+				...state,
+				style: { ...state.style, ...action.patch },
+				dirty: true,
+			};
+		case 'APPLY_PRESET':
+			return {
+				...state,
+				style: applyPreset(
+					action.name,
+					state.style,
+					action.brand,
+					state.styleDefaults
+				),
 				dirty: true,
 			};
 		case 'MOVE_ZONE': {
@@ -193,6 +259,10 @@ export function reduce( state, action ) {
 					? map.document.priority
 					: DEFAULT_PRIORITY,
 				doc: map.document,
+				style: {
+					...state.styleDefaults,
+					...( map.document.style || {} ),
+				},
 				legacy,
 				legacyZones: legacy
 					? map.document.zones.map( ( z ) => ( {
@@ -207,12 +277,18 @@ export function reduce( state, action ) {
 			};
 		}
 		case 'SAVING':
-			return { ...state, saving: true, error: '' };
+			return {
+				...state,
+				saving: true,
+				error: '',
+				savingRevision: state.revision,
+			};
 		case 'SAVED':
 			return {
 				...state,
 				saving: false,
-				dirty: false,
+				// What was sent is saved. Anything changed since is not.
+				dirty: state.revision !== state.savingRevision,
 				mapId: action.mapId,
 				status: action.status,
 				error: '',
@@ -222,6 +298,7 @@ export function reduce( state, action ) {
 				...state,
 				saving: false,
 				loading: false,
+				blocked: state.blocked || state.loading,
 				error: action.message,
 			};
 		case 'CLEAR_ERROR':
