@@ -15,6 +15,7 @@
 		"heading": { "type": "string", "default": "" },
 		"intro": { "type": "string", "default": "" },
 		"showList": { "type": "boolean", "default": true },
+		"cards": { "type": "boolean", "default": true },
 		"anchor": { "type": "string" }
 	},
 	"supports": {
