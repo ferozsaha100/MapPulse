@@ -129,10 +129,10 @@ if [ "${MAPPULSE_LIVE:-}" = "1" ]; then
 	echo "$HOODS" | grep -qi 'kenwood' || fail "12 live neighborhood search found no Kenwood: $(echo "$HOODS" | tail -n 2 | cut -c1-300)"
 	pass "12 registered a city layer and found $(echo "$HOODS" | grep -Eo '"name":"[^"]*"' | wc -l | tr -d ' ') Kenwood neighborhoods"
 
-	BASE=$(wp eval-file "$SETUP" base "-82.75,27.72,-82.60,27.82" | grep -Eo 'base .*')
-	[ "$(echo "$BASE" | field status)" = "200" ] || fail "13 live base layers: $BASE"
-	[ "$(echo "$BASE" | field water)" -ge 1 ] && [ "$(echo "$BASE" | field roadsMajor)" -ge 1 ] || fail "13 live base layers are missing water or major roads: $BASE"
-	pass "13 live $BASE"
+	LAYERS=$(wp eval-file "$SETUP" base "-82.75,27.72,-82.60,27.82" | grep -Eo 'base .*')
+	[ "$(echo "$LAYERS" | field status)" = "200" ] || fail "13 live base layers: $LAYERS"
+	[ "$(echo "$LAYERS" | field water)" -ge 1 ] && [ "$(echo "$LAYERS" | field roadsMajor)" -ge 1 ] || fail "13 live base layers are missing water or major roads: $LAYERS"
+	pass "13 live $LAYERS"
 
 	ISLAND=$(wp mappulse find fisher --state=FL --type=city --format=json)
 	echo "$ISLAND" | grep -q '"name":"Fisher Island"' && echo "$ISLAND" | grep -q '"record":"cdp:12' || fail "14 live search did not find Fisher Island, FL as an unincorporated place: $(echo "$ISLAND" | tail -n 2 | cut -c1-300)"

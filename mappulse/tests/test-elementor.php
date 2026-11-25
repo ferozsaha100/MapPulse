@@ -124,6 +124,8 @@ class Test_Elementor extends MapPulse_Test_Case {
 				),
 			),
 		);
+		// Elementor reads its site settings (the kit) while it writes a page's stylesheet.
+		update_option( \Elementor\Core\Kits\Manager::OPTION_ACTIVE, \Elementor\Plugin::$instance->kits_manager->create_default() );
 		update_post_meta( $post_id, '_elementor_edit_mode', 'builder' );
 		update_post_meta( $post_id, '_elementor_data', wp_slash( wp_json_encode( $data ) ) );
 
