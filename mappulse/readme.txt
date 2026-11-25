@@ -3,7 +3,7 @@ Tags: map, real estate, neighborhoods, elementor, block
 Requires at least: 6.8
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.4.0
+Stable tag: 0.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -56,6 +56,14 @@ Administrators. The capability is `manage_mappulse_maps`.
 They are kept in the database.
 
 == Changelog ==
+
+= 0.5.0 =
+* New: hover cards. Give an area a photo, a tagline, up to two facts such as "Median price" and up to two buttons. The card opens beside the area on hover or keyboard focus, and as a sheet from the bottom of the screen on phones.
+* New: card colors in the Style step, and a switch to turn cards off per placement in the Elementor widget, the block and the shortcode (cards="no").
+* New: the Minimal Line preset.
+* Changed: Brand Tint gives areas a stronger tint, so they stand apart from water and the surrounding land.
+* Changed: choosing a new brand color keeps the colors you set by hand.
+* Fixed: a label you moved keeps its place when the map's frame changes size.
 
 = 0.4.0 =
 * New: the Style step. Two presets (Atlas, and Brand Tint from one brand color), every color editable with your site's colors offered first, label font and size, border width and style, and a fill or outline hover effect.

@@ -6,6 +6,7 @@ import { cleanAdvice, needsCleaning } from '../geometry/clean';
 import { slug } from '../geometry/labels';
 import { DEFAULT_PRIORITY } from '../geometry/overlaps';
 import { applyPreset } from './style/presets';
+import { editableCard } from './links/card';
 
 export const initialState = ( settings = {} ) => ( {
 	mapId: settings.mapId || 0,
@@ -58,6 +59,7 @@ export function zoneFromResult( result, feature ) {
 		linkPost: 0,
 		text: '',
 		label: null,
+		card: null,
 		backdrop: false,
 		clean: advice.recommended,
 		needsClean: advice.available,
@@ -80,6 +82,7 @@ export function zonesFromDocument( doc ) {
 		linkPost: z.linkPost || 0,
 		text: z.text || '',
 		label: z.label || null,
+		card: z.card ? editableCard( z.card ) : null,
 		feature: { type: 'Feature', properties: {}, geometry: z.geometry },
 		backdrop: !! z.backdrop,
 		clean: !! z.clean,

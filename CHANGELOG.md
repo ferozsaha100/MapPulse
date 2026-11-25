@@ -2,6 +2,29 @@
 
 All notable changes to MapPulse are recorded here. Versions follow semantic versioning.
 
+## 0.5.0 (hover card)
+
+- Hover card per area: image (media library), tagline (120 characters), up to two stats and up to two
+  buttons (a page or post that is followed like area links, or any http/https address). An area with a
+  card and a link and no button of its own gets a "View area" button.
+- Front end: the card opens beside the area on pointer hover and keyboard focus, stays inside the
+  window, closes on Escape, and Tab moves from the area into its buttons. On touch the first tap opens
+  the card as a bottom sheet and the second follows the link. Reduced motion is respected. The script
+  stays free of dependencies: 3.7 KB gzipped, stylesheet 2.3 KB (budgets 15 and 5, held by a test).
+- Builder: card fields under each area in Zones and links with "copy layout to all areas", a count of
+  areas with a card, the selected area's card shown under the preview; a "Hover card" color group in
+  Style.
+- Placement: `cards` argument (shortcode `cards="no"`, block "Hover cards" toggle, Elementor switcher),
+  and Elementor controls for card corner radius and shadow.
+- New document keys, all optional: zone `card` (`image`, `tagline`, `stats`, `buttons`), style
+  `cardBg`, `cardText`, `cardAccent`, label `scale`, frame `scale`. Still schema 1; a map without cards
+  renders byte-for-byte as before.
+- Carry-overs: Minimal Line preset; Brand Tint areas tinted more strongly and its surroundings tinted
+  from the highlight color; a new brand color keeps hand-set colors; a moved label is stored with the
+  frame scale and rescaled when the frame changes; the importer drops page and image IDs, which belong
+  to the site a map file came from.
+- Not yet: Decorate step (0.6.0), SVG import (0.7.0), drawing or uploading an area.
+
 ## 0.4.0 (builder, part 2: Style, Zones and links)
 
 - Style step: presets Atlas and Brand Tint (a full palette derived from one brand color), all thirteen

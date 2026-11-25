@@ -12,6 +12,7 @@ export default function MapPreview( {
 	selected = '',
 	onMoveLabel = null,
 	hint = '',
+	showCard = false,
 } ) {
 	const { svg, busy, error, baseNote } = preview;
 	const holder = useRef( null );
@@ -36,6 +37,18 @@ export default function MapPreview( {
 			);
 		}
 	}, [ selected, svg ] );
+
+	// Show the chosen area's hover card under the map, as the site will draw it.
+	useEffect( () => {
+		const root = holder.current;
+		if ( ! root ) {
+			return;
+		}
+		root.querySelectorAll( '.mappulse__card' ).forEach( ( card ) => {
+			card.hidden =
+				! showCard || card.getAttribute( 'data-zone' ) !== selected;
+		} );
+	}, [ selected, svg, showCard ] );
 
 	// A linked area is a real link in the drawing. In the builder a click on it must not leave the page.
 	useEffect( () => {

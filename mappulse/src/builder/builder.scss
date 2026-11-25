@@ -604,3 +604,77 @@
 	cursor: grab;
 	touch-action: none;
 }
+
+/* Card fields in a link row. */
+.mappulse-link-row__card {
+	display: grid;
+	gap: 8px;
+	justify-items: start;
+}
+
+.mappulse-card-fields {
+	display: grid;
+	gap: 12px;
+	width: 100%;
+	padding: 12px;
+	border: 1px solid #dcdcde;
+	background: #fff;
+
+	&__photo {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 8px;
+
+		img {
+			width: 96px;
+			height: 54px;
+			object-fit: cover;
+			border: 1px solid #dcdcde;
+		}
+	}
+
+	&__missing {
+		color: #b32d2e;
+		font-size: 12px;
+	}
+
+	&__group {
+		display: grid;
+		gap: 8px;
+		margin: 0;
+		padding: 0;
+		border: 0;
+
+		legend {
+			padding: 0;
+			font-weight: 600;
+		}
+	}
+
+	&__pair {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
+	}
+
+	&__button {
+		display: grid;
+		gap: 6px;
+		padding-bottom: 8px;
+		border-bottom: 1px solid #f0f0f1;
+	}
+}
+
+/* In the preview, the chosen area's card sits under the map instead of floating. */
+.mappulse-preview__map .mappulse__cards {
+	display: flex;
+	justify-content: center;
+	margin-top: 16px;
+}
+
+.mappulse-preview__map .mappulse__card {
+	position: static;
+	opacity: 1;
+	max-height: none;
+}

@@ -6,9 +6,10 @@ MapPulse is a WordPress plugin in development. It shows the areas an agent or br
 interactive map, where every neighborhood, city or ZIP area links to its area page or property search.
 The map is placed with an Elementor widget, a Gutenberg block or a shortcode.
 
-> **Status: version 0.4.0, early release.** The plugin installs, renders maps through all three
-> placements, and finds real boundaries from inside WordPress. Maps are still added from a map file:
-> the visual map builder is the next version. A real sample map of St. Petersburg, Florida is included.
+> **Status: version 0.5.0, early release.** Maps are built in the visual builder from real boundaries,
+> styled, linked, given hover cards, and placed with the Elementor widget, the block or the shortcode.
+> Decoration (icons, compass, legend) and SVG import are next. A real sample map of St. Petersburg,
+> Florida is included.
 
 ## Install and try it
 
@@ -27,7 +28,7 @@ The map is placed with an Elementor widget, a Gutenberg block or a shortcode.
 | Shortcode | `[mappulse id="12" layout="list-left" heading="Explore the area"]` |
 
 Layouts are `list-left`, `list-right`, `list-below` and `map-only`. The shortcode also takes
-`intro="..."` and `list="no"`.
+`intro="..."`, `list="no"` and `cards="no"` (leaves the hover cards out of that placement).
 
 ### Styling
 
@@ -45,7 +46,9 @@ overridden on the map or on a parent element:
 Available: `--mappulse-zone`, `--mappulse-zone-stroke`, `--mappulse-zone-hover`, `--mappulse-label`,
 `--mappulse-label-hover`, `--mappulse-water`, `--mappulse-coast`, `--mappulse-land`,
 `--mappulse-context`, `--mappulse-context-stroke`, `--mappulse-road`, `--mappulse-road-casing`,
-`--mappulse-water-label`, `--mappulse-font` and `--mappulse-max-height`.
+`--mappulse-water-label`, `--mappulse-font` and `--mappulse-max-height`. For hover cards:
+`--mappulse-card-background`, `--mappulse-card-text`, `--mappulse-card-button`,
+`--mappulse-card-button-text`, `--mappulse-card-radius` and `--mappulse-card-shadow`.
 
 ### Linking areas
 
@@ -57,7 +60,8 @@ file again:
 { "id": "downtown", "name": "Downtown", "link": "/neighborhoods/downtown/" }
 ```
 
-The map builder will replace this step.
+This applies to maps imported from a file. Maps made in the builder are linked in its Zones and links
+step.
 
 ### Building a map
 
@@ -87,6 +91,11 @@ The map builder will replace this step.
   area. "Match areas to pages" links each area to the page with its name and asks you where two pages
   fit. A link to a page follows the page if its address changes. Each label can get its own text, be
   hidden, or be moved by dragging it or with the arrow buttons.
+- **Hover card**: under each area in Zones and links. A photo from the media library, a tagline, up to
+  two facts such as "Median price", and up to two buttons. An area with a link and no button of its own
+  gets a "View area" button. "Copy layout to all areas" repeats the fact names and button names so only
+  the values are left to fill in. The card opens on hover and keyboard focus, and from the bottom of the
+  screen on a phone, where the first tap opens it and the second follows the link.
 - A map imported from a file opens in the builder read-only, because the file does not hold the
   boundaries its areas came from.
 
@@ -111,7 +120,7 @@ saves each answer for 30 days. (The builder also loads OpenStreetMap street tile
   Maps of one metro area work best.
 - On a phone the map scales down with the screen, so the labels of a detailed map are too small to read.
   The area list stays readable and usable. Pan and zoom are planned for the Polish phase.
-- Hover cards, decoration, a compass and a legend are not built yet. A label font is used by name; it
+- Decoration, a compass and a legend are not built yet. A label font is used by name; it
   shows on the site only when the theme already loads that font.
 - This version is for testing. It is not meant for a live client site yet.
 
@@ -238,7 +247,7 @@ See [`spike/README.md`](spike/README.md) for the configuration file and what the
 | Phase | Delivers | Exit check |
 | --- | --- | --- |
 | 0 Spike | One real market rebuilt by script as a full-context SVG | No gaps, no overlaps, look approved |
-| 1 Core build | Plugin skeleton, map storage, renderer, shortcode, Elementor widget, Gutenberg block (0.1.0) and the boundary service (0.2.x), the builder's Areas step with the base map (0.3.0) and its Style and Zones and links steps (0.4.0) are done. Left from the spec's Phase 1 list: the hover card | A map made in the builder is live through all three placements |
+| 1 Core build | Plugin skeleton, map storage, renderer, shortcode, Elementor widget, Gutenberg block (0.1.0) and the boundary service (0.2.x), the builder's Areas step with the base map (0.3.0) and its Style and Zones and links steps (0.4.0) and the hover card (0.5.0) are done | A map made in the builder is live through all three placements |
 | 2 Decorate | Icon library, labels, compass, legend, clickable landmarks, SVG import | A decorated generated map and an imported hand-drawn map both render correctly |
 | 3 Polish | Phone pan and zoom, bottom sheet, keyboard access, crawlable list, performance budgets, compatibility matrix | Budgets met and the matrix passes |
 | 4 Release | Migration of existing maps, user guide, packaging, version 1.0.0 | 1.0 running on production sites |

@@ -271,6 +271,8 @@ class Builder_Screen {
 		}
 		// The preview draws the real front-end map, so it needs the front-end stylesheet.
 		wp_enqueue_style( 'mappulse' );
+		// The card's photo is chosen from the media library.
+		wp_enqueue_media();
 	}
 
 	/**

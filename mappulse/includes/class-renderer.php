@@ -343,7 +343,10 @@ class Renderer {
 			}
 		}
 
-		$html = '<section class="mappulse mappulse--' . esc_attr( $layout ) . $hover . '" data-mappulse style="' . esc_attr( implode( ';', $variables ) ) . '">';
+		// The view script adds a Close button to a card shown as a sheet. Its label is given here so it can be translated.
+		$close = $cards ? ' data-close-label="' . esc_attr__( 'Close', 'mappulse' ) . '"' : '';
+
+		$html = '<section class="mappulse mappulse--' . esc_attr( $layout ) . $hover . '" data-mappulse' . $close . ' style="' . esc_attr( implode( ';', $variables ) ) . '">';
 		if ( '' !== $heading ) {
 			$html .= '<h2 class="mappulse__heading">' . esc_html( $heading ) . '</h2>';
 		}

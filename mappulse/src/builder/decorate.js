@@ -12,6 +12,7 @@
  * @return A new document; the one given is left as it was.
  */
 import { atScale } from './links/label-offset';
+import { cleanCard } from './links/card';
 
 export function decorate( doc, { style = {}, zones = [] } ) {
 	if ( ! doc ) {
@@ -26,7 +27,12 @@ export function decorate( doc, { style = {}, zones = [] } ) {
 			if ( ! zone ) {
 				return stored;
 			}
-			const { linkPost, label: oldLabel, ...rest } = stored;
+			const {
+				linkPost,
+				label: oldLabel,
+				card: oldCard,
+				...rest
+			} = stored;
 			const next = {
 				...rest,
 				link: zone.link || '',
@@ -55,6 +61,10 @@ export function decorate( doc, { style = {}, zones = [] } ) {
 				if ( label.scale > 0 ) {
 					next.label.scale = label.scale;
 				}
+			}
+			const card = cleanCard( zone.card );
+			if ( card ) {
+				next.card = card;
 			}
 			return next;
 		} ),
